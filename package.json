@@ -1,0 +1,15 @@
+{
+  "name": "neon-santos",
+  "version": "1.0.0",
+  "description": "Social casino web app (credits virtuels) pour serveur GTA RP - frontend + API + DB",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=22.5.0" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "bcryptjs": "^2.4.3"
+  }
+}
