@@ -51,7 +51,6 @@ async function api(path, method = 'GET', body) {
   let data = {}; try { data = await res.json(); } catch (e) {}
   if (res.status === 401 && path !== '/login') {
     TOKEN = null; USER = null; localStorage.removeItem('ns_token');
-    stopChatPoll();
     $('mainView').classList.add('hidden');
     $('adminPanel').classList.add('hidden');
     $('appWrap').classList.remove('hidden');
@@ -87,7 +86,7 @@ function setBalance(b, win, xp, level) {
 function int(id) { const n = Math.floor(+$(id).value); return Number.isFinite(n) && n > 0 ? n : 0; }
 function qbet(id, op) { const el = $(id); let v = Math.floor(+el.value) || 0; if (op === 'half') v = Math.max(1, Math.floor(v/2)); else if (op === 'double') v *= 2; else if (op === 'max') v = Math.floor(USER ? USER.credit : 0); el.value = Math.max(1, v); }
 
-/* ── XP topbar ────────────────────────────────────────────── */
+/* ── XP sidebar ───────────────────────────────────────────── */
 function updateXP(xp, level) {
   if (USER) { USER.xp = xp; USER.level = level; }
   $('xpLevel').textContent = level;
@@ -181,10 +180,6 @@ async function doRegister() {
 async function logout() {
   try { await api('/logout', 'POST'); } catch (e) {}
   TOKEN = null; USER = null; localStorage.removeItem('ns_token');
-  stopChatPoll();
-  $('chatToggleBtn').classList.add('hidden');
-  $('chatPanel').classList.add('hidden');
-  $('chatToggleBtn').classList.remove('open');
   $('appWrap').classList.remove('hidden');
   $('mainView').classList.add('hidden');
   $('adminPanel').classList.add('hidden');
@@ -205,7 +200,6 @@ async function enter() {
     $('mainView').classList.remove('hidden');
     $('whoName').textContent = USER.username;
     $('whoBadge').innerHTML  = '';
-    $('chatToggleBtn').classList.remove('hidden');
     refreshBal();
     updateXP(USER.xp || 0, USER.level || 1);
     buildMinesGrid();
@@ -295,20 +289,44 @@ async function renderHome() {
   if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
   try {
     const top = (await api('/leaderboard')).top;
-    let rows = '<tr><th style="width:36px">#</th><th>Joueur</th><th>Nv.</th><th>Crédits</th></tr>';
-    if (!top.length) rows += '<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:16px">Aucun joueur pour l\'instant.</td></tr>';
-    top.slice(0, 5).forEach((p, i) => {
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
-      rows += '<tr>'
-        + '<td style="font-size:16px">' + medal + '</td>'
-        + '<td><b>' + esc(p.name) + '</b>' + (p.name === USER.username ? ' <span style="color:var(--v-lt)">(vous)</span>' : '') + (p.admin ? ' <span class="adminbadge">A</span>' : '') + '</td>'
-        + '<td style="color:var(--dim)">' + (p.level || 1) + '</td>'
-        + '<td style="color:var(--gold);font-family:var(--display);font-size:18px">' + fmt(p.credit) + '</td>'
-        + '</tr>';
+    if (!top.length) { wrap.innerHTML = '<p style="color:var(--tx-3);padding:16px">Aucun joueur pour l\'instant.</p>'; return; }
+
+    // Podium top 3
+    const podiumOrder = [top[1], top[0], top[2]].filter(Boolean); // 2nd, 1st, 3rd
+    const podiumClass = ['p2','p1','p3'];
+    const podiumRank  = [2, 1, 3];
+
+    let podiumHtml = '<div class="podium">';
+    podiumOrder.forEach((p, i) => {
+      const isMine = p && p.name === USER.username;
+      podiumHtml += '<div class="podium-place ' + podiumClass[i] + (isMine ? ' is-me' : '') + '">'
+        + (podiumRank[i] === 1 ? '<div class="podium-crown">♛</div>' : '')
+        + '<div class="podium-name">' + esc(p.name) + '</div>'
+        + '<div class="podium-won">' + fmt(p.won || 0) + ' <span class="podium-coin">🪙</span></div>'
+        + '<div class="podium-block"><span>' + podiumRank[i] + '</span></div>'
+        + '</div>';
     });
-    if (wrap) wrap.innerHTML = '<table id="homeLeaderTable">' + rows + '</table>';
+    podiumHtml += '</div>';
+
+    // Reste 4-10
+    let tableHtml = '';
+    if (top.length > 3) {
+      tableHtml = '<table class="leader-table"><thead><tr><th>#</th><th>Joueur</th><th>Nv.</th><th>Gains</th></tr></thead><tbody>';
+      top.slice(3).forEach((p, i) => {
+        const isMine = p.name === USER.username;
+        tableHtml += '<tr' + (isMine ? ' class="is-me-row"' : '') + '>'
+          + '<td>' + (i + 4) + '</td>'
+          + '<td>' + esc(p.name) + (isMine ? ' <span style="color:var(--v-300)">(vous)</span>' : '') + '</td>'
+          + '<td style="color:var(--tx-3)">' + (p.level || 1) + '</td>'
+          + '<td style="color:var(--gold);font-family:var(--display)">' + fmt(p.won || 0) + '</td>'
+          + '</tr>';
+      });
+      tableHtml += '</tbody></table>';
+    }
+
+    if (wrap) wrap.innerHTML = podiumHtml + tableHtml;
   } catch (e) {
-    if (wrap) wrap.innerHTML = '<p style="color:var(--dim);padding:16px">Impossible de charger le classement.</p>';
+    if (wrap) wrap.innerHTML = '<p style="color:var(--tx-3);padding:16px">Impossible de charger le classement.</p>';
   }
 }
 
@@ -337,43 +355,6 @@ async function loadHistory() {
     });
     $('historyTable').innerHTML = rows;
   } catch (e) {}
-}
-
-/* ── Chat joueurs ─────────────────────────────────────────── */
-let _chatInterval = null, _chatLastTs = 0, _chatOpen = false;
-
-function toggleChat() {
-  _chatOpen = !_chatOpen;
-  $('chatPanel').classList.toggle('hidden', !_chatOpen);
-  $('chatToggleBtn').classList.toggle('open', _chatOpen);
-  if (_chatOpen) { _chatLastTs = 0; startChatPoll(); }
-  else stopChatPoll();
-}
-function startChatPoll() { loadChat(); clearInterval(_chatInterval); _chatInterval = setInterval(loadChat, 3000); }
-function stopChatPoll()  { clearInterval(_chatInterval); _chatInterval = null; }
-
-async function loadChat() {
-  try {
-    const d = await api('/chat?since=' + _chatLastTs);
-    if (!d.messages.length) return;
-    const box = $('chatMsgs');
-    const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 10;
-    d.messages.forEach(m => {
-      _chatLastTs = Math.max(_chatLastTs, m.ts);
-      const div  = document.createElement('div');
-      div.className = 'chat-msg';
-      div.innerHTML = '<span class="chat-who' + (m.is_admin ? ' is-admin' : '') + '">' + esc(m.username) + '</span> ' + esc(m.msg);
-      box.appendChild(div);
-    });
-    if (atBottom) box.scrollTop = box.scrollHeight;
-  } catch (e) {}
-}
-async function sendChat() {
-  const inp = $('chatInput'), msg = inp.value.trim();
-  if (!msg) return;
-  inp.value = '';
-  try { await api('/chat', 'POST', { msg }); await loadChat(); }
-  catch (e) { toast(e.message); }
 }
 
 /* ══════════════════ SLOTS ══════════════════════════════ */

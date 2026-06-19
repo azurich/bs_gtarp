@@ -54,32 +54,14 @@
     <!-- ═══════════ MAIN APP ═══════════ -->
     <div id="mainView" class="hidden">
 
-      <!-- TOPBAR -->
-      <header class="topbar">
-        <div class="tb-left">
-          <div class="logo">Black<span>State</span></div>
-        </div>
-        <div class="tb-right">
-          <div class="xp-topbar">
-            <span class="xp-lvl-badge">Nv.<b id="xpLevel">1</b></span>
-            <div class="xp-track" title="XP vers le prochain niveau">
-              <div id="xpFill" class="xp-fill"></div>
-            </div>
-          </div>
-          <div id="balBox" class="balance">
-            <div class="coin"></div>
-            <span class="bignum" id="balVal">0</span>
-          </div>
-          <div class="who"><b id="whoName"></b> <span id="whoBadge"></span></div>
-          <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
-        </div>
-      </header>
-
       <!-- BODY -->
       <div class="main-layout">
 
         <!-- SIDEBAR -->
         <nav class="sidebar">
+          <div class="sidebar-logo">
+            <div class="logo">Black<span>State</span></div>
+          </div>
           <div class="nav-section">
             <button class="nav-item active" data-v="home" onclick="switchTab('home')">
               <span class="ni"><i data-lucide="house"></i></span><span>Accueil</span>
@@ -115,6 +97,20 @@
             <button class="nav-item" data-v="profil" onclick="switchTab('profil')">
               <span class="ni"><i data-lucide="user"></i></span><span>Profil</span><span id="bonusBadge" class="nav-badge hidden">!</span>
             </button>
+          </div>
+          <div class="sidebar-user">
+            <div id="balBox" class="balance">
+              <div class="coin"></div>
+              <span class="bignum" id="balVal">0</span>
+            </div>
+            <div class="xp-sidebar">
+              <span class="xp-lvl-badge">Nv.<b id="xpLevel">1</b></span>
+              <div class="xp-track" title="XP vers le prochain niveau">
+                <div id="xpFill" class="xp-fill"></div>
+              </div>
+            </div>
+            <div class="who"><b id="whoName"></b> <span id="whoBadge"></span></div>
+            <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
           </div>
         </nav>
 
@@ -461,9 +457,6 @@
         </div><!-- /content-wrap -->
       </div><!-- /main-layout -->
 
-      <button id="chatToggleBtn" class="chat-toggle hidden" onclick="toggleChat()" title="Chat joueurs">
-        <i data-lucide="message-circle"></i>
-      </button>
     </div><!-- /mainView -->
   </div><!-- /app #appWrap -->
 
@@ -594,19 +587,6 @@
         <button class="btn" onclick="confirmModal()">Confirmer</button>
         <button class="btn ghost" onclick="closeModal()">Annuler</button>
       </div>
-    </div>
-  </div>
-
-  <!-- CHAT -->
-  <div id="chatPanel" class="chat-panel hidden">
-    <div class="chat-head">
-      <span>Chat en direct</span>
-      <button class="chat-close" onclick="toggleChat()"><i data-lucide="x"></i></button>
-    </div>
-    <div id="chatMsgs" class="chat-msgs"></div>
-    <div class="chat-input-row">
-      <input id="chatInput" type="text" placeholder="Votre message…" maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
-      <button onclick="sendChat()"><i data-lucide="send"></i></button>
     </div>
   </div>
 
