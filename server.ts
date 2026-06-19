@@ -339,10 +339,11 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const s = getSettings().slots
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r = G.playSlots(bet, s.bias, s.payout)
-      payout(u, r.gain, 'slots'); awardXP(u.id, bet)
-      recordHistory(u.id, 'slots', bet, r.gain, r.reels.join('|'))
-      return { reels: r.reels, gain: r.gain, ...userSnapshot(u.id) }
+      const r    = G.playSlots(bet, s.bias, s.payout)
+      const gain = Math.min(r.gain, bet * 40)   // plafond à 40× la mise
+      payout(u, gain, 'slots'); awardXP(u.id, bet)
+      recordHistory(u.id, 'slots', bet, gain, r.reels.join('|'))
+      return { reels: r.reels, gain, ...userSnapshot(u.id) }
     })
 
     .post('/api/play/plinko', ({ body, user, set }) => {
@@ -365,10 +366,11 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const s = getSettings().wheel
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r = G.playWheel(bet, s.bias, s.payout)
-      payout(u, r.gain, 'wheel'); awardXP(u.id, bet)
-      recordHistory(u.id, 'wheel', bet, r.gain, `x${r.mult}`)
-      return { index: r.index, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
+      const r    = G.playWheel(bet, s.bias, s.payout)
+      const gain = Math.min(r.gain, bet * 40)   // plafond à 40× la mise
+      payout(u, gain, 'wheel'); awardXP(u.id, bet)
+      recordHistory(u.id, 'wheel', bet, gain, `x${r.mult}`)
+      return { index: r.index, mult: r.mult, gain, ...userSnapshot(u.id) }
     })
 
     .post('/api/play/dice', ({ body, user, set }) => {
@@ -390,6 +392,8 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      const existing = activeBJ.get(u.id)
+      if (existing?.live) { set.status = 400; return { error: 'Une partie de Blackjack est déjà en cours.' } }
       const s    = getSettings().blackjack
       if (!charge(u, bet, 'blackjack')) { set.status = 400; return { error: 'Crédits insuffisants' } }
       const deck = G.freshDeck()
@@ -426,6 +430,8 @@ const app = new Elysia()
       const b     = body as any
       const bet   = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      const existingMines = activeMines.get(u.id)
+      if (existingMines?.live) { set.status = 400; return { error: 'Une partie de Démineur est déjà en cours.' } }
       const bombs = Math.max(1, Math.min(24, Math.floor(Number(b.bombs) || 5)))
       const s     = getSettings().mines
       if (!charge(u, bet, 'mines')) { set.status = 400; return { error: 'Crédits insuffisants' } }

@@ -81,12 +81,12 @@ addCol('users', 'level', 'INTEGER NOT NULL DEFAULT 1')
 
 /* ── paramètres par défaut ────────────────────────────────── */
 const DEFAULT_SETTINGS: Record<string, { bias: number; payout: number }> = {
-  slots    : { bias: 35, payout: 100 },
-  blackjack: { bias: 48, payout: 100 },
-  mines    : { bias: 45, payout: 100 },
-  plinko   : { bias: 40, payout: 100 },
-  wheel    : { bias: 40, payout: 100 },
-  dice     : { bias: 45, payout:  97 },
+  slots    : { bias: 17, payout: 93 },   // HE ~7%  (SLOT_PAY réduit: 7️⃣=20x, 💎=8x)
+  blackjack: { bias: 46, payout: 96 },   // HE ~5-7% (croupier légèrement avantagé)
+  mines    : { bias: 50, payout: 95 },   // HE ~5%+  (rake structurel 0.97/case + payout)
+  plinko   : { bias: 25, payout: 93 },   // HE ~4% low, ~18% med, ~29% high
+  wheel    : { bias: 13, payout: 96 },   // HE ~3%  (table redessinée, 50x supprimé)
+  dice     : { bias: 48, payout: 97 },   // HE ~3%  (structurel via payout)
 }
 const seedSetting = db.prepare('INSERT OR IGNORE INTO settings (game, bias, payout) VALUES (?,?,?)')
 for (const g in DEFAULT_SETTINGS) {

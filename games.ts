@@ -29,7 +29,7 @@ export const scale   = (amount: number, payout?: number) =>
 
 /* ---------------- SLOTS ---------------- */
 const SYM      = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐']
-const SLOT_PAY: Record<string, number> = { '7️⃣': 50, '💎': 25, '🔔': 12, '🍒': 8, '⭐': 5, '🍋': 5 }
+const SLOT_PAY: Record<string, number> = { '7️⃣': 20, '💎': 8, '🔔': 3, '🍒': 2, '⭐': 1.5, '🍋': 1.5 }
 
 function fill3(s: string): string[]  { return [s, s, s] }
 function twoOfKind(): string[] {
@@ -64,9 +64,9 @@ export function playSlots(bet: number, bias: number, payout: number) {
 
 /* ---------------- PLINKO ---------------- */
 export const PK_MULT: Record<string, number[]> = {
-  low:  [2.1, 1.6, 1.3, 1.1, 1, 0.7, 0.5, 0.7, 1, 1.1, 1.3, 1.6, 2.1],
-  med:  [8.1, 3, 1.6, 1, 0.7, 0.4, 0.3, 0.4, 0.7, 1, 1.6, 3, 8.1],
-  high: [26, 8, 3, 1.2, 0.5, 0.3, 0.2, 0.3, 0.5, 1.2, 3, 8, 26],
+  low:  [1.85, 1.41, 1.14, 0.97, 0.88, 0.62, 0.44, 0.62, 0.88, 0.97, 1.14, 1.41, 1.85],
+  med:  [3, 2, 1.2, 0.6, 0.3, 0.1, 0.05, 0.1, 0.3, 0.6, 1.2, 2, 3],
+  high: [3.0, 1.8, 1.0, 0.35, 0.08, 0.02, 0.01, 0.02, 0.08, 0.35, 1.0, 1.8, 3.0],
 }
 function weightedBin(mult: number[], fav: boolean): number {
   const w   = mult.map(m => fav ? Math.pow(m, 1.4) + 0.05 : 1 / (Math.pow(m, 1.1) + 0.2))
@@ -83,7 +83,7 @@ export function playPlinko(bet: number, risk: string, bias: number, payout: numb
 }
 
 /* ---------------- WHEEL ---------------- */
-export const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 10, 50]
+export const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 0, 10]
 function pickWheelSeg(fav: boolean): number {
   const w   = WHEEL.map(m => fav ? Math.pow(m + 0.3, 1.35) : 1 / (Math.pow(m, 1.25) + 0.35))
   const tot = w.reduce((a, b) => a + b, 0)
