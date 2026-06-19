@@ -1,0 +1,241 @@
+/* ══════════════════════════════════════════════════════════
+   BLACKSTATE — Responsive & Mobile
+   Breakpoints: 1200px (xl), 960px (lg), 860px (md), 640px (sm), 480px (xs), 380px (2xs)
+══════════════════════════════════════════════════════════ */
+
+/* ── LAYOUT PRINCIPAL ─────────────────────────────────── */
+@media(max-width:860px){
+  #mainView{height:auto;min-height:100vh;overflow:visible}
+  .main-layout{flex-direction:column;overflow:visible}
+  .content-wrap{overflow-y:visible;min-height:auto}
+  .view-inner{padding:16px}
+}
+
+/* ── TOPBAR RESPONSIVE ────────────────────────────────── */
+@media(max-width:860px){
+  .topbar{height:48px;padding:0 14px}
+  .topbar .logo{font-size:1.3rem}
+}
+@media(max-width:640px){
+  .who{display:none}
+  .xp-topbar{display:none}
+  .balance{padding:.3rem .7rem}
+  .balance .bignum{font-size:1rem}
+}
+
+/* ── SIDEBAR MOBILE (barre horizontale) ──────────────── */
+@media(max-width:860px){
+  .sidebar{
+    width:100%;flex-direction:row;height:auto;
+    padding:4px 8px;gap:2px;
+    overflow-x:auto;overflow-y:hidden;
+    border-right:none;border-bottom:1px solid rgba(91,33,182,.15);
+    background:linear-gradient(90deg,#0a0818,#06050f);
+    scrollbar-width:none;
+    position:relative;
+  }
+  .sidebar::before{display:none}
+  .sidebar::-webkit-scrollbar{display:none}
+  .nav-section{flex-direction:row;gap:2px}
+  .nav-section-label{display:none}
+  .nav-spacer{display:none}
+  .nav-divider{
+    width:1px;height:20px;margin:0 3px;
+    align-self:center;background:rgba(91,33,182,.3);
+  }
+  .nav-item{padding:6px 10px;gap:7px;font-size:.8rem;white-space:nowrap;border-radius:6px}
+  .nav-item.active::before{
+    top:auto;bottom:0;left:50%;transform:translateX(-50%);
+    width:20px;height:2px;border-radius:2px 2px 0 0;
+  }
+  .ni{width:15px;height:15px}
+  .ni svg.lucide{width:14px;height:14px}
+  /* Sidebar user block masqué sur mobile */
+  .sidebar-logo,.sidebar-user{display:none}
+}
+@media(max-width:480px){
+  .nav-item span:not(.ni){display:none}
+  .nav-item{padding:8px;gap:0;min-width:36px;justify-content:center}
+  .nav-item.active::before{display:none}
+}
+
+/* ── HOME PAGE ────────────────────────────────────────── */
+@media(max-width:860px){
+  .home-hero{flex-direction:column;gap:12px}
+  .home-hero .btn{width:100%}
+  .home-welcome{font-size:1.3rem}
+  .home-username{font-size:1.8rem}
+}
+@media(max-width:600px){
+  .home-stats{grid-template-columns:repeat(2,1fr)}
+  .home-games{grid-template-columns:repeat(3,1fr);gap:8px}
+  .hg-icon svg.lucide{width:28px;height:28px}
+  .hg-name{font-size:.9rem}
+  .hg-desc{font-size:.65rem}
+}
+@media(max-width:380px){
+  .home-stats{grid-template-columns:1fr}
+  .home-games{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── PODIUM ───────────────────────────────────────────── */
+@media(max-width:480px){
+  .podium{gap:4px}
+  .podium-name{font-size:.85rem;max-width:90px}
+  .podium-won{font-size:.7rem}
+  .p1 .podium-block{height:70px;font-size:1.6rem}
+  .p2 .podium-block{height:52px;font-size:1.3rem}
+  .p3 .podium-block{height:40px;font-size:1.1rem}
+}
+
+/* ── JEUX — GÉNÉRAL ───────────────────────────────────── */
+@media(max-width:640px){
+  .game-head h2{font-size:1.8rem}
+  .game-head .sub{font-size:.7rem}
+  .bet-row{gap:8px}
+  .card{padding:16px}
+}
+
+/* ── SLOTS ────────────────────────────────────────────── */
+@media(max-width:480px){
+  .reels{gap:10px;padding:12px}
+  .reel{width:85px;height:105px;font-size:48px}
+  .paytable{gap:4px}
+  .paytable span{font-size:.65rem;padding:3px 7px}
+}
+@media(max-width:380px){
+  .reel{width:72px;height:90px;font-size:40px}
+}
+
+/* ── BLACKJACK ────────────────────────────────────────── */
+@media(max-width:640px){
+  .bj-table{padding:14px;gap:14px}
+  .pcard{width:58px;height:88px}
+  .pcard .r{font-size:.95rem}
+  .pcard .s{font-size:1.1rem}
+  .bj-actions .btn{min-width:80px;font-size:.85rem}
+}
+
+/* ── MINES ────────────────────────────────────────────── */
+@media(max-width:640px){
+  .mines-grid{gap:6px;max-width:100%}
+  .cell{border-radius:var(--r1);font-size:1.3rem}
+  .mines-info{padding:10px 12px}
+  .mines-info .val{font-size:1.3rem}
+}
+@media(max-width:380px){
+  .mines-grid{gap:4px}
+  .cell{font-size:1.1rem}
+}
+
+/* ── PLINKO ───────────────────────────────────────────── */
+/* Le canvas Plinko est déjà width:100%, pas d'ajustement nécessaire */
+@media(max-width:640px){
+  .plinko-risk{flex-wrap:wrap}
+}
+
+/* ── WHEEL ────────────────────────────────────────────── */
+@media(max-width:480px){
+  .wheel-wrap{width:min(300px,100%)}
+  .wheel-hub{width:50px;height:50px;font-size:.85rem}
+}
+
+/* ── DICE ─────────────────────────────────────────────── */
+@media(max-width:640px){
+  .dice-result{font-size:4rem}
+  .dice-track{height:36px;border-radius:18px}
+  .dice-dot{width:20px;height:20px}
+  .dice-stats{gap:6px}
+  .dice-stats .stat{min-width:80px}
+}
+
+/* ── PROFIL / HISTORIQUE ──────────────────────────────── */
+@media(max-width:640px){
+  .xp-profil-card{flex-direction:column;text-align:center;gap:12px;padding:16px}
+  .xp-pc-left{display:flex;align-items:center;gap:12px}
+  .xp-big-num{font-size:3rem}
+  .xp-title-name{font-size:1.3rem}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .stat .val{font-size:1.4rem}
+}
+@media(max-width:380px){
+  .stat-grid{grid-template-columns:1fr}
+}
+
+/* ── MODAL ────────────────────────────────────────────── */
+@media(max-width:480px){
+  .modal-card{padding:20px 18px 16px;border-radius:var(--r3) var(--r3) 0 0}
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal-btns .btn{font-size:.85rem}
+}
+
+/* ── BUTTONS MOBILES ──────────────────────────────────── */
+@media(max-width:640px){
+  .btn{padding:.65rem 1rem;font-size:.92rem}
+  .btn.sm{padding:.38rem .75rem;font-size:.75rem}
+  /* Touch targets minimum 44px */
+  .btn,.qbet button,.nav-item{min-height:44px}
+  .qbet button{min-height:36px}
+}
+
+/* ── TABLES ───────────────────────────────────────────── */
+@media(max-width:640px){
+  .tablewrap{border-radius:var(--r2);-webkit-overflow-scrolling:touch}
+  table{font-size:.78rem}
+  th,td{padding:8px 8px}
+}
+
+/* ── ADMIN PANEL MOBILE ───────────────────────────────── */
+@media(max-width:680px){
+  .adm-shell{flex-direction:column}
+  .adm-nav-panel{
+    width:100%;height:auto;position:static;
+    flex-direction:row;flex-wrap:nowrap;overflow-x:auto;
+  }
+  .adm-brand-area{flex:none;border-bottom:none;border-right:1px solid rgba(91,33,182,.1);padding:10px 12px}
+  .adm-nav-links{flex-direction:row;padding:5px 6px;flex:1;gap:2px;overflow-x:auto}
+  .adm-nl{padding:7px 10px;font-size:.8rem;gap:7px;white-space:nowrap;flex:none}
+  .adm-nl::before{display:none}
+  .adm-nav-foot{display:none}
+  .adm-main{padding:14px}
+  .adm-stats{flex-wrap:wrap}
+  .adm-stat-chip{min-width:120px;flex:1}
+  .adm-page-title{font-size:1.4rem}
+}
+
+/* ── AUTH PAGE MOBILE ─────────────────────────────────── */
+@media(max-width:480px){
+  .auth-wrap{padding:24px 20px}
+  .auth-logo{font-size:clamp(2.5rem,12vw,3.5rem)}
+  .auth-center{max-width:100%}
+}
+
+/* ── SIDEBAR USER BLOCK (dans la sidebar desktop) ────── */
+@media(max-width:860px){
+  .sidebar-logo,.sidebar-user{display:none!important}
+}
+
+/* ── TOUCH IMPROVEMENTS ───────────────────────────────── */
+@media(hover:none) and (pointer:coarse){
+  /* Sur écran tactile, désactiver les hover states qui restent collés */
+  .home-game-card:hover{transform:none;box-shadow:none}
+  .btn:hover{transform:none;box-shadow:0 4px 16px rgba(91,33,182,.25)}
+  .cell:hover:not(.done){transform:none;box-shadow:none;border-color:rgba(91,33,182,.15)}
+  .nav-item:hover{background:none}
+  /* Tap highlight transparent */
+  *{-webkit-tap-highlight-color:transparent}
+}
+
+/* ── SAFE AREA (iPhone notch/Dynamic Island) ──────────── */
+@supports(padding:env(safe-area-inset-bottom)){
+  .sidebar{padding-bottom:max(8px,env(safe-area-inset-bottom))}
+  .topbar{padding-top:max(0px,env(safe-area-inset-top))}
+}
+
+/* ── LANDSCAPE MOBILE ─────────────────────────────────── */
+@media(max-width:860px) and (orientation:landscape){
+  .auth-wrap{padding:16px 24px}
+  .auth-logo{font-size:2.2rem}
+  .auth-sep{margin-bottom:1.2rem}
+  .auth-subtitle{margin-bottom:1rem}
+}
