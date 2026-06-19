@@ -1,0 +1,908 @@
+/* ============================================================
+   BlackState — client. Aucune logique d'argent ici :
+   le serveur décide tout, le client affiche et anime.
+============================================================ */
+let TOKEN = localStorage.getItem('ns_token') || null;
+let USER  = null;
+let SETTINGS    = null;
+let DICE_PAYOUT = 97;
+const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
+
+/* ── Animations ───────────────────────────────────────────── */
+function initAnimations(root) {
+  const target = root || document;
+  target.querySelectorAll('[data-delay]').forEach(el => {
+    el.style.animationDelay = (parseInt(el.dataset.delay || 0) * 80) + 'ms';
+  });
+}
+
+function countUp(el, target, duration = 600) {
+  if (!el) return;
+  const start = parseInt(el.textContent.replace(/[\s,]/g, '')) || 0;
+  const diff = target - start;
+  if (diff === 0) return;
+  const startTime = performance.now();
+  function step(now) {
+    const p = Math.min(1, (now - startTime) / duration);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(start + diff * ease).toLocaleString('fr-FR');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function shakeEl(el) {
+  if (!el) return;
+  el.classList.remove('shake-x');
+  void el.offsetWidth;
+  el.classList.add('shake-x');
+  setTimeout(() => el.classList.remove('shake-x'), 500);
+}
+
+/* ── XP / Niveaux ─────────────────────────────────────────── */
+const LEVEL_XP     = [0, 500, 2000, 5000, 10000, 20000, 35000, 55000, 80000, 110000];
+const LEVEL_TITLES = ['Débutant', 'Novice', 'Joueur', 'Habitué', 'Vétéran', 'Expert', 'Pro', 'Shark', 'Légende', 'VIP'];
+
+async function api(path, method = 'GET', body) {
+  const opt = { method, headers: {} };
+  if (TOKEN) opt.headers['Authorization'] = 'Bearer ' + TOKEN;
+  if (body)  { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const res = await fetch('/api' + path, opt);
+  let data = {}; try { data = await res.json(); } catch (e) {}
+  if (res.status === 401 && path !== '/login') {
+    TOKEN = null; USER = null; localStorage.removeItem('ns_token');
+    stopChatPoll();
+    $('mainView').classList.add('hidden');
+    $('adminPanel').classList.add('hidden');
+    $('appWrap').classList.remove('hidden');
+    $('authView').classList.remove('hidden');
+    toast(data.error || 'Session expirée — reconnecte-toi.', 4500);
+    throw new Error(data.error || 'Session expirée');
+  }
+  if (!res.ok) throw new Error(data.error || ('Erreur ' + res.status));
+  return data;
+}
+
+/* ── helpers UI ───────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+function fmt(n) { return Math.floor(n).toLocaleString('fr-FR'); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(t, ms = 2800) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms); }
+function refreshBal() { if (USER) $('balVal').textContent = fmt(USER.credit); }
+function flashBal(win) {
+  const b = $('balBox');
+  b.classList.remove('flash-win','flash-lose');
+  void b.offsetWidth;
+  b.classList.add(win ? 'flash-win' : 'flash-lose');
+  if (!win) shakeEl(b);
+  setTimeout(() => b.classList.remove('flash-win','flash-lose'), 600);
+}
+function setBalance(b, win, xp, level) {
+  if (USER) USER.credit = b;
+  const el = $('balVal');
+  if (el) countUp(el, Math.floor(b), 500);
+  if (win !== undefined) flashBal(win);
+  if (xp != null) updateXP(xp, level || 1);
+}
+function int(id) { const n = Math.floor(+$(id).value); return Number.isFinite(n) && n > 0 ? n : 0; }
+function qbet(id, op) { const el = $(id); let v = Math.floor(+el.value) || 0; if (op === 'half') v = Math.max(1, Math.floor(v/2)); else if (op === 'double') v *= 2; else if (op === 'max') v = Math.floor(USER ? USER.credit : 0); el.value = Math.max(1, v); }
+
+/* ── XP topbar ────────────────────────────────────────────── */
+function updateXP(xp, level) {
+  if (USER) { USER.xp = xp; USER.level = level; }
+  $('xpLevel').textContent = level;
+  const cur  = LEVEL_XP[level - 1] || 0;
+  const next = LEVEL_XP[level] != null ? LEVEL_XP[level] : LEVEL_XP[LEVEL_XP.length - 1];
+  const pct  = level >= LEVEL_XP.length ? 100 : Math.min(100, ((xp - cur) / (next - cur)) * 100);
+  $('xpFill').style.width = pct + '%';
+}
+
+/* ── Confettis ────────────────────────────────────────────── */
+let _confAF = null;
+function launchConfetti(label) {
+  const ov  = $('winOverlay'), cvs = $('confettiCanvas'), ctx = cvs.getContext('2d');
+  $('winLabel').textContent = label;
+  ov.classList.remove('hidden');
+  cvs.width = innerWidth; cvs.height = innerHeight;
+  const COLORS = ['#ff2e88','#ffc94d','#23e0d6','#7b2ff7','#2dff9e','#ff3b5c'];
+  const pts = Array.from({length: 160}, () => ({
+    x: Math.random() * cvs.width, y: -20 - Math.random() * cvs.height * 0.6,
+    w: 6 + Math.random() * 10, h: 3 + Math.random() * 5,
+    vx: (Math.random() - 0.5) * 5, vy: 2 + Math.random() * 5,
+    rot: Math.random() * 360, rv: (Math.random() - 0.5) * 8,
+    color: COLORS[Math.random() * COLORS.length | 0], alpha: 1,
+  }));
+  let frames = 0;
+  function frame() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    let alive = false;
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy + frames * 0.02; p.rot += p.rv; p.vy += 0.04;
+      p.alpha = Math.max(0, 1 - (p.y / (cvs.height * 1.1)));
+      if (p.y < cvs.height + 20) alive = true;
+      ctx.save(); ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    frames++;
+    if (alive && frames < 240) _confAF = requestAnimationFrame(frame);
+    else ov.classList.add('hidden');
+  }
+  if (_confAF) cancelAnimationFrame(_confAF);
+  _confAF = requestAnimationFrame(frame);
+  setTimeout(() => { if (_confAF) cancelAnimationFrame(_confAF); ov.classList.add('hidden'); }, 5000);
+}
+
+function checkBigWin(bet, gain) {
+  if (!gain || gain <= 0 || !bet) return;
+  if (gain >= bet * 20) launchConfetti('MEGA WIN\n+' + fmt(gain) + ' 🪙');
+  else if (gain >= bet * 5) launchConfetti('BIG WIN\n+' + fmt(gain) + ' 🪙');
+}
+
+/* ── Modales (remplace prompt/confirm) ──────────────────── */
+let _modalCb = null;
+function openModal(title, bodyHtml, onConfirm) {
+  $('modalTitle').textContent = title;
+  $('modalBody').innerHTML = bodyHtml;
+  _modalCb = onConfirm;
+  $('modalOverlay').classList.remove('hidden');
+}
+function closeModal() { $('modalOverlay').classList.add('hidden'); _modalCb = null; }
+function confirmModal() { const cb = _modalCb; closeModal(); if (cb) cb(); }
+
+/* ── AUTH ─────────────────────────────────────────────────── */
+function showLogin() {
+  $('registerForm').classList.add('hidden');
+  $('loginForm').classList.remove('hidden');
+}
+function showRegister() {
+  $('loginForm').classList.add('hidden');
+  $('registerForm').classList.remove('hidden');
+}
+
+async function doLogin() {
+  $('loginErr').textContent = '';
+  try {
+    const d = await api('/login', 'POST', { user: $('loginUser').value.trim(), pass: $('loginPass').value });
+    TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user; enter();
+  } catch (e) { $('loginErr').textContent = e.message; }
+}
+async function doRegister() {
+  $('regErr').textContent = '';
+  try {
+    const d = await api('/register', 'POST', { user: $('regUser').value.trim(), pass: $('regPass').value, invite: INVITE_TOKEN });
+    TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
+    if (INVITE_TOKEN) history.replaceState(null, '', '/');
+    enter();
+    toast('Compte créé · ' + fmt(d.user.credit) + ' crédits offerts !');
+  } catch (e) { $('regErr').textContent = e.message; }
+}
+async function logout() {
+  try { await api('/logout', 'POST'); } catch (e) {}
+  TOKEN = null; USER = null; localStorage.removeItem('ns_token');
+  stopChatPoll();
+  $('chatToggleBtn').classList.add('hidden');
+  $('chatPanel').classList.add('hidden');
+  $('chatToggleBtn').classList.remove('open');
+  $('appWrap').classList.remove('hidden');
+  $('mainView').classList.add('hidden');
+  $('adminPanel').classList.add('hidden');
+  $('authView').classList.remove('hidden');
+}
+
+async function enter() {
+  $('authView').classList.add('hidden');
+  if (USER.admin) {
+    $('appWrap').classList.add('hidden');
+    $('adminPanel').classList.remove('hidden');
+    $('admWhoName').textContent = USER.username;
+    await loadSettings();
+    switchAdminTab('players');
+    renderInvites();
+    renderLogs();
+  } else {
+    $('mainView').classList.remove('hidden');
+    $('whoName').textContent = USER.username;
+    $('whoBadge').innerHTML  = '';
+    $('chatToggleBtn').classList.remove('hidden');
+    refreshBal();
+    updateXP(USER.xp || 0, USER.level || 1);
+    buildMinesGrid();
+    try { DICE_PAYOUT = (await api('/config')).dicePayout; } catch (e) {}
+    updateBonusBadge();
+    switchTab('home');
+  }
+}
+
+function switchAdminTab(v) {
+  document.querySelectorAll('.adm-nl').forEach(t => t.classList.toggle('active', t.dataset.at === v));
+  document.querySelectorAll('.adm-view').forEach(x => x.classList.add('hidden'));
+  $('at-' + v).classList.remove('hidden');
+  if (v === 'players') renderAdminUsers();
+  if (v === 'logs')    renderLogs();
+  if (v === 'invites') renderInvites();
+}
+
+function switchTab(v) {
+  if (v !== 'mines' && minesActive) {
+    openModal(
+      'Partie en cours',
+      '<p>Vous avez une partie de Mines active. Quitter abandonnera votre mise.</p>',
+      () => { minesActive = false; $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden'); buildMinesGrid(); _doTab(v); }
+    );
+    return;
+  }
+  if (v !== 'plinko' && pkAnim) { cancelAnimationFrame(pkAnim); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false; }
+  _doTab(v);
+}
+function _doTab(v) {
+  document.querySelectorAll('.nav-item[data-v]').forEach(t => t.classList.toggle('active', t.dataset.v === v));
+  document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
+  const activeView = $('view-' + v);
+  activeView.classList.add('active');
+  initAnimations(activeView);
+  if (v === 'home')    renderHome();
+  if (v === 'plinko')  { initPlinkoCanvas(); drawPlinko(); }
+  if (v === 'wheel')   buildWheel();
+  if (v === 'dice')    diceUpdate();
+  if (v === 'profil')  renderProfil();
+  if (v === 'history') loadHistory();
+}
+
+function updateBonusBadge() {
+  if (!USER) return;
+  const avail = Date.now() - (USER.lastBonus || 0) >= 86400000;
+  const badge = $('bonusBadge');
+  if (badge) badge.classList.toggle('hidden', !avail);
+  const bc = $('homeBonusCard');
+  if (bc) bc.classList.toggle('hidden', !avail);
+}
+
+async function claimBonusHome() {
+  const btn = document.querySelector('#homeBonusCard .btn');
+  if (btn) btn.disabled = true;
+  try {
+    const d = await api('/bonus', 'POST');
+    USER.lastBonus = Date.now();
+    setBalance(d.balance, true, d.xp, d.level);
+    toast('+500 crédits !');
+    updateBonusBadge();
+    $('homeBal').textContent = fmt(USER.credit);
+  } catch (e) {
+    toast(e.message, 4000);
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function renderHome() {
+  if (!USER) return;
+  $('homeUser').textContent   = USER.username;
+  $('homeLevel').textContent  = USER.level || 1;
+  countUp($('homeBal'), Math.floor(USER.credit));
+  const st = USER.stats || {};
+  countUp($('homePlayed'), st.played || 0, 400);
+  const net = (st.won || 0) - (st.wagered || 0);
+  const netEl = $('homeNet');
+  netEl.textContent = (net >= 0 ? '+' : '') + fmt(net);
+  netEl.style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
+  updateBonusBadge();
+  const wrap = $('homeLeaderWrap');
+  if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
+  try {
+    const top = (await api('/leaderboard')).top;
+    let rows = '<tr><th style="width:36px">#</th><th>Joueur</th><th>Nv.</th><th>Crédits</th></tr>';
+    if (!top.length) rows += '<tr><td colspan="4" style="color:var(--dim);text-align:center;padding:16px">Aucun joueur pour l\'instant.</td></tr>';
+    top.slice(0, 5).forEach((p, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '.';
+      rows += '<tr>'
+        + '<td style="font-size:16px">' + medal + '</td>'
+        + '<td><b>' + esc(p.name) + '</b>' + (p.name === USER.username ? ' <span style="color:var(--v-lt)">(vous)</span>' : '') + (p.admin ? ' <span class="adminbadge">A</span>' : '') + '</td>'
+        + '<td style="color:var(--dim)">' + (p.level || 1) + '</td>'
+        + '<td style="color:var(--gold);font-family:var(--display);font-size:18px">' + fmt(p.credit) + '</td>'
+        + '</tr>';
+    });
+    if (wrap) wrap.innerHTML = '<table id="homeLeaderTable">' + rows + '</table>';
+  } catch (e) {
+    if (wrap) wrap.innerHTML = '<p style="color:var(--dim);padding:16px">Impossible de charger le classement.</p>';
+  }
+}
+
+/* ── Historique des mises ─────────────────────────────────── */
+const GAME_ICON_H = { slots:'🎰', blackjack:'🃏', mines:'💣', plinko:'🪙', wheel:'🎡', dice:'🎲' };
+async function loadHistory() {
+  $('historyTable').innerHTML = '<tr><td colspan="5" class="loading-cell"><span class="spinner"></span></td></tr>';
+  try {
+    const d = await api('/history');
+    let rows = '<tr><th>Jeu</th><th>Heure</th><th>Mise</th><th>Gain</th><th>Net</th></tr>';
+    if (!d.history.length) {
+      rows += '<tr><td colspan="5" style="color:var(--dim);text-align:center;padding:20px">Aucune partie jouée pour l\'instant.</td></tr>';
+    }
+    d.history.forEach(h => {
+      const net = h.gain - h.bet;
+      const col = net > 0 ? 'var(--green)' : net < 0 ? 'var(--red)' : 'var(--dim)';
+      const dt  = new Date(h.ts).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const ico = GAME_ICON_H[h.game] || '🎮';
+      rows += '<tr>'
+        + '<td>' + ico + ' ' + esc(h.game) + '</td>'
+        + '<td class="log-time">' + dt + '</td>'
+        + '<td style="color:var(--dim)">' + fmt(h.bet) + '</td>'
+        + '<td>' + fmt(h.gain) + '</td>'
+        + '<td style="color:' + col + ';font-weight:700">' + (net >= 0 ? '+' : '') + fmt(net) + '</td>'
+        + '</tr>';
+    });
+    $('historyTable').innerHTML = rows;
+  } catch (e) {}
+}
+
+/* ── Chat joueurs ─────────────────────────────────────────── */
+let _chatInterval = null, _chatLastTs = 0, _chatOpen = false;
+
+function toggleChat() {
+  _chatOpen = !_chatOpen;
+  $('chatPanel').classList.toggle('hidden', !_chatOpen);
+  $('chatToggleBtn').classList.toggle('open', _chatOpen);
+  if (_chatOpen) { _chatLastTs = 0; startChatPoll(); }
+  else stopChatPoll();
+}
+function startChatPoll() { loadChat(); clearInterval(_chatInterval); _chatInterval = setInterval(loadChat, 3000); }
+function stopChatPoll()  { clearInterval(_chatInterval); _chatInterval = null; }
+
+async function loadChat() {
+  try {
+    const d = await api('/chat?since=' + _chatLastTs);
+    if (!d.messages.length) return;
+    const box = $('chatMsgs');
+    const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 10;
+    d.messages.forEach(m => {
+      _chatLastTs = Math.max(_chatLastTs, m.ts);
+      const div  = document.createElement('div');
+      div.className = 'chat-msg';
+      div.innerHTML = '<span class="chat-who' + (m.is_admin ? ' is-admin' : '') + '">' + esc(m.username) + '</span> ' + esc(m.msg);
+      box.appendChild(div);
+    });
+    if (atBottom) box.scrollTop = box.scrollHeight;
+  } catch (e) {}
+}
+async function sendChat() {
+  const inp = $('chatInput'), msg = inp.value.trim();
+  if (!msg) return;
+  inp.value = '';
+  try { await api('/chat', 'POST', { msg }); await loadChat(); }
+  catch (e) { toast(e.message); }
+}
+
+/* ══════════════════ SLOTS ══════════════════════════════ */
+const SYM = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐'];
+let slotSpinning = false;
+async function spin() {
+  if (slotSpinning) return;
+  const bet = int('slotBet'); if (!bet) return toast('Mise invalide');
+  slotSpinning = true;
+  $('slotBtn').disabled = true;
+  const reels = [0,1,2].map(i => $('r'+i));
+  reels.forEach(r => { r.classList.add('spin'); r.classList.remove('hit'); });
+  $('slotMsg').textContent = '';
+  const tick = setInterval(() => reels.forEach(r => r.textContent = SYM[Math.random()*SYM.length|0]), 80);
+  let d;
+  try { d = await api('/play/slots', 'POST', { bet }); }
+  catch (e) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; return toast(e.message); }
+  setTimeout(() => {
+    clearInterval(tick);
+    reels.forEach((r, i) => { r.classList.remove('spin'); r.textContent = d.reels[i]; });
+    setBalance(d.balance, d.gain > 0, d.xp, d.level);
+    const m = $('slotMsg');
+    if (d.gain > 0) { reels.forEach(r => r.classList.add('hit')); m.className = 'msg win'; m.textContent = 'GAGNÉ +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
+    else { m.className = 'msg lose'; m.textContent = 'Perdu — retente !'; shakeEl($('view-slots').querySelector('.card')); }
+    slotSpinning = false; $('slotBtn').disabled = false;
+  }, 750);
+}
+
+/* ══════════════════ BLACKJACK ══════════════════════════ */
+let bjCurrentBet = 0;
+function renderCard(c) {
+  const d = document.createElement('div');
+  if (c.back) { d.className = 'pcard back'; return d; }
+  d.className = 'pcard ' + (c.c === 'red' ? 'red' : '');
+  d.innerHTML = '<div class="r">' + c.r + '</div><div class="s">' + c.s + '</div>';
+  return d;
+}
+function bjRender(d) {
+  const dc = $('dealerCards'); dc.innerHTML = ''; d.dealer.forEach(c => dc.appendChild(renderCard(c)));
+  const pc = $('playerCards'); pc.innerHTML = ''; d.player.forEach(c => pc.appendChild(renderCard(c)));
+  $('playerScore').textContent = d.playerScore;
+  $('dealerScore').textContent = d.dealerScore;
+}
+function bjFinish(d) {
+  $('bjActions').classList.add('hidden'); $('bjBetRow').classList.remove('hidden');
+  setBalance(d.balance, d.outcome === 'win', d.xp, d.level);
+  const m = $('bjMsg');
+  if (d.outcome === 'win')  { m.className = 'msg win';  m.textContent = 'Gagné ! ' + d.playerScore + ' vs ' + d.dealerScore + '  +' + fmt(d.gain) + ' 🪙'; checkBigWin(bjCurrentBet, d.gain); }
+  else if (d.outcome === 'push') { m.className = 'msg info'; m.textContent = 'Égalité — mise rendue.'; }
+  else { m.className = 'msg lose'; m.textContent = (d.playerScore > 21 ? 'Buste ! ' : 'Perdu. ') + d.playerScore + ' vs ' + d.dealerScore; }
+}
+async function bjDeal() {
+  const bet = int('bjBet'); if (!bet) return toast('Mise invalide');
+  $('bjDealBtn').disabled = true;
+  bjCurrentBet = bet;
+  let d; try { d = await api('/bj/deal', 'POST', { bet }); } catch (e) { $('bjDealBtn').disabled = false; return toast(e.message); }
+  $('bjBetRow').classList.add('hidden'); $('bjActions').classList.remove('hidden'); $('bjMsg').textContent = '';
+  setBalance(d.balance, undefined, d.xp, d.level); bjRender(d); $('bjDealBtn').disabled = false;
+  if (d.outcome) bjFinish(d);
+}
+async function bjHit()   { let d; try { d = await api('/bj/hit',   'POST'); } catch (e) { return toast(e.message); } bjRender(d); if (d.outcome) bjFinish(d); }
+async function bjStand() { let d; try { d = await api('/bj/stand', 'POST'); } catch (e) { return toast(e.message); } bjRender(d); bjFinish(d); }
+
+/* ══════════════════ MINES ══════════════════════════════ */
+let minesActive = false, minesCurrentBet = 0;
+function buildMinesGrid() { const g = $('minesGrid'); g.innerHTML = ''; for (let i = 0; i < 25; i++) { const c = document.createElement('div'); c.className = 'cell'; c.dataset.i = i; c.onclick = () => minesPick(i); g.appendChild(c); } }
+function minesCell(i) { return document.querySelector('.cell[data-i="' + i + '"]'); }
+function revealBombs(bombs) { bombs.forEach(j => { const c = minesCell(j); if (c && !c.classList.contains('gem')) { c.classList.add('bomb','done'); c.textContent = '💣'; } }); }
+
+async function minesStartGame() {
+  const bet = int('minesBet'); if (!bet) return toast('Mise invalide');
+  const bombs = +$('minesCount').value;
+  let d; try { d = await api('/mines/start', 'POST', { bet, bombs }); } catch (e) { return toast(e.message); }
+  buildMinesGrid(); minesActive = true; minesCurrentBet = bet;
+  $('minesStart').classList.add('hidden'); $('minesCash').classList.remove('hidden'); $('minesMsg').textContent = '';
+  $('minesMult').textContent = '1.00×'; $('minesPot').textContent = '0'; $('minesGems').textContent = '0';
+  setBalance(d.balance, undefined, d.xp, d.level);
+}
+async function minesPick(i) {
+  if (!minesActive) return;
+  const cell = minesCell(i); if (cell.classList.contains('done')) return;
+  let d; try { d = await api('/mines/pick', 'POST', { i }); } catch (e) { return toast(e.message); }
+  cell.classList.add('done');
+  if (d.result === 'bomb') {
+    cell.classList.add('bomb'); cell.textContent = '💣'; revealBombs(d.bombs); shakeEl($('minesGrid')); minesActive = false;
+    $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
+    setBalance(d.balance, false, d.xp, d.level);
+    const m = $('minesMsg'); m.className = 'msg lose'; m.textContent = '💥 Bombe ! Mise perdue.';
+    return;
+  }
+  cell.classList.add('gem'); cell.textContent = '💎';
+  $('minesMult').textContent = d.mult.toFixed(2) + '×'; $('minesPot').textContent = fmt(d.pot);
+  $('minesGems').textContent = (+$('minesGems').textContent) + 1;
+  setBalance(d.balance, undefined, d.xp, d.level);
+  if (d.cashedOut) {
+    revealBombs(d.bombs); minesActive = false;
+    $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
+    flashBal(true);
+    const m = $('minesMsg'); m.className = 'msg win'; m.textContent = 'Tout déminé ! +' + fmt(d.gain) + ' 🪙';
+    checkBigWin(minesCurrentBet, d.gain);
+  }
+}
+async function minesCashout() {
+  if (!minesActive) return;
+  let d; try { d = await api('/mines/cashout', 'POST'); } catch (e) { return toast(e.message); }
+  revealBombs(d.bombs); minesActive = false;
+  $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
+  setBalance(d.balance, true, d.xp, d.level);
+  const m = $('minesMsg'); m.className = 'msg win'; m.textContent = 'Encaissé +' + fmt(d.gain) + ' 🪙';
+  checkBigWin(minesCurrentBet, d.gain);
+}
+
+/* ══════════════════ PLINKO ══════════════════════════════ */
+const PK = $('plinkoCanvas'), PCX = PK.getContext('2d'), PK_ROWS = 12;
+const PK_MULT = { low: [2.1,1.6,1.3,1.1,1,0.7,0.5,0.7,1,1.1,1.3,1.6,2.1], med: [8.1,3,1.6,1,0.7,0.4,0.3,0.4,0.7,1,1.6,3,8.1], high: [26,8,3,1.2,0.5,0.3,0.2,0.3,0.5,1.2,3,8,26] };
+let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1;
+function initPlinkoCanvas() {
+  PK_DPR = window.devicePixelRatio || 1;
+  PK.width  = 500 * PK_DPR;
+  PK.height = 460 * PK_DPR;
+  PCX.setTransform(PK_DPR, 0, 0, PK_DPR, 0, 0);
+}
+function pkColors() { const c = getComputedStyle(document.documentElement); return { gold: c.getPropertyValue('--gold').trim(), dim: c.getPropertyValue('--dim').trim() }; }
+function pkGeom() { const w = 500, h = 460, padX = 40, topY = 40, binY = h - 46, spacing = (w - 2*padX)/PK_ROWS, cx = w/2; return { w, h, padX, topY, binY, spacing, cx }; }
+function pkX(level, rights) { const g = pkGeom(); return g.cx + (2*rights - level)*g.spacing/2; }
+function roundRect(x, y, w, h, r) { PCX.beginPath(); PCX.moveTo(x+r,y); PCX.arcTo(x+w,y,x+w,y+h,r); PCX.arcTo(x+w,y+h,x,y+h,r); PCX.arcTo(x,y+h,x,y,r); PCX.arcTo(x,y,x+w,y,r); PCX.closePath(); }
+function drawPlinko() {
+  const g = pkGeom(), c = pkColors(), mult = PK_MULT[$('plinkoRisk').value || 'med'];
+  PCX.clearRect(0,0,g.w,g.h);
+  PCX.fillStyle = 'rgba(255,255,255,.55)';
+  for (let l = 1; l <= PK_ROWS; l++) for (let s = 0; s <= l; s++) { const x = g.cx+(2*s-l)*g.spacing/2, y = g.topY+(l/PK_ROWS)*(g.binY-g.topY-10); PCX.beginPath(); PCX.arc(x,y,3.2,0,7); PCX.fill(); }
+  const bw = g.spacing;
+  for (let b = 0; b <= PK_ROWS; b++) {
+    const x = g.cx+(2*b-PK_ROWS)*g.spacing/2, m = mult[b], hot = m >= 3, warm = m >= 1;
+    PCX.fillStyle = b === pkHighlight ? c.gold : (hot ? 'rgba(255,46,136,.30)' : warm ? 'rgba(35,224,214,.16)' : 'rgba(255,255,255,.05)');
+    PCX.strokeStyle = 'rgba(255,255,255,.12)'; roundRect(x-bw/2+2,g.binY,bw-4,34,7); PCX.fill(); PCX.stroke();
+    PCX.fillStyle = b === pkHighlight ? '#1a1206' : c.dim.trim(); PCX.font = '700 13px Rajdhani'; PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
+    PCX.fillText(m+'×', x, g.binY+17);
+  }
+  if (pkBall) { PCX.beginPath(); PCX.fillStyle = c.gold; PCX.shadowColor = c.gold; PCX.shadowBlur = 16; PCX.arc(pkBall.x,pkBall.y,8,0,7); PCX.fill(); PCX.shadowBlur = 0; }
+}
+function shuffleArr(a) { for (let i = a.length-1; i > 0; i--) { const j = Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+async function plinkoDrop() {
+  if (pkAnim) return;
+  const bet = int('plinkoBet'); if (!bet) return toast('Mise invalide');
+  const risk = $('plinkoRisk').value;
+  let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message); }
+  $('plinkoMsg').textContent = ''; pkHighlight = -1;
+  const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
+  const g = pkGeom(); let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; $('plinkoBtn').disabled = true;
+  function frame(now) {
+    const p = Math.min(1, (now-t0)/dur), lf = p*PK_ROWS, li = Math.floor(lf), frac = lf-li;
+    let rDone = 0; for (let i = 0; i < li; i++) rDone += steps[i];
+    const nextR = li < PK_ROWS ? steps[li] : 0;
+    const x0 = pkX(li, rDone), x1 = pkX(li+1, rDone+nextR);
+    const y0 = g.topY+(li/PK_ROWS)*(g.binY-g.topY-10), y1 = g.topY+((li+1)/PK_ROWS)*(g.binY-g.topY-10);
+    pkBall.x = x0+(x1-x0)*frac; pkBall.y = y0+(y1-y0)*frac+Math.sin(frac*Math.PI)*6;
+    drawPlinko();
+    if (p < 1) pkAnim = requestAnimationFrame(frame);
+    else {
+      pkBall.x = pkX(PK_ROWS, target); pkBall.y = g.binY-4; pkHighlight = target; drawPlinko(); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false;
+      setBalance(d.balance, d.gain >= bet, d.xp, d.level);
+      const m = $('plinkoMsg');
+      if (d.gain >= bet) { m.className = 'msg win'; m.textContent = d.mult + '× → +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
+      else { m.className = 'msg lose'; m.textContent = d.mult + '× → ' + fmt(d.gain) + ' 🪙 (perte)'; }
+    }
+  }
+  pkAnim = requestAnimationFrame(frame);
+}
+
+/* ══════════════════ WHEEL ═══════════════════════════════ */
+const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 10, 50];
+let wheelBuilt = false, wheelSpinning = false, wheelRot = 0;
+function wheelColor(m) { return m===0?'#1c1430':m>=50?'#ffd24d':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
+function buildWheel() {
+  if (wheelBuilt) return;
+  const g = $('wheelG'), cx = 160, cy = 160, r = 150, n = WHEEL.length, seg = 360/n; let html = '';
+  for (let i = 0; i < n; i++) {
+    const a0 = i*seg*Math.PI/180, a1 = (i+1)*seg*Math.PI/180;
+    const x0 = cx+r*Math.sin(a0), y0 = cy-r*Math.cos(a0), x1 = cx+r*Math.sin(a1), y1 = cy-r*Math.cos(a1);
+    html += '<path d="M'+cx+' '+cy+' L'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' Z" fill="'+wheelColor(WHEEL[i])+'" stroke="rgba(0,0,0,.4)" stroke-width="1"/>';
+    const am = i*seg+seg/2, rad = am*Math.PI/180, lx = cx+106*Math.sin(rad), ly = cy-106*Math.cos(rad);
+    html += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="#fff" font-family="Bebas Neue" font-size="17" text-anchor="middle" dominant-baseline="middle" transform="rotate('+am.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')">'+(WHEEL[i]===0?'✕':WHEEL[i]+'×')+'</text>';
+  }
+  html += '<circle cx="160" cy="160" r="150" fill="none" stroke="rgba(255,201,77,.55)" stroke-width="3"/>';
+  g.innerHTML = html; wheelBuilt = true; g.style.transform = 'rotate(0deg)';
+}
+async function wheelSpin() {
+  if (wheelSpinning) return; buildWheel();
+  const bet = int('wBet'); if (!bet) return toast('Mise invalide');
+  let d; try { d = await api('/play/wheel', 'POST', { bet }); } catch (e) { return toast(e.message); }
+  wheelSpinning = true; $('wBtn').disabled = true; $('wMsg').textContent = '';
+  const seg = 360/WHEEL.length, mid = d.index*seg+seg/2, jitter = (Math.random()-.5)*(seg*.6);
+  const base = Math.ceil(wheelRot/360)*360; wheelRot = base+360*6-mid+jitter;
+  $('wheelG').style.transform = 'rotate('+wheelRot+'deg)';
+  setTimeout(() => {
+    wheelSpinning = false; $('wBtn').disabled = false;
+    setBalance(d.balance, d.gain > 0, d.xp, d.level);
+    const m = d.mult, msg = $('wMsg'), wrap = document.querySelector('.wheel-wrap');
+    if (m >= 50) {
+      msg.className = 'msg win'; msg.textContent = '💰 JACKPOT '+m+'× → +'+fmt(d.gain)+' 🪙 !';
+      if (wrap) { wrap.classList.add('jackpot-flash'); setTimeout(() => wrap.classList.remove('jackpot-flash'), 2400); }
+      checkBigWin(bet, d.gain);
+    } else if (m > 0) { msg.className = 'msg win'; msg.textContent = m+'× → +'+fmt(d.gain)+' 🪙'; checkBigWin(bet, d.gain); }
+    else              { msg.className = 'msg lose'; msg.textContent = '0× → mise perdue'; }
+  }, 4500);
+}
+
+/* ══════════════════ DICE ═══════════════════════════════ */
+let diceRolling = false;
+function diceUpdate() {
+  const c = Math.max(2, Math.min(95, +$('diceSlider').value));
+  $('diceChanceLbl').textContent = c+'%'; $('diceTargetLbl').textContent = c.toFixed(2);
+  const eff = (100/c)*(DICE_PAYOUT/100);
+  $('diceMult').textContent = eff.toFixed(2)+'×';
+  const bet = Math.floor(+$('diceBet').value)||0; $('dicePot').textContent = fmt(bet*eff);
+  document.documentElement.style.setProperty('--win', c+'%'); $('diceMarker').style.left = c+'%';
+}
+async function diceRoll() {
+  if (diceRolling) return;
+  const bet = int('diceBet'); if (!bet) return toast('Mise invalide');
+  const chance = Math.max(2, Math.min(95, +$('diceSlider').value));
+  let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message); }
+  diceRolling = true; $('diceBtn').disabled = true; $('diceMsg').textContent = '';
+  const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%';
+  setTimeout(() => {
+    diceRolling = false; $('diceBtn').disabled = false;
+    res.textContent = d.roll.toFixed(2); res.className = 'dice-result '+(d.win?'win':'lose');
+    setBalance(d.balance, d.win, d.xp, d.level);
+    const msg = $('diceMsg');
+    if (d.win) { msg.className = 'msg win'; msg.textContent = '🎲 '+d.roll.toFixed(2)+' < '+chance+' · GAGNÉ +'+fmt(d.gain)+' 🪙'; checkBigWin(bet, d.gain); }
+    else       { msg.className = 'msg lose'; msg.textContent = '🎲 '+d.roll.toFixed(2)+' ≥ '+chance+' · Perdu'; }
+  }, 850);
+}
+
+/* ══════════════════ PROFIL / CLASSEMENT ═══════════════════ */
+function renderXpCard(xp, level) {
+  $('profilLevel').textContent = level;
+  $('profilTitle').textContent = LEVEL_TITLES[level - 1] || 'VIP';
+  const cur  = LEVEL_XP[level - 1] || 0;
+  const next = LEVEL_XP[level] != null ? LEVEL_XP[level] : LEVEL_XP[LEVEL_XP.length - 1];
+  const pct  = level >= LEVEL_XP.length ? 100 : Math.min(100, ((xp - cur) / (next - cur)) * 100);
+  $('profilXpFill').style.width = pct + '%';
+  $('profilXpText').textContent = level >= LEVEL_XP.length
+    ? 'Niveau MAX !'
+    : xp.toLocaleString('fr-FR') + ' / ' + next.toLocaleString('fr-FR') + ' XP';
+}
+
+async function renderProfil() {
+  $('leaderTable').innerHTML = '<tr><td colspan="4" class="loading-cell"><span class="spinner"></span></td></tr>';
+  try { USER = (await api('/me')).user; } catch (e) { return; }
+  updateBonusBadge();
+  refreshBal();
+  updateXP(USER.xp || 0, USER.level || 1);
+  renderXpCard(USER.xp || 0, USER.level || 1);
+  const st = USER.stats;
+  $('profilName').textContent = '@' + USER.username;
+  $('stBal').textContent  = fmt(USER.credit);
+  $('stWag').textContent  = fmt(st.wagered);
+  $('stWon').textContent  = fmt(st.won);
+  const net = st.won - st.wagered, ne = $('stNet');
+  ne.textContent = (net >= 0 ? '+' : '') + fmt(net); ne.className = 'val ' + (net >= 0 ? 'green' : 'red');
+  $('stPlayed').textContent = st.played;
+  $('stBig').textContent    = fmt(st.biggest);
+  const now = Date.now(), DAY = 86400000, btn = $('bonusBtn'), hint = $('bonusHint');
+  if (now - (USER.lastBonus || 0) >= DAY) { btn.disabled = false; hint.textContent = 'Disponible maintenant !'; }
+  else { btn.disabled = true; const left = DAY-(now-USER.lastBonus), h = Math.floor(left/3600000), m = Math.floor(left%3600000/60000); hint.textContent = 'Prochain bonus dans '+h+'h '+m+'min'; }
+  try {
+    const top = (await api('/leaderboard')).top;
+    let rows = '<tr><th>#</th><th>Joueur</th><th>Nv.</th><th>Solde</th></tr>';
+    top.forEach((p, i) => {
+      rows += '<tr><td>' + (i+1) + '</td><td>' + esc(p.name)
+        + (p.name === USER.username ? ' <span style="color:var(--cyan)">(vous)</span>' : '')
+        + (p.admin ? ' <span class="adminbadge">A</span>' : '') + '</td>'
+        + '<td style="color:var(--dim);font-size:14px">' + (p.level||1) + '</td>'
+        + '<td style="color:var(--gold);font-family:var(--display);font-size:18px">' + fmt(p.credit) + '</td></tr>';
+    });
+    $('leaderTable').innerHTML = rows;
+  } catch (e) {}
+}
+
+async function claimBonus() {
+  try {
+    const d = await api('/bonus', 'POST');
+    USER.lastBonus = Date.now();
+    setBalance(d.balance, true, d.xp, d.level);
+    toast('+500 crédits !');
+    updateBonusBadge();
+    renderProfil();
+  } catch (e) { toast(e.message, 4000); }
+}
+
+/* ══════════════════ ADMIN ══════════════════════════════ */
+const LABELS    = { slots:'Slots', blackjack:'Blackjack', mines:'Démineur', plinko:'Plinko', wheel:'Roue', dice:'Dice' };
+const GAME_ICON = { slots:'🎰', blackjack:'🃏', mines:'💣', plinko:'🪙', wheel:'🎡', dice:'🎲' };
+const GAME_KEYS = ['slots','blackjack','mines','plinko','wheel','dice'];
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+async function renderAdminUsers() {
+  try {
+    const users = (await api('/admin/users')).users;
+    const totalCredits = users.reduce((s, u) => s + u.credit, 0);
+    const totalWagered = users.reduce((s, u) => s + u.wagered, 0);
+    const nbPlayers    = users.filter(u => !u.admin).length;
+    $('playerStats').innerHTML =
+      '<div class="adm-stat-chip"><span class="val">' + nbPlayers + '</span><span class="lbl">Joueurs</span></div>'
+    + '<div class="adm-stat-chip"><span class="val">' + fmt(totalCredits) + '</span><span class="lbl">Crédits en circulation</span></div>'
+    + '<div class="adm-stat-chip"><span class="val">' + fmt(totalWagered) + '</span><span class="lbl">Total misé</span></div>';
+    let rows = '<tr><th>Pseudo</th><th>Crédits</th><th>Misé</th><th>Nv.</th><th>Rôle</th><th>Actions</th></tr>';
+    users.forEach(u => {
+      const n = esc(u.name);
+      rows += '<tr>'
+        + '<td><b>' + n + '</b></td>'
+        + '<td>' + fmt(u.credit) + '</td>'
+        + '<td style="color:var(--a-tx-muted)">' + fmt(u.wagered) + '</td>'
+        + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
+        + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
+        + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
+        + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name) + '\')">+ Crédits</button>'
+        + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name) + '\')">Retirer</button>'
+        + (u.name !== USER.username ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name) + '\')">Supprimer</button>' : '')
+        + '</td></tr>';
+    });
+    $('userTable').innerHTML = rows;
+  } catch (e) {}
+}
+
+const MODAL_INPUT_STYLE = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.4);color:#e2e8f0;font-size:16px;font-weight:600;outline:none';
+
+function adminCredit(u) {
+  openModal(
+    '+ Crédits — ' + esc(u),
+    '<div class="field"><label>Montant à ajouter</label><input id="modalInput" type="number" min="1" value="1000" style="' + MODAL_INPUT_STYLE + '"></div>',
+    async () => {
+      const n = Math.floor(+$('modalInput').value);
+      if (!n || n <= 0) return toast('Montant invalide', 3500);
+      try {
+        await api('/admin/credit', 'POST', { user: u, amount: n });
+        toast('+ ' + fmt(n) + ' crédits ajoutés'); renderAdminUsers();
+      } catch (e) { toast(e.message, 4000); }
+    }
+  );
+  setTimeout(() => { const i = $('modalInput'); if (i) i.focus(); }, 60);
+}
+
+function adminDebit(u) {
+  openModal(
+    'Retrait — ' + esc(u),
+    '<div class="field"><label>Montant à retirer</label><input id="modalInput" type="number" min="1" value="500" style="' + MODAL_INPUT_STYLE + '"></div>'
+    + '<p style="margin-top:8px;font-size:12px;color:var(--a-tx-muted)">Le solde ne descend pas en dessous de 0.</p>',
+    async () => {
+      const n = Math.floor(+$('modalInput').value);
+      if (!n || n <= 0) return toast('Montant invalide', 3500);
+      try {
+        await api('/admin/credit', 'POST', { user: u, amount: -n });
+        toast('− ' + fmt(n) + ' crédits retirés'); renderAdminUsers();
+      } catch (e) { toast(e.message, 4000); }
+    }
+  );
+  setTimeout(() => { const i = $('modalInput'); if (i) i.focus(); }, 60);
+}
+
+function adminDelete(u) {
+  openModal(
+    'Supprimer « ' + esc(u) + ' » ?',
+    '<p style="color:var(--dim);margin-top:6px;line-height:1.5">Cette action est irréversible. Le compte et toutes ses données seront supprimés.</p>',
+    async () => {
+      try { await api('/admin/delete', 'POST', { user: u }); toast('Compte supprimé'); renderAdminUsers(); }
+      catch (e) { toast(e.message); }
+    }
+  );
+}
+
+async function loadSettings() { try { SETTINGS = (await api('/admin/settings')).settings; renderSettings(); } catch (e) {} }
+function renderSettings() {
+  const box = $('settingsBox'); if (!box || !SETTINGS) return; let h = '';
+  for (const g of GAME_KEYS) {
+    const s = SETTINGS[g];
+    h += '<div class="set-game"><div class="set-name">'+GAME_ICON[g]+' '+LABELS[g]+'</div>'
+      + '<div class="set-ctl"><span class="set-lbl">Fréquence</span>'
+      + '<input type="range" id="set'+cap(g)+'" min="0" max="100" step="0.5" value="'+s.bias+'" oninput="setBias(\''+g+'\',this.value)">'
+      + '<input type="number" id="num'+cap(g)+'" min="0" max="100" step="0.5" value="'+s.bias+'" oninput="setBias(\''+g+'\',this.value)" class="set-num"><span class="set-unit">%</span></div>'
+      + '<div class="set-ctl"><span class="set-lbl">Gains</span>'
+      + '<input type="number" id="pay'+cap(g)+'" min="0" max="500" step="1" value="'+s.payout+'" oninput="setPayout(\''+g+'\',this.value)" class="set-num"><span class="set-unit">%</span></div></div>';
+  }
+  box.innerHTML = h;
+}
+const _debounce = {};
+function pushSetting(game) {
+  clearTimeout(_debounce[game]);
+  _debounce[game] = setTimeout(async () => {
+    try { SETTINGS = (await api('/admin/settings','POST',{game,bias:SETTINGS[game].bias,payout:SETTINGS[game].payout})).settings; if (game==='dice') DICE_PAYOUT=SETTINGS.dice.payout; }
+    catch (e) { toast(e.message); }
+  }, 350);
+}
+function setBias(game, v) {
+  v = Math.max(0, Math.min(100, parseFloat(v)||0)); SETTINGS[game].bias = v;
+  const r=$('set'+cap(game)),n=$('num'+cap(game)); if(r&&+r.value!==v)r.value=v; if(n&&+n.value!==v)n.value=v; pushSetting(game);
+}
+function setPayout(game, v) {
+  v = Math.max(0, Math.min(500, Math.round(parseFloat(v)||0))); SETTINGS[game].payout = v;
+  const p=$('pay'+cap(game)); if(p&&+p.value!==v)p.value=v; pushSetting(game);
+}
+async function presetAll(kind) {
+  const P = {
+    house:    { bias:{slots:28,blackjack:42,mines:38,plinko:33,wheel:33,dice:40}, pay:{slots:90,blackjack:95,mines:92,plinko:90,wheel:90,dice:92} },
+    fair:     { bias:{slots:50,blackjack:50,mines:50,plinko:50,wheel:50,dice:50}, pay:{slots:100,blackjack:100,mines:100,plinko:100,wheel:100,dice:100} },
+    generous: { bias:{slots:62,blackjack:58,mines:60,plinko:60,wheel:60,dice:60}, pay:{slots:108,blackjack:104,mines:106,plinko:108,wheel:108,dice:105} },
+  }[kind];
+  for (const g of GAME_KEYS) { try { SETTINGS = (await api('/admin/settings','POST',{game:g,bias:P.bias[g],payout:P.pay[g]})).settings; } catch(e){} }
+  DICE_PAYOUT = SETTINGS.dice.payout; renderSettings(); toast('Préréglage « '+kind+' » appliqué');
+}
+
+/* ── LOGS ─────────────────────────────────────────────────── */
+function logClass(t) { return {auth:'lt-auth',bet:'lt-bet',win:'lt-win',admin:'lt-admin'}[t]||'lt-sys'; }
+function logLabel(t) { return {auth:'AUTH',bet:'MISE',win:'GAIN',admin:'ADMIN',bonus:'BONUS'}[t]||'SYS'; }
+let LOGS_CACHE = [];
+async function renderLogs() {
+  const f = $('logFilter').value;
+  try { LOGS_CACHE = (await api('/admin/logs?filter='+encodeURIComponent(f))).logs; } catch(e){ return; }
+  let rows = '<tr><th>Heure</th><th>Type</th><th>Joueur</th><th>Détail</th><th>Montant</th></tr>';
+  if (!LOGS_CACHE.length) rows += '<tr><td colspan="5" style="color:var(--dim)">Aucune entrée.</td></tr>';
+  LOGS_CACHE.forEach(l => {
+    const hh = new Date(l.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const amt = l.amount ? ((l.amount>0?'+':'')+fmt(l.amount)) : '';
+    const col = l.amount>0?'var(--green)':l.amount<0?'var(--red)':'var(--dim)';
+    rows += '<tr><td class="log-time">'+hh+'</td><td><span class="log-type '+logClass(l.type)+'">'+logLabel(l.type)+'</span></td><td>'+esc(l.username)+'</td><td>'+esc(l.msg)+'</td><td style="color:'+col+';font-weight:700">'+amt+'</td></tr>';
+  });
+  $('logTable').innerHTML = rows;
+}
+function clearLogs() {
+  openModal(
+    'Vider le journal ?',
+    '<p style="color:var(--dim);margin-top:6px">Toutes les entrées seront supprimées définitivement.</p>',
+    async () => { try { await api('/admin/logs','DELETE'); renderLogs(); toast('Journal vidé'); } catch(e){ toast(e.message); } }
+  );
+}
+function exportLogs() {
+  let csv = 'date;type;joueur;detail;montant\n';
+  LOGS_CACHE.forEach(l => { csv += new Date(l.ts).toISOString()+';'+l.type+';'+l.username+';"'+String(l.msg).replace(/"/g,'""')+'";'+l.amount+'\n'; });
+  const blob = new Blob([csv],{type:'text/csv'}), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'neon_santos_logs.csv'; a.click(); toast('Logs exportés');
+}
+
+/* ══════════════════ INVITATIONS (ADMIN) ══════════════════ */
+let _lastInviteLink = '';
+
+async function adminGenInvite() {
+  const credits = Math.max(0, Math.floor(+$('inviteAmt').value) || 1000);
+  try {
+    const d = await api('/admin/invite', 'POST', { credits });
+    _lastInviteLink = location.origin + '/?invite=' + d.token;
+    $('inviteLinkText').textContent = _lastInviteLink;
+    $('inviteResult').classList.remove('hidden');
+    renderInvites();
+    toast('Lien généré !');
+  } catch (e) { toast(e.message); }
+}
+
+function copyInviteLink() {
+  _copyText(_lastInviteLink);
+}
+
+function copyInviteByToken(token) {
+  _copyText(location.origin + '/?invite=' + token);
+}
+
+function _copyText(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => toast('Lien copié !'))
+    .catch(() => {
+      const el = document.createElement('textarea');
+      el.value = text; document.body.appendChild(el); el.select();
+      document.execCommand('copy'); document.body.removeChild(el);
+      toast('Lien copié !');
+    });
+}
+
+async function revokeInvite(token) {
+  openModal(
+    'Révoquer ce lien ?',
+    '<p style="color:var(--dim);margin-top:6px">Le joueur ne pourra plus l\'utiliser pour créer un compte.</p>',
+    async () => {
+      try { await api('/admin/invite/' + token, 'DELETE'); toast('Invitation révoquée'); renderInvites(); }
+      catch (e) { toast(e.message); }
+    }
+  );
+}
+
+async function renderInvites() {
+  try {
+    const { invites } = await api('/admin/invites');
+    let rows = '<tr><th>Crédits</th><th>Statut</th><th>Joueur</th><th>Créé le</th><th>Par</th><th>Actions</th></tr>';
+    if (!invites.length) rows += '<tr><td colspan="6" style="color:var(--dim)">Aucun lien généré.</td></tr>';
+    invites.forEach(inv => {
+      const dt  = new Date(inv.created).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const used = !!inv.used;
+      rows += '<tr>'
+        + '<td style="color:var(--gold);font-family:var(--display);font-size:18px">' + fmt(inv.credits) + '</td>'
+        + '<td><span class="invite-tag ' + (used ? 'inv-used' : 'inv-ok') + '">' + (used ? 'Utilisé' : 'Disponible') + '</span></td>'
+        + '<td>' + (inv.used_by ? esc(inv.used_by) : '—') + '</td>'
+        + '<td class="log-time">' + dt + '</td>'
+        + '<td style="color:var(--dim);font-size:13px">' + esc(inv.created_by) + '</td>'
+        + '<td>' + (!used
+          ? '<button class="btn sm ghost" onclick="copyInviteByToken(\'' + inv.token + '\')" title="Copier le lien">📋</button>'
+          + '<button class="btn sm ghost" onclick="revokeInvite(\'' + inv.token + '\')" title="Révoquer">✕</button>'
+          : '') + '</td>'
+        + '</tr>';
+    });
+    $('inviteTable').innerHTML = rows;
+  } catch (e) {}
+}
+
+/* ── boot ─────────────────────────────────────────────────── */
+buildMinesGrid();
+if (typeof lucide !== 'undefined') lucide.createIcons();
+initAnimations();
+const riskSel = $('plinkoRisk'); if (riskSel) riskSel.addEventListener('change', () => drawPlinko());
+['loginPass','loginUser'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); }));
+['regPass','regUser'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key==='Enter') doRegister(); }));
+(async () => {
+  if (TOKEN) {
+    try { USER = (await api('/me')).user; enter(); return; } catch (e) { TOKEN = null; localStorage.removeItem('ns_token'); }
+  }
+  if (INVITE_TOKEN) {
+    try {
+      const d = await fetch('/api/invite/' + INVITE_TOKEN).then(r => r.json());
+      if (d.valid) {
+        showRegister();
+        $('inviteBanner').classList.remove('hidden');
+        $('inviteCredits').textContent = fmt(d.credits);
+      } else {
+        toast(d.error || 'Invitation invalide');
+      }
+    } catch (e) { toast('Invitation introuvable'); }
+  }
+})();
