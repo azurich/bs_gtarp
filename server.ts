@@ -27,6 +27,8 @@ const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
 const CHAT_MAX_AGE = 24 * 60 * 60 * 1_000
+// SECURITY: mise maximale absolue par tour (évite les gros paris instantanés déstabilisants)
+const MAX_BET      = parseInt(process.env.MAX_BET ?? '50000')
 
 /* ── requêtes préparées ───────────────────────────────────── */
 const Q = {
@@ -34,7 +36,8 @@ const Q = {
   userById    : db.prepare('SELECT * FROM users WHERE id = ?'),
   insertUser  : db.prepare('INSERT INTO users (username, pass_hash, is_admin, credit, created) VALUES (?,?,?,?,?)'),
   setCredit   : db.prepare('UPDATE users SET credit = ? WHERE id = ?'),
-  bumpWager   : db.prepare('UPDATE users SET credit = credit - ?, wagered = wagered + ?, played = played + 1 WHERE id = ?'),
+  // SECURITY (race condition): bumpWager inclut une condition WHERE credit >= ? pour être atomique
+  bumpWager   : db.prepare('UPDATE users SET credit = credit - ?, wagered = wagered + ?, played = played + 1 WHERE id = ? AND credit >= ?'),
   bumpWin     : db.prepare('UPDATE users SET credit = credit + ?, won = won + ?, biggest = MAX(biggest, ?) WHERE id = ?'),
   addCredit   : db.prepare('UPDATE users SET credit = credit + ? WHERE id = ?'),
   setBonus    : db.prepare('UPDATE users SET last_bonus = ? WHERE id = ?'),
@@ -52,6 +55,8 @@ const Q = {
   clearLogs   : db.prepare('DELETE FROM logs'),
   insHistory  : db.prepare('INSERT INTO game_history (user_id, game, bet, gain, result, ts) VALUES (?,?,?,?,?,?)'),
   getHistory  : db.prepare('SELECT * FROM game_history WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
+  addXP       : db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?'),
+  setLevel    : db.prepare('UPDATE users SET level = ? WHERE id = ?'),
 }
 
 /* ── état des parties stateful ────────────────────────────── */
@@ -63,7 +68,8 @@ const RE_USER   = /^[a-zA-Z0-9_-]{3,20}$/
 const validUser = (u: string) => RE_USER.test(u)
 const intBet    = (v: unknown) => {
   const n = Math.floor(Number(v))
-  return Number.isFinite(n) && n > 0 ? n : null
+  // SECURITY: vérifie que la mise est un entier positif et ne dépasse pas MAX_BET
+  return Number.isFinite(n) && n > 0 && n <= MAX_BET ? n : null
 }
 const LABELS: Record<string, string> = {
   slots: 'Slots', blackjack: 'Blackjack', mines: 'Démineur',
@@ -101,14 +107,15 @@ function userSnapshot(id: number) {
 }
 function awardXP(userId: number, bet: number) {
   const gain = Math.max(1, Math.floor(bet / 10))
-  db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?').run(gain, userId)
+  Q.addXP.run(gain, userId)
   const row = Q.userById.get(userId) as User
-  db.prepare('UPDATE users SET level = ? WHERE id = ?').run(computeLevel(row.xp ?? 0), userId)
+  Q.setLevel.run(computeLevel(row.xp ?? 0), userId)
 }
 function charge(user: User, bet: number, gameKey: string): boolean {
-  const fresh = Q.userById.get(user.id) as User
-  if (fresh.credit < bet) return false
-  Q.bumpWager.run(bet, bet, user.id)
+  // SECURITY: UPDATE atomique avec WHERE credit >= bet — élimine la race condition TOCTOU.
+  // Si le solde est insuffisant (ou a changé entre-temps), rowsAffected = 0.
+  const result = Q.bumpWager.run(bet, bet, user.id, bet)
+  if (result.changes === 0) return false
   logEvent(user.username, 'bet', 'Mise ' + LABELS[gameKey], -bet)
   return true
 }
@@ -185,10 +192,12 @@ function rateLimit(windowMs: number, max: number, message: object) {
 const authRL = rateLimit(15 * 60_000, 15, { error: 'Trop de tentatives, réessaie dans 15 minutes.' })
 
 /* ── CSP ──────────────────────────────────────────────────── */
+// SECURITY: 'unsafe-inline' retiré de script-src — protection XSS active.
+// Les scripts inline dans index.html (onclick="…") passent via app.js (externe).
+// script-src-attr supprimé également (inutile sans inline).
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "script-src-attr 'unsafe-inline'",
+  "script-src 'self'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self'",
@@ -277,7 +286,9 @@ const app = new Elysia()
       const p = String(b.pass ?? '')
       const inviteCode = String(b.invite ?? '').trim()
       if (!validUser(u))  { set.status = 400; return { error: 'Pseudo invalide (3-20 cars, lettres/chiffres/_ ou -).' } }
-      if (p.length < 8)  { set.status = 400; return { error: 'Mot de passe trop court (8 min).' } }
+      if (p.length < 8)   { set.status = 400; return { error: 'Mot de passe trop court (8 min).' } }
+      // SECURITY: limite max pour éviter le DoS bcrypt (hash d'une chaîne 1 Mo bloquerait le thread)
+      if (p.length > 128) { set.status = 400; return { error: 'Mot de passe trop long (128 max).' } }
       if (Q.userByName.get(u)) { set.status = 400; return { error: 'Ce pseudo existe déjà.' } }
       if (!inviteCode)   { set.status = 403; return { error: "Un lien d'invitation est requis pour créer un compte." } }
       const invite = db.prepare('SELECT * FROM invites WHERE token = ? AND used = 0').get(inviteCode) as { credits: number } | null
@@ -296,6 +307,8 @@ const app = new Elysia()
       const b = body as Record<string, unknown>
       const u = String(b.user ?? '').trim()
       const p = String(b.pass ?? '')
+      // SECURITY: rejeter les mots de passe trop longs avant d'appeler bcrypt (DoS)
+      if (p.length > 128) { set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' } }
       const row = Q.userByName.get(u) as User | null
       if (!row || !(await Bun.password.verify(p, row.pass_hash))) {
         set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' }
@@ -579,7 +592,8 @@ const app = new Elysia()
 
     .post('/api/admin/invite', ({ body, user }) => {
       const credits = Math.max(0, Math.floor(Number((body as any).credits ?? 1000) || 0))
-      const token   = randomBytes(8).toString('hex')
+      // SECURITY: 16 bytes (128 bits) au lieu de 8 bytes (64 bits) — résistant aux collisions par force brute
+      const token   = randomBytes(16).toString('hex')
       db.prepare('INSERT INTO invites (token, credits, created, created_by) VALUES (?,?,?,?)')
         .run(token, credits, Date.now(), (user as User).username)
       logEvent((user as User).username, 'admin', `Invitation créée (${credits} crédits)`, credits)

@@ -291,19 +291,20 @@ async function renderHome() {
     const top = (await api('/leaderboard')).top;
     if (!top.length) { wrap.innerHTML = '<p style="color:var(--tx-3);padding:16px">Aucun joueur pour l\'instant.</p>'; return; }
 
-    // Podium top 3
-    const podiumOrder = [top[1], top[0], top[2]].filter(Boolean); // 2nd, 1st, 3rd
-    const podiumClass = ['p2','p1','p3'];
-    const podiumRank  = [2, 1, 3];
+    // Podium top 3 — rangs basés sur l'index réel, ordre visuel [2e, 1er, 3e]
+    const ranked = top.slice(0, 3).map((p, i) => ({ ...p, rank: i + 1 }));
+    const visualIdx = [1, 0, 2]; // 2e gauche, 1er centre, 3e droite
 
     let podiumHtml = '<div class="podium">';
-    podiumOrder.forEach((p, i) => {
-      const isMine = p && p.name === USER.username;
-      podiumHtml += '<div class="podium-place ' + podiumClass[i] + (isMine ? ' is-me' : '') + '">'
-        + (podiumRank[i] === 1 ? '<div class="podium-crown">♛</div>' : '')
+    visualIdx.forEach(idx => {
+      const p = ranked[idx];
+      if (!p) return;
+      const isMine = p.name === USER.username;
+      podiumHtml += '<div class="podium-place p' + p.rank + (isMine ? ' is-me' : '') + '">'
+        + (p.rank === 1 ? '<div class="podium-crown">♛</div>' : '')
         + '<div class="podium-name">' + esc(p.name) + '</div>'
         + '<div class="podium-won">' + fmt(p.won || 0) + ' <span class="podium-coin">🪙</span></div>'
-        + '<div class="podium-block"><span>' + podiumRank[i] + '</span></div>'
+        + '<div class="podium-block"><span>' + p.rank + '</span></div>'
         + '</div>';
     });
     podiumHtml += '</div>';
@@ -526,7 +527,8 @@ async function plinkoDrop() {
 }
 
 /* ══════════════════ WHEEL ═══════════════════════════════ */
-const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 10, 50];
+// SECURITY: tableau synchronisé avec games.ts côté serveur (suppression du segment 50× inexistant)
+const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 0, 10];
 let wheelBuilt = false, wheelSpinning = false, wheelRot = 0;
 function wheelColor(m) { return m===0?'#1c1430':m>=50?'#ffd24d':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
 function buildWheel() {
@@ -554,7 +556,8 @@ async function wheelSpin() {
     wheelSpinning = false; $('wBtn').disabled = false;
     setBalance(d.balance, d.gain > 0, d.xp, d.level);
     const m = d.mult, msg = $('wMsg'), wrap = document.querySelector('.wheel-wrap');
-    if (m >= 50) {
+    // Jackpot à 10× (segment max réel côté serveur)
+    if (m >= 10) {
       msg.className = 'msg win'; msg.textContent = '💰 JACKPOT '+m+'× → +'+fmt(d.gain)+' 🪙 !';
       if (wrap) { wrap.classList.add('jackpot-flash'); setTimeout(() => wrap.classList.remove('jackpot-flash'), 2400); }
       checkBigWin(bet, d.gain);
@@ -802,7 +805,8 @@ function exportLogs() {
 let _lastInviteLink = '';
 
 async function adminGenInvite() {
-  const credits = Math.max(0, Math.floor(+$('inviteAmt').value) || 1000);
+  const raw = $('inviteAmt').value.trim();
+  const credits = Math.max(0, Math.floor(raw === '' ? 1000 : +raw));
   try {
     const d = await api('/admin/invite', 'POST', { credits });
     _lastInviteLink = location.origin + '/?invite=' + d.token;
