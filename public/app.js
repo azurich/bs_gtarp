@@ -510,7 +510,7 @@ function drawPlinko() {
     const x = g.cx+(2*b-PK_ROWS)*g.spacing/2, m = mult[b], hot = m >= 3, warm = m >= 1;
     PCX.fillStyle = b === pkHighlight ? c.gold : (hot ? 'rgba(255,46,136,.30)' : warm ? 'rgba(35,224,214,.16)' : 'rgba(255,255,255,.05)');
     PCX.strokeStyle = 'rgba(255,255,255,.12)'; roundRect(x-bw/2+2,g.binY,bw-4,34,7); PCX.fill(); PCX.stroke();
-    PCX.fillStyle = b === pkHighlight ? '#1a1206' : c.dim.trim(); PCX.font = '700 13px Rajdhani'; PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
+    PCX.fillStyle = b === pkHighlight ? '#1a1206' : c.dim.trim(); PCX.font = '700 13px Inter, system-ui, sans-serif'; PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
     PCX.fillText(m+'×', x, g.binY+17);
   }
   if (pkBall) { PCX.beginPath(); PCX.fillStyle = c.gold; PCX.shadowColor = c.gold; PCX.shadowBlur = 16; PCX.arc(pkBall.x,pkBall.y,8,0,7); PCX.fill(); PCX.shadowBlur = 0; }
@@ -556,7 +556,7 @@ function buildWheel() {
     const x0 = cx+r*Math.sin(a0), y0 = cy-r*Math.cos(a0), x1 = cx+r*Math.sin(a1), y1 = cy-r*Math.cos(a1);
     html += '<path d="M'+cx+' '+cy+' L'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' Z" fill="'+wheelColor(WHEEL[i])+'" stroke="rgba(0,0,0,.4)" stroke-width="1"/>';
     const am = i*seg+seg/2, rad = am*Math.PI/180, lx = cx+106*Math.sin(rad), ly = cy-106*Math.cos(rad);
-    html += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="#fff" font-family="Bebas Neue" font-size="17" text-anchor="middle" dominant-baseline="middle" transform="rotate('+am.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')">'+(WHEEL[i]===0?'✕':WHEEL[i]+'×')+'</text>';
+    html += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="#fff" font-family="Inter, system-ui, sans-serif" font-size="17" text-anchor="middle" dominant-baseline="middle" transform="rotate('+am.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')">'+(WHEEL[i]===0?'✕':WHEEL[i]+'×')+'</text>';
   }
   html += '<circle cx="160" cy="160" r="150" fill="none" stroke="rgba(255,201,77,.55)" stroke-width="3"/>';
   g.innerHTML = html; wheelBuilt = true; g.style.transform = 'rotate(0deg)';
