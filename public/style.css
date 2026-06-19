@@ -192,56 +192,102 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 .shake-x   {animation:shakeX .45s var(--ease-out)}
 
 /* ══════════════════════════════════════════════════════════
-   AUTH — Centered card
+   AUTH — Entrée dans le club
 ══════════════════════════════════════════════════════════ */
 .auth-wrap{
   flex:1;display:flex;align-items:center;justify-content:center;
-  padding:24px;min-height:100vh;
+  min-height:100vh;padding:40px 24px;position:relative;overflow:hidden;
 }
-.auth-card{
-  width:100%;max-width:380px;
-  background:var(--panel);border:1px solid var(--line2);
-  border-radius:20px;padding:38px 32px 32px;
-  box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(124,58,237,.06) inset;
-  backdrop-filter:blur(20px);
-  animation:auth-in .45s cubic-bezier(.34,1.15,.64,1);
+
+/* Halo violet rotatif en arrière-plan */
+.auth-halo{
+  position:absolute;width:700px;height:700px;top:-200px;left:-200px;
+  background:radial-gradient(ellipse at 40% 40%,rgba(46,16,101,.55) 0%,transparent 65%);
+  animation:loginHalo 60s linear infinite;
+  pointer-events:none;z-index:0;
 }
-@keyframes auth-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+
+.auth-center{
+  position:relative;z-index:1;
+  width:100%;max-width:360px;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;
+}
+
+/* Logo */
 .auth-logo{
-  font-family:var(--display);font-size:52px;letter-spacing:3px;
-  color:#fff;text-align:center;line-height:1;margin-bottom:4px;
+  font-family:var(--display);font-size:clamp(3rem,8vw,4.5rem);
+  font-weight:600;letter-spacing:.05em;
+  color:var(--tx);text-align:center;line-height:1;
+  margin-bottom:.2em;
 }
-.auth-logo span{
-  background:linear-gradient(135deg,var(--v-xs),var(--violet));
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
+.auth-logo span{color:var(--v-500)}
+
+/* Sous-titre */
+.auth-subtitle{
+  font-family:var(--display);font-style:italic;font-weight:400;
+  font-size:.85rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--tx-3);text-align:center;margin-bottom:2rem;
 }
-.auth-sub{
-  text-align:center;font-size:11px;color:var(--dim);
-  text-transform:uppercase;letter-spacing:2.5px;margin-bottom:24px;
+
+/* Séparateur */
+.auth-sep{
+  width:200px;height:1px;margin-bottom:2.5rem;
+  background:linear-gradient(90deg,transparent,rgba(91,33,182,.5),transparent);
 }
-.auth-back-line{
-  text-align:center;margin-top:14px;font-size:13px;color:var(--dim);
-}
-.auth-back-line a{color:var(--v-lt);cursor:pointer;font-weight:600}
-.auth-back-line a:hover{text-decoration:underline}
-.field{margin-bottom:14px}
+
+/* Form */
+.auth-form{width:100%}
+
+/* Champs — underline only */
+.field{margin-bottom:1.25rem}
 .field label{
-  display:block;font-size:11px;text-transform:uppercase;
-  letter-spacing:1.5px;color:var(--dim);margin-bottom:7px;font-weight:600;
+  display:block;font-size:.7rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.1em;
+  color:var(--tx-3);margin-bottom:.5rem;
+  font-family:var(--body);
 }
 .field input,.field select{
-  width:100%;padding:11px 14px;border-radius:10px;
-  border:1px solid var(--line2);background:rgba(0,0,0,.45);
-  color:var(--txt);font-family:var(--body);font-size:14px;
-  font-weight:500;outline:none;transition:.18s;
+  width:100%;padding:.65rem 0;
+  background:transparent;border:none;
+  border-bottom:1px solid var(--bdr-med);
+  color:var(--tx);font-family:var(--body);font-size:.95rem;font-weight:500;
+  outline:none;transition:border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 .field input:focus,.field select:focus{
-  border-color:var(--violet);
-  box-shadow:0 0 0 3px var(--v-dim);
+  border-bottom-color:var(--v-500);
+  box-shadow:0 2px 0 var(--v-500);
 }
-.field input::placeholder{color:var(--dim);opacity:.7}
-.err{color:var(--red);font-size:13px;text-align:center;min-height:18px;margin-top:6px;font-weight:600}
+.field input::placeholder{color:var(--tx-4)}
+/* Select style normal pour les jeux */
+.field select{
+  border:1px solid var(--bdr-med);border-radius:var(--r2);
+  padding:.65rem .75rem;background:rgba(0,0,0,.3);
+}
+.field select:focus{border-color:var(--v-500);box-shadow:0 0 0 3px var(--v-dim)}
+
+.err{color:var(--red);font-size:.8rem;text-align:center;min-height:1.2rem;margin:.4rem 0;font-weight:600}
+
+/* Bouton CTA login */
+.auth-form .btn{
+  font-family:var(--display);font-size:1.05rem;letter-spacing:.15em;
+  margin-top:1.5rem;
+}
+.auth-form .btn:last-of-type{animation:pulseGold 2s ease 1.4s 1}
+
+.auth-back-line{text-align:center;margin-top:1.2rem;color:var(--tx-3);font-size:.82rem}
+.auth-back-line a{color:var(--v-300);cursor:pointer;font-weight:500}
+.auth-back-line a:hover{color:var(--tx)}
+
+/* Banner invitation */
+.invite-banner{
+  display:flex;align-items:center;gap:.5rem;justify-content:center;
+  font-family:var(--display);font-style:italic;font-size:.95rem;
+  color:var(--gold);letter-spacing:.05em;
+  margin-bottom:1.2rem;padding:.6rem 1rem;
+  border:1px solid var(--gold-dim);border-radius:var(--r2);
+  background:var(--gold-dim);
+}
 
 /* ══════════════════════════════════════════════════════════
    BUTTONS
@@ -796,11 +842,6 @@ input[type=range]::-webkit-slider-thumb{
 .log-time{color:var(--dim);font-size:11px;white-space:nowrap;font-family:monospace}
 
 /* ── INVITE ──────────────────────────────────────────────  */
-.invite-banner{
-  background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(124,58,237,.1));
-  border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:11px 14px;
-  font-size:14px;font-weight:600;color:var(--green);text-align:center;margin-bottom:16px;
-}
 .invite-gen-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}
 .invite-result{margin-top:12px}
 .invite-link-box{

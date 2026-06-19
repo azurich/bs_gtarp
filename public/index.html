@@ -16,20 +16,31 @@
 
     <!-- ═══════════ AUTH ═══════════ -->
     <div id="authView" class="auth-wrap">
-      <div class="auth-card">
-        <div class="auth-logo">Black<span>State</span></div>
-        <div class="auth-sub">Casino · Los Santos</div>
+      <!-- Halo rotatif -->
+      <div class="auth-halo"></div>
 
-        <div id="loginForm">
+      <div class="auth-center">
+        <!-- Logo -->
+        <div class="auth-logo anim-up" data-delay="0">
+          Black<span>State</span>
+        </div>
+        <!-- Sous-titre -->
+        <div class="auth-subtitle anim-up" data-delay="1">Casino Privé &middot; Los Santos</div>
+        <!-- Séparateur -->
+        <div class="auth-sep anim-fade" data-delay="2"></div>
+
+        <!-- Login -->
+        <div id="loginForm" class="auth-form anim-up" data-delay="3">
           <div class="field"><label>Pseudo</label><input id="loginUser" type="text" placeholder="Votre pseudo" autocomplete="username"></div>
           <div class="field"><label>Mot de passe</label><input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
           <div id="loginErr" class="err"></div>
           <button class="btn" onclick="doLogin()">Se connecter</button>
         </div>
 
-        <div id="registerForm" class="hidden">
+        <!-- Register -->
+        <div id="registerForm" class="auth-form anim-up hidden" data-delay="3">
           <div id="inviteBanner" class="invite-banner hidden">
-            <i data-lucide="ticket" class="ic-sm"></i> Invitation · <span id="inviteCredits">1 000</span> crédits offerts
+            <i data-lucide="ticket" class="ic-sm"></i> Invitation · <span id="inviteCredits">1 000</span> crédits
           </div>
           <div class="field"><label>Pseudo</label><input id="regUser" type="text" placeholder="Choisir un pseudo" autocomplete="username"></div>
           <div class="field"><label>Mot de passe</label><input id="regPass" type="password" placeholder="••••••••" autocomplete="new-password"></div>
