@@ -3,7 +3,6 @@
    Toute la logique d'argent et de win rate vit ICI.
 ============================================================ */
 import { Elysia } from 'elysia'
-import { staticPlugin } from '@elysiajs/static'
 import { cors } from '@elysiajs/cors'
 import { randomBytes } from 'node:crypto'
 import db from './db.ts'
@@ -27,8 +26,6 @@ const DAY          = 86_400_000
 const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
-const CHAT_MAX_AGE = 24 * 60 * 60 * 1_000
-
 /* ── requêtes préparées ───────────────────────────────────── */
 const Q = {
   userByName  : db.prepare('SELECT * FROM users WHERE username = ?'),
@@ -41,7 +38,7 @@ const Q = {
   setBonus    : db.prepare('UPDATE users SET last_bonus = ? WHERE id = ?'),
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
   allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level FROM users ORDER BY credit DESC'),
-  topUsers    : db.prepare('SELECT username, credit, is_admin, level FROM users ORDER BY credit DESC LIMIT 10'),
+  topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
   settings    : db.prepare('SELECT * FROM settings'),
   setSetting  : db.prepare('UPDATE settings SET bias = ?, payout = ? WHERE game = ?'),
   insSession  : db.prepare('INSERT INTO sessions (token, user_id, created) VALUES (?,?,?)'),
@@ -53,12 +50,6 @@ const Q = {
   clearLogs   : db.prepare('DELETE FROM logs'),
   insHistory  : db.prepare('INSERT INTO game_history (user_id, game, bet, gain, result, ts) VALUES (?,?,?,?,?,?)'),
   getHistory  : db.prepare('SELECT * FROM game_history WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
-  insChat     : db.prepare('INSERT INTO chat_messages (user_id, username, msg, ts) VALUES (?,?,?,?)'),
-  getChat     : db.prepare(`
-    SELECT c.id, c.username, c.msg, c.ts, u.is_admin
-    FROM chat_messages c JOIN users u ON u.id = c.user_id
-    WHERE c.ts > ? ORDER BY c.ts ASC LIMIT 50
-  `),
 }
 
 /* ── état des parties stateful ────────────────────────────── */
@@ -500,8 +491,8 @@ const app = new Elysia()
     .get('/api/leaderboard', () => ({
       top: (Q.topUsers.all() as any[]).map(u => ({
         name  : u.username,
+        won   : Math.floor(u.won),
         credit: Math.floor(u.credit),
-        admin : !!u.is_admin,
         level : u.level || 1,
       }))
     }))
@@ -614,7 +605,9 @@ const app = new Elysia()
   )
 
   /* ── Fichiers statiques + fallback SPA ────────────────── */
-  .use(staticPlugin({ assets: './public', prefix: '/' }))
+  .get('/style.css',     () => new Response(Bun.file('./public/style.css'),     { headers: { 'Content-Type': 'text/css' } }))
+  .get('/app.js',        () => new Response(Bun.file('./public/app.js'),        { headers: { 'Content-Type': 'application/javascript' } }))
+  .get('/lucide.min.js', () => new Response(Bun.file('./public/lucide.min.js'), { headers: { 'Content-Type': 'application/javascript' } }))
   .get('/*', () => Bun.file('./public/index.html'))
 
   /* ── Gestionnaire d'erreurs ───────────────────────────── */
@@ -625,6 +618,6 @@ const app = new Elysia()
     return { error: 'Erreur serveur interne' }
   })
 
-  .listen(PORT, () => console.log(`BlackState Casino → http://localhost:${PORT}`))
+  .listen({ port: PORT, hostname: '0.0.0.0' }, () => console.log(`BlackState Casino → http://localhost:${PORT}`))
 
 export type App = typeof app
