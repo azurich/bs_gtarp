@@ -80,22 +80,27 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:var(--body);color:var(--txt);min-height:100vh;overflow-x:hidden;
+  font-family:var(--body);color:var(--tx);min-height:100vh;overflow-x:hidden;
   font-size:14px;line-height:1.5;
   background:
-    radial-gradient(ellipse 150% 55% at 10% -5%, rgba(109,40,217,.24), transparent 56%),
-    radial-gradient(ellipse 90% 48% at 90% 110%, rgba(76,29,149,.18), transparent 54%),
-    linear-gradient(180deg,#0c091f 0%,#06060f 55%,#040309 100%);
+    radial-gradient(ellipse 80% 50% at 20% 0%,rgba(46,16,101,.35),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%,rgba(91,33,182,.12),transparent 55%),
+    #05050c;
   background-attachment:fixed;
 }
 body::before{
-  content:"";position:fixed;left:0;right:0;bottom:0;height:200px;z-index:0;pointer-events:none;
-  background:
-    linear-gradient(0deg,rgba(109,40,217,.12),transparent),
-    repeating-linear-gradient(90deg,transparent 0 38px,rgba(139,92,246,.04) 38px 40px);
-  mask:linear-gradient(0deg,#000,transparent);
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(91,33,182,.018) 2px 3px);
+  mask:linear-gradient(180deg,transparent 40%,#000 100%);
 }
-.scan{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.022;
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(91,33,182,.4);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(91,33,182,.7)}
+
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.015;
   background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px);}
 .app{position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh}
 .hidden{display:none!important}
@@ -120,16 +125,71 @@ svg.lucide{display:inline-block;vertical-align:middle;stroke:currentColor;fill:n
 .nav-item.active .ni svg.lucide{color:var(--v-lt)}
 
 /* ── TYPOGRAPHY ─────────────────────────────────────────── */
-h1,h2,h3,.bignum,.btn,.chip{font-family:var(--display);letter-spacing:1px}
+h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 .logo{
-  font-family:var(--display);font-size:26px;letter-spacing:2px;
-  color:#fff;line-height:1;user-select:none;
+  font-family:var(--display);font-size:1.6rem;letter-spacing:.05em;
+  color:var(--tx);line-height:1;user-select:none;font-weight:600;
 }
-.logo span{
-  background:linear-gradient(135deg,var(--v-xs),var(--violet));
-  -webkit-background-clip:text;background-clip:text;
-  -webkit-text-fill-color:transparent;color:transparent;
+.logo span{color:var(--v-500)}
+
+/* ══════════════════════════════════════════════════════════
+   ANIMATIONS — système unifié
+══════════════════════════════════════════════════════════ */
+@keyframes animUp{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
 }
+@keyframes animScale{
+  from{opacity:0;transform:scale(.94)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes animLeft{
+  from{opacity:0;transform:translateX(-20px)}
+  to{opacity:1;transform:translateX(0)}
+}
+@keyframes animFade{
+  from{opacity:0}to{opacity:1}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shakeX{
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-6px)}
+  40%,80%{transform:translateX(6px)}
+}
+@keyframes pulseGold{
+  0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.4)}
+  50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}
+}
+@keyframes countBounce{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{
+  from{opacity:0;transform:scale(.93) translateY(-10px)}
+  to{opacity:1;transform:none}
+}
+@keyframes winpop{
+  from{transform:scale(.3);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+@keyframes jackpotPulse{
+  0%,100%{filter:drop-shadow(0 8px 28px rgba(0,0,0,.6))}
+  50%{filter:drop-shadow(0 0 60px rgba(201,168,76,.9))}
+}
+@keyframes loginHalo{
+  0%{transform:rotate(0deg) scale(1)}
+  50%{transform:rotate(180deg) scale(1.1)}
+  100%{transform:rotate(360deg) scale(1)}
+}
+
+/* Classes réutilisables */
+.anim-up   {animation:animUp    var(--dur-med) var(--ease-out) both}
+.anim-scale{animation:animScale var(--dur-med) var(--ease-back) both}
+.anim-left {animation:animLeft  var(--dur-med) var(--ease-out) both}
+.anim-fade {animation:animFade  var(--dur-med) var(--ease-out) both}
+.shake-x   {animation:shakeX .45s var(--ease-out)}
 
 /* ══════════════════════════════════════════════════════════
    AUTH — Centered card
