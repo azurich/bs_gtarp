@@ -1132,7 +1132,7 @@ td .btn{display:inline-block;width:auto;padding:4px 9px;font-size:.72rem;margin:
   font-size:11px;font-weight:600;letter-spacing:.4px;
   padding:2px 7px;border-radius:4px;border:1px solid var(--a-border2);
 }
-.adm-lvl{color:var(--a-tx-muted);font-weight:600}
+#adminPanel .adm-lvl{color:var(--a-tx-muted);font-weight:600}
 
 #adminPanel .invite-gen-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
 #adminPanel .invite-result{margin-top:14px}
