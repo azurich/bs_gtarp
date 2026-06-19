@@ -268,7 +268,6 @@ async function claimBonusHome() {
     setBalance(d.balance, true, d.xp, d.level);
     toast('+500 crédits !');
     updateBonusBadge();
-    $('homeBal').textContent = fmt(USER.credit);
   } catch (e) {
     toast(e.message, 4000);
     if (btn) btn.disabled = false;
@@ -284,8 +283,13 @@ async function renderHome() {
   countUp($('homePlayed'), st.played || 0, 400);
   const net = (st.won || 0) - (st.wagered || 0);
   const netEl = $('homeNet');
-  netEl.textContent = (net >= 0 ? '+' : '') + fmt(net);
-  netEl.style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
+  if (netEl) {
+    countUp(netEl, Math.floor(Math.abs(net)));
+    netEl.style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
+    setTimeout(() => {
+      if (netEl) netEl.textContent = (net >= 0 ? '+' : '-') + Math.abs(Math.floor(net)).toLocaleString('fr-FR');
+    }, 620);
+  }
   updateBonusBadge();
   const wrap = $('homeLeaderWrap');
   if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
