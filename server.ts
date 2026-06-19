@@ -192,12 +192,13 @@ function rateLimit(windowMs: number, max: number, message: object) {
 const authRL = rateLimit(15 * 60_000, 15, { error: 'Trop de tentatives, réessaie dans 15 minutes.' })
 
 /* ── CSP ──────────────────────────────────────────────────── */
-// SECURITY: 'unsafe-inline' retiré de script-src — protection XSS active.
-// Les scripts inline dans index.html (onclick="…") passent via app.js (externe).
-// script-src-attr supprimé également (inutile sans inline).
+// script-src 'self' (sans unsafe-inline) : bloque les blocs <script> injectés — XSS réduit.
+// script-src-attr 'unsafe-inline' : requis pour les onclick="…" dans index.html.
+// Ces deux directives sont indépendantes. Supprimer script-src-attr casserait toute l'UI.
 const CSP = [
   "default-src 'self'",
   "script-src 'self'",
+  "script-src-attr 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self'",
@@ -224,14 +225,16 @@ const withAuth = new Elysia({ name: 'auth' })
     return { user, authToken: token }
   })
 
-const withAdmin = new Elysia({ name: 'admin-guard' })
-  .use(withAuth)
-  .onBeforeHandle({ as: 'scoped' }, ({ user, set }) => {
-    if (!(user as User | undefined)?.is_admin) {
-      set.status = 403
-      return { error: 'Réservé admin' }
-    }
-  })
+function checkAdmin(headers: Record<string, string | undefined>): User | null {
+  const token = ((headers['authorization'] ?? '').replace(/^Bearer\s+/i, '').trim()
+              || (headers['x-token'] ?? '').trim())
+  if (!token) return null
+  const session = Q.getSession.get(token) as Session | null
+  if (!session) return null
+  if (Date.now() - session.created > SESSION_TTL) { Q.delSession.run(token); return null }
+  const user = Q.userById.get(session.user_id) as User | null
+  return user?.is_admin ? user : null
+}
 
 /* ── seed admin (top-level await, s'exécute avant le démarrage) */
 {
@@ -519,92 +522,103 @@ const app = new Elysia()
 
   )
 
-  /* ── Routes admin ─────────────────────────────────────── */
+  /* ── Routes admin — checkAdmin() inline dans chaque handler ── */
   .use(new Elysia()
-    .use(withAdmin)
 
-    .get('/api/admin/users', () => ({
-      users: (Q.allUsers.all() as any[]).map(u => ({
-        name   : u.username,
-        credit : Math.floor(u.credit),
-        wagered: Math.floor(u.wagered),
-        admin  : !!u.is_admin,
-        level  : u.level || 1,
-        xp     : Math.floor(u.xp || 0),
-      }))
-    }))
+    .get('/api/admin/users', ({ headers, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      return { users: (Q.allUsers.all() as any[]).map(u => ({
+        name: u.username, credit: Math.floor(u.credit), wagered: Math.floor(u.wagered),
+        admin: !!u.is_admin, level: u.level || 1, xp: Math.floor(u.xp || 0),
+      })) }
+    })
 
-    .post('/api/admin/users', async ({ body, user, set }) => {
+    .post('/api/admin/users', async ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
       const b = body as any
-      const u = String(b.user ?? '').trim()
-      const p = String(b.pass ?? '1234')
+      const u = String(b.user ?? '').trim(), p = String(b.pass ?? '1234')
       const c = Math.floor(Number(b.credit) || 0)
       if (!validUser(u)) { set.status = 400; return { error: 'Pseudo invalide (3-20 cars, lettres/chiffres/_ ou -).' } }
       if (Q.userByName.get(u)) { set.status = 400; return { error: 'Existe déjà' } }
       const hash = await Bun.password.hash(p, { algorithm: 'bcrypt', cost: 10 })
       Q.insertUser.run(u, hash, 0, c, Date.now())
-      logEvent((user as User).username, 'admin', `Compte créé « ${u} » (${c})`, c)
+      logEvent(adm.username, 'admin', `Compte créé « ${u} » (${c})`, c)
       return { ok: true }
     })
 
-    .post('/api/admin/credit', ({ body, user, set }) => {
-      const b   = body as any
-      const u   = String(b.user ?? '')
-      const n   = Math.floor(Number(b.amount) || 0)
+    .post('/api/admin/credit', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const b = body as any
+      const u = String(b.user ?? ''), n = Math.floor(Number(b.amount) || 0)
       const row = Q.userByName.get(u) as User | null
       if (!row) { set.status = 404; return { error: 'Joueur introuvable' } }
       Q.setCredit.run(Math.max(0, row.credit + n), row.id)
-      logEvent((user as User).username, 'admin', `Crédit ${n >= 0 ? '+' : ''}${n} sur « ${u} »`, n)
+      logEvent(adm.username, 'admin', `Crédit ${n >= 0 ? '+' : ''}${n} sur « ${u} »`, n)
       return { ok: true }
     })
 
-    .post('/api/admin/delete', ({ body, user }) => {
+    .post('/api/admin/delete', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
       const u = String((body as any).user ?? '')
       Q.delUser.run(u)
-      logEvent((user as User).username, 'admin', `Compte supprimé « ${u} »`)
+      logEvent(adm.username, 'admin', `Compte supprimé « ${u} »`)
       return { ok: true }
     })
 
-    .get('/api/admin/settings', () => ({ settings: getSettings() }))
+    .get('/api/admin/settings', ({ headers, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
+      return { settings: getSettings() }
+    })
 
-    .post('/api/admin/settings', ({ body, user, set }) => {
-      const b    = body as any
-      const game = String(b.game ?? '')
+    .post('/api/admin/settings', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const b = body as any, game = String(b.game ?? '')
       if (!(G.GAME_KEYS as readonly string[]).includes(game)) { set.status = 400; return { error: 'Jeu inconnu' } }
       const cur  = getSettings()[game]
       const bias = b.bias   != null ? Math.max(0, Math.min(100, Number(b.bias)))                : cur.bias
       const pay  = b.payout != null ? Math.max(0, Math.min(500, Math.round(Number(b.payout)))) : cur.payout
       Q.setSetting.run(bias, pay, game)
-      logEvent((user as User).username, 'admin', `Réglage ${LABELS[game]} → fréq ${bias}% / gains ${pay}%`)
+      logEvent(adm.username, 'admin', `Réglage ${LABELS[game]} → fréq ${bias}% / gains ${pay}%`)
       return { ok: true, settings: getSettings() }
     })
 
-    .get('/api/admin/logs', ({ query }) => {
+    .get('/api/admin/logs', ({ headers, query, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
       const f = query.filter as string | undefined
       return { logs: (f && f !== 'all') ? Q.logsByType.all(f) : Q.logsAll.all() }
     })
 
-    .delete('/api/admin/logs', ({ user }) => {
+    .delete('/api/admin/logs', ({ headers, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
       Q.clearLogs.run()
-      logEvent((user as User).username, 'admin', 'Logs effacés')
+      logEvent(adm.username, 'admin', 'Logs effacés')
       return { ok: true }
     })
 
-    .post('/api/admin/invite', ({ body, user }) => {
+    .post('/api/admin/invite', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
       const credits = Math.max(0, Math.floor(Number((body as any).credits ?? 1000) || 0))
-      // SECURITY: 16 bytes (128 bits) au lieu de 8 bytes (64 bits) — résistant aux collisions par force brute
       const token   = randomBytes(16).toString('hex')
       db.prepare('INSERT INTO invites (token, credits, created, created_by) VALUES (?,?,?,?)')
-        .run(token, credits, Date.now(), (user as User).username)
-      logEvent((user as User).username, 'admin', `Invitation créée (${credits} crédits)`, credits)
+        .run(token, credits, Date.now(), adm.username)
+      logEvent(adm.username, 'admin', `Invitation créée (${credits} crédits)`, credits)
       return { ok: true, token, credits }
     })
 
-    .get('/api/admin/invites', () => ({
-      invites: db.prepare('SELECT * FROM invites ORDER BY created DESC LIMIT 200').all()
-    }))
+    .get('/api/admin/invites', ({ headers, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
+      return { invites: db.prepare('SELECT * FROM invites ORDER BY created DESC LIMIT 200').all() }
+    })
 
-    .delete('/api/admin/invite/:token', ({ params }) => {
+    .delete('/api/admin/invite/:token', ({ headers, params, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
       db.prepare('DELETE FROM invites WHERE token = ? AND used = 0').run(params.token)
       return { ok: true }
     })
