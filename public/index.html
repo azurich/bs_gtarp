@@ -124,7 +124,7 @@
           <!-- HOME -->
           <div id="view-home" class="view active">
             <div class="view-inner">
-              <div class="home-hero card">
+              <div class="home-hero card anim-up" data-delay="0">
                 <div class="home-hero-info">
                   <div class="home-welcome">Bienvenue, <span id="homeUser" class="home-username">—</span></div>
                   <div class="home-lvl-line"><span class="home-lvl-badge">Niveau <b id="homeLevel">1</b></span></div>
@@ -133,24 +133,24 @@
               </div>
 
               <div class="home-stats">
-                <div class="home-stat-card">
+                <div class="home-stat-card anim-up" data-delay="0">
                   <div class="hs-icon"><i data-lucide="coins"></i></div>
                   <div class="hs-val" id="homeBal">0</div>
                   <div class="hs-lbl">Crédits</div>
                 </div>
-                <div class="home-stat-card">
+                <div class="home-stat-card anim-up" data-delay="1">
                   <div class="hs-icon"><i data-lucide="gamepad-2"></i></div>
                   <div class="hs-val" id="homePlayed">0</div>
                   <div class="hs-lbl">Parties jouées</div>
                 </div>
-                <div class="home-stat-card">
+                <div class="home-stat-card anim-up" data-delay="2">
                   <div class="hs-icon"><i data-lucide="trending-up"></i></div>
                   <div class="hs-val" id="homeNet">0</div>
                   <div class="hs-lbl">Net (gains − mises)</div>
                 </div>
               </div>
 
-              <div id="homeBonusCard" class="home-bonus-card hidden">
+              <div id="homeBonusCard" class="home-bonus-card hidden anim-scale" data-delay="3">
                 <div>
                   <div class="hbc-title"><i data-lucide="gift" class="ic-sm"></i> Bonus quotidien disponible !</div>
                   <div class="hbc-sub">+500 crédits offerts — revient demain</div>
@@ -160,28 +160,28 @@
 
               <h3 class="section-title"><i data-lucide="layout-grid" class="ic-title"></i> Nos Jeux</h3>
               <div class="home-games">
-                <div class="home-game-card" onclick="switchTab('slots')">
+                <div class="home-game-card anim-up" onclick="switchTab('slots')" data-game="slots" data-delay="0">
                   <div class="hg-icon"><i data-lucide="cherry"></i></div><div class="hg-name">Slots</div><div class="hg-desc">3 rouleaux</div>
                 </div>
-                <div class="home-game-card" onclick="switchTab('blackjack')">
+                <div class="home-game-card anim-up" onclick="switchTab('blackjack')" data-game="blackjack" data-delay="1">
                   <div class="hg-icon"><i data-lucide="layers-2"></i></div><div class="hg-name">Blackjack</div><div class="hg-desc">Battez 21</div>
                 </div>
-                <div class="home-game-card" onclick="switchTab('mines')">
+                <div class="home-game-card anim-up" onclick="switchTab('mines')" data-game="mines" data-delay="2">
                   <div class="hg-icon"><i data-lucide="bomb"></i></div><div class="hg-name">Mines</div><div class="hg-desc">Démineur</div>
                 </div>
-                <div class="home-game-card" onclick="switchTab('plinko')">
+                <div class="home-game-card anim-up" onclick="switchTab('plinko')" data-game="plinko" data-delay="3">
                   <div class="hg-icon"><i data-lucide="circle-dot"></i></div><div class="hg-name">Plinko</div><div class="hg-desc">Laissez tomber</div>
                 </div>
-                <div class="home-game-card" onclick="switchTab('wheel')">
+                <div class="home-game-card anim-up" onclick="switchTab('wheel')" data-game="wheel" data-delay="4">
                   <div class="hg-icon"><i data-lucide="disc-3"></i></div><div class="hg-name">Roue</div><div class="hg-desc">Jackpot 50×</div>
                 </div>
-                <div class="home-game-card" onclick="switchTab('dice')">
+                <div class="home-game-card anim-up" onclick="switchTab('dice')" data-game="dice" data-delay="5">
                   <div class="hg-icon"><i data-lucide="dice-5"></i></div><div class="hg-name">Dice</div><div class="hg-desc">Personnalisé</div>
                 </div>
               </div>
 
               <h3 class="section-title" style="margin-top:28px"><i data-lucide="trophy" class="ic-title"></i> Top 5</h3>
-              <div class="card">
+              <div class="card anim-up" data-delay="6">
                 <div class="tablewrap" id="homeLeaderWrap"><table id="homeLeaderTable"></table></div>
               </div>
             </div>
