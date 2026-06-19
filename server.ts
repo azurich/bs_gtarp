@@ -26,6 +26,8 @@ const DAY          = 86_400_000
 const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
+const CHAT_MAX_AGE = 24 * 60 * 60 * 1_000
+
 /* ── requêtes préparées ───────────────────────────────────── */
 const Q = {
   userByName  : db.prepare('SELECT * FROM users WHERE username = ?'),
@@ -181,7 +183,6 @@ function rateLimit(windowMs: number, max: number, message: object) {
     })
 }
 const authRL = rateLimit(15 * 60_000, 15, { error: 'Trop de tentatives, réessaie dans 15 minutes.' })
-const chatRL = rateLimit(10_000, 5, { error: 'Tu envoies trop vite, ralentis !' })
 
 /* ── CSP ──────────────────────────────────────────────────── */
 const CSP = [
@@ -497,21 +498,6 @@ const app = new Elysia()
       }))
     }))
 
-    /* ── Chat (rate limité) ─────────────────────────────── */
-    .use(new Elysia()
-      .use(chatRL)
-      .post('/api/chat', ({ body, user, set }) => {
-        const u   = user as User
-        const msg = String((body as any).msg ?? '').trim().slice(0, 200)
-        if (!msg) { set.status = 400; return { error: 'Message vide' } }
-        Q.insChat.run(u.id, u.username, msg, Date.now())
-        return { ok: true }
-      })
-    )
-
-    .get('/api/chat', ({ query }) => ({
-      messages: Q.getChat.all(Number(query.since) || 0)
-    }))
   )
 
   /* ── Routes admin ─────────────────────────────────────── */
