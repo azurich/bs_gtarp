@@ -17,9 +17,6 @@
 
     <!-- ═══════════ AUTH ═══════════ -->
     <div id="authView" class="auth-wrap">
-      <!-- Halo rotatif -->
-      <div class="auth-halo"></div>
-
       <div class="auth-center">
         <!-- Logo -->
         <div class="auth-logo anim-up" data-delay="0">
@@ -96,7 +93,7 @@
               <span class="ni"><i data-lucide="history"></i></span><span>Historique</span>
             </button>
             <button class="nav-item" data-v="profil" onclick="switchTab('profil')">
-              <span class="ni"><i data-lucide="user"></i></span><span>Profil</span><span id="bonusBadge" class="nav-badge hidden">!</span>
+              <span class="ni"><i data-lucide="user"></i></span><span>Profil</span>
             </button>
           </div>
           <div class="sidebar-user">
@@ -145,14 +142,6 @@
                   <div class="hs-val" id="homeNet">0</div>
                   <div class="hs-lbl">Net (gains − mises)</div>
                 </div>
-              </div>
-
-              <div id="homeBonusCard" class="home-bonus-card hidden anim-scale" data-delay="3">
-                <div>
-                  <div class="hbc-title"><i data-lucide="gift" class="ic-sm"></i> Bonus quotidien disponible !</div>
-                  <div class="hbc-sub">+500 crédits offerts — revient demain</div>
-                </div>
-                <button class="btn sm gold" onclick="claimBonusHome()">Réclamer</button>
               </div>
 
               <h3 class="section-title"><i data-lucide="layout-grid" class="ic-title"></i> Nos Jeux</h3>
@@ -441,10 +430,6 @@
                   <div class="stat"><div class="lbl">Parties</div><div class="val" id="stPlayed">0</div></div>
                   <div class="stat"><div class="lbl">Meilleur gain</div><div class="val" id="stBig">0</div></div>
                 </div>
-                <button id="bonusBtn" class="btn gold" onclick="claimBonus()" style="max-width:280px">
-                  <i data-lucide="gift" class="ic-btn"></i> Bonus quotidien (+500)
-                </button>
-                <div id="bonusHint" class="hint" style="margin-top:10px"></div>
                 <h3 class="section-title" style="margin-top:28px">
                   <i data-lucide="trophy" class="ic-title"></i> Classement
                 </h3>

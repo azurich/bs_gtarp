@@ -204,7 +204,6 @@ async function enter() {
     updateXP(USER.xp || 0, USER.level || 1);
     buildMinesGrid();
     try { DICE_PAYOUT = (await api('/config')).dicePayout; } catch (e) {}
-    updateBonusBadge();
     switchTab('home');
   }
 }
@@ -244,30 +243,6 @@ function _doTab(v) {
   if (v === 'history') loadHistory();
 }
 
-function updateBonusBadge() {
-  if (!USER) return;
-  const avail = Date.now() - (USER.lastBonus || 0) >= 86400000;
-  const badge = $('bonusBadge');
-  if (badge) badge.classList.toggle('hidden', !avail);
-  const bc = $('homeBonusCard');
-  if (bc) bc.classList.toggle('hidden', !avail);
-}
-
-async function claimBonusHome() {
-  const btn = document.querySelector('#homeBonusCard .btn');
-  if (btn) btn.disabled = true;
-  try {
-    const d = await api('/bonus', 'POST');
-    USER.lastBonus = Date.now();
-    setBalance(d.balance, true, d.xp, d.level);
-    toast('+500 crédits !');
-    updateBonusBadge();
-  } catch (e) {
-    toast(e.message, 4000);
-    if (btn) btn.disabled = false;
-  }
-}
-
 async function renderHome() {
   if (!USER) return;
   $('homeUser').textContent   = USER.username;
@@ -284,7 +259,6 @@ async function renderHome() {
       if (netEl) netEl.textContent = (net >= 0 ? '+' : '-') + Math.abs(Math.floor(net)).toLocaleString('fr-FR');
     }, 620);
   }
-  updateBonusBadge();
   const wrap = $('homeLeaderWrap');
   if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
   try {
@@ -609,7 +583,6 @@ function renderXpCard(xp, level) {
 async function renderProfil() {
   $('leaderTable').innerHTML = '<tr><td colspan="4" class="loading-cell"><span class="spinner"></span></td></tr>';
   try { USER = (await api('/me')).user; } catch (e) { return; }
-  updateBonusBadge();
   refreshBal();
   updateXP(USER.xp || 0, USER.level || 1);
   renderXpCard(USER.xp || 0, USER.level || 1);
@@ -622,9 +595,6 @@ async function renderProfil() {
   ne.textContent = (net >= 0 ? '+' : '') + fmt(net); ne.className = 'val ' + (net >= 0 ? 'green' : 'red');
   $('stPlayed').textContent = st.played;
   $('stBig').textContent    = fmt(st.biggest);
-  const now = Date.now(), DAY = 86400000, btn = $('bonusBtn'), hint = $('bonusHint');
-  if (now - (USER.lastBonus || 0) >= DAY) { btn.disabled = false; hint.textContent = 'Disponible maintenant !'; }
-  else { btn.disabled = true; const left = DAY-(now-USER.lastBonus), h = Math.floor(left/3600000), m = Math.floor(left%3600000/60000); hint.textContent = 'Prochain bonus dans '+h+'h '+m+'min'; }
   try {
     const top = (await api('/leaderboard')).top;
     let rows = '<tr><th>#</th><th>Joueur</th><th>Nv.</th><th>Solde</th></tr>';
@@ -637,17 +607,6 @@ async function renderProfil() {
     });
     $('leaderTable').innerHTML = rows;
   } catch (e) {}
-}
-
-async function claimBonus() {
-  try {
-    const d = await api('/bonus', 'POST');
-    USER.lastBonus = Date.now();
-    setBalance(d.balance, true, d.xp, d.level);
-    toast('+500 crédits !');
-    updateBonusBadge();
-    renderProfil();
-  } catch (e) { toast(e.message, 4000); }
 }
 
 /* ══════════════════ ADMIN ══════════════════════════════ */

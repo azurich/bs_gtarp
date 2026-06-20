@@ -5,7 +5,7 @@ le **navigateur affiche et anime**, mais **le serveur décide tout** (argent, RN
 Aucun joueur ne peut tricher en modifiant le code de sa page.
 
 Jeux : Slots, Blackjack, Démineur, Plinko, Roue de la fortune, Dice.
-Espace joueur (compte, solde, stats, bonus quotidien, classement) + espace admin
+Espace joueur (compte, solde, stats, classement) + espace admin
 (création/approvisionnement de comptes, réglage fréquence **et** % de gain par jeu, journal d'activité).
 
 ---

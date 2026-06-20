@@ -481,17 +481,6 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 
 .ni{width:17px;height:17px;flex:none;display:flex;align-items:center;justify-content:center;color:inherit}
 
-/* Badge bonus */
-.nav-badge{
-  margin-left:auto;flex:none;
-  background:var(--gold);color:#1a0f00;
-  font-size:.6rem;font-weight:800;line-height:1;
-  width:15px;height:15px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 8px rgba(201,168,76,.45);
-}
-.nav-badge.hidden{display:none!important}
-
 /* Mobile sidebar (barre horizontale) */
 @media(max-width:860px){
   .sidebar{
@@ -941,18 +930,6 @@ input[type=range]::-webkit-slider-thumb{
   letter-spacing:.01em;line-height:1;margin-bottom:4px;font-weight:700;
 }
 .hs-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--tx-3);font-family:var(--body)}
-
-/* Bonus card */
-.home-bonus-card{
-  display:flex;align-items:center;gap:16px;justify-content:space-between;
-  background:linear-gradient(135deg,var(--green-dim),var(--gold-dim));
-  border:1px solid rgba(16,185,129,.25);border-radius:var(--r3);
-  padding:14px 18px;margin-bottom:20px;flex-wrap:wrap;
-  animation:animFade var(--dur-med) var(--ease-out);
-}
-.hbc-title{font-family:var(--display);font-size:1.2rem;color:var(--tx);display:flex;align-items:center;gap:6px}
-.hbc-sub{font-size:.75rem;color:var(--green);margin-top:2px;font-family:var(--body)}
-.home-bonus-card .btn{margin-top:0;white-space:nowrap}
 
 /* Game cards */
 .home-games{

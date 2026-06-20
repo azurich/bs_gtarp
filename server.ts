@@ -22,7 +22,6 @@ interface MinesState {
 
 /* ── constantes ───────────────────────────────────────────── */
 const PORT         = parseInt(process.env.PORT ?? '3000')
-const DAY          = 86_400_000
 const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
@@ -40,7 +39,6 @@ const Q = {
   bumpWager   : db.prepare('UPDATE users SET credit = credit - ?, wagered = wagered + ?, played = played + 1 WHERE id = ? AND credit >= ?'),
   bumpWin     : db.prepare('UPDATE users SET credit = credit + ?, won = won + ?, biggest = MAX(biggest, ?) WHERE id = ?'),
   addCredit   : db.prepare('UPDATE users SET credit = credit + ? WHERE id = ?'),
-  setBonus    : db.prepare('UPDATE users SET last_bonus = ? WHERE id = ?'),
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
   allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level FROM users ORDER BY credit DESC'),
   topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
@@ -98,7 +96,6 @@ function publicUser(u: User) {
     xp       : u.xp   ?? 0,
     level    : u.level ?? 1,
     stats    : { wagered: Math.floor(u.wagered), won: Math.floor(u.won), played: u.played, biggest: Math.floor(u.biggest) },
-    lastBonus: u.last_bonus,
   }
 }
 function userSnapshot(id: number) {
@@ -336,17 +333,6 @@ const app = new Elysia()
     .get('/api/me', ({ user }) => ({ user: publicUser(user as User) }))
 
     .get('/api/config', () => ({ dicePayout: getSettings().dice.payout }))
-
-    .post('/api/bonus', ({ user, set }) => {
-      const u   = user as User
-      const now = Date.now()
-      if (now - u.last_bonus < DAY) {
-        set.status = 400; return { error: 'Bonus déjà récupéré', wait: DAY - (now - u.last_bonus) }
-      }
-      Q.addCredit.run(500, u.id); Q.setBonus.run(now, u.id)
-      logEvent(u.username, 'bonus', 'Bonus quotidien', 500)
-      return userSnapshot(u.id)
-    })
 
     /* ── Jeux one-shot ──────────────────────────────────── */
     .post('/api/play/slots', ({ body, user, set }) => {

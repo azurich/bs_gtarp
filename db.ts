@@ -20,7 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
   won        REAL    NOT NULL DEFAULT 0,
   played     INTEGER NOT NULL DEFAULT 0,
   biggest    REAL    NOT NULL DEFAULT 0,
-  last_bonus INTEGER NOT NULL DEFAULT 0,
   xp         REAL    NOT NULL DEFAULT 0,
   level      INTEGER NOT NULL DEFAULT 1,
   created    INTEGER NOT NULL DEFAULT 0
@@ -104,7 +103,6 @@ export interface User {
   won       : number
   played    : number
   biggest   : number
-  last_bonus: number
   xp        : number
   level     : number
   created   : number
