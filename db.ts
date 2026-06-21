@@ -6,7 +6,15 @@ import { join } from 'node:path'
 
 const DB_FILE = process.env.DB_FILE ?? join(import.meta.dir, 'casino.db')
 export const db = new Database(DB_FILE)
+/* ── PRAGMA (prod) ─────────────────────────────────────────────
+   WAL        : lectures concurrentes pendant l'écriture
+   synchronous NORMAL : sûr avec WAL, plus rapide que FULL
+   busy_timeout : attend 5 s au lieu d'échouer si la base est verrouillée
+   foreign_keys : prêt si on ajoute des contraintes plus tard            */
 db.exec('PRAGMA journal_mode = WAL;')
+db.exec('PRAGMA synchronous = NORMAL;')
+db.exec('PRAGMA busy_timeout = 5000;')
+db.exec('PRAGMA foreign_keys = ON;')
 
 /* ── schéma ───────────────────────────────────────────────── */
 db.exec(`

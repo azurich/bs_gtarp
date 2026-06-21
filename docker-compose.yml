@@ -6,6 +6,10 @@ services:
       - "${PORT:-3000}:3000"
     env_file:
       - .env
+    environment:
+      # FORCE la base dans le volume persisté (sinon perte de données au recreate
+      # du conteneur). Surcharge un éventuel DB_FILE défini dans .env.
+      - DB_FILE=/app/data/casino.db
     volumes:
       # SQLite persisté sur le host dans ./data/casino.db
       - ./data:/app/data

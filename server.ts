@@ -523,8 +523,14 @@ const app = new Elysia()
     .post('/api/admin/delete', ({ headers, body, set }) => {
       const adm = checkAdmin(headers as any)
       if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
-      const u = String((body as any).user ?? '')
+      const u   = String((body as any).user ?? '')
+      const row = Q.userByName.get(u) as User | null
+      if (!row || row.is_admin) { set.status = 400; return { error: 'Compte introuvable ou protégé' } }
+      // suppression + nettoyage des données liées (pas de FK CASCADE → manuel)
+      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(row.id)
+      db.prepare('DELETE FROM game_history WHERE user_id = ?').run(row.id)
       Q.delUser.run(u)
+      activeBJ.delete(row.id); activeMines.delete(row.id)
       logEvent(adm.username, 'admin', `Compte supprimé « ${u} »`)
       return { ok: true }
     })
@@ -598,5 +604,16 @@ const app = new Elysia()
   })
 
   .listen({ port: PORT, hostname: '0.0.0.0' }, () => console.log(`BlackState Casino → http://localhost:${PORT}`))
+
+/* ── Arrêt propre (Docker/host envoie SIGTERM/SIGINT) ──────────
+   Checkpoint du WAL pour garder le fichier .db à jour avant de quitter. */
+function shutdown(sig: string) {
+  try { db.exec('PRAGMA wal_checkpoint(TRUNCATE);') } catch (_) {}
+  try { db.close() } catch (_) {}
+  console.log(`[${sig}] arrêt propre, base sauvegardée.`)
+  process.exit(0)
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT',  () => shutdown('SIGINT'))
 
 export type App = typeof app
