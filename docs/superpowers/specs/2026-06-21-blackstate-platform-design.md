@@ -73,8 +73,6 @@ Chaque page surcharge ces variables (via sa CSS ou une classe sur `<body>`) :
 
 Les composants partagés (boutons, cartes, modale, champs, toast) utilisent `--accent*` → ils prennent automatiquement la couleur de l'univers courant. La barre de nav globale est sombre/neutre, le lien actif prend `--accent`.
 
-> **À confirmer :** Fight en **rouge** (proposé, cohérent avec des combats) ou **vert** (idée initiale "paris sportifs").
-
 ---
 
 ## 4. Page Club (`/`)
@@ -93,31 +91,33 @@ Structure verticale, sobre :
 ## 5. Inscription (invitation) + Profil
 
 ### Champs RP (nouveaux)
-Le profil collecte, en plus de `username` + mot de passe :
-- **Nom du personnage RP** (`rp_name`)
-- **Discord** (`discord`)
-- **Téléphone RP in-game** (`rp_phone`)
-- **Date de naissance RP** (`rp_birth`, texte libre type `JJ/MM/AAAA`)
+Le profil collecte, en plus du **Pseudo** (= `username`, le login déjà présent) + mot de passe :
+- **NOM** du personnage RP (`rp_nom`)
+- **Prénom** du personnage RP (`rp_prenom`)
+- **Numéro** de téléphone RP in-game (`rp_phone`)
+- **id Discord** (`discord`)
+
+> Le "Pseudo" reste le login du compte (non modifiable). Les 4 champs ci-dessus sont nouveaux.
 
 ### Base de données
 Ajout de 4 colonnes à `users` via le mécanisme `addCol` existant (non destructif) :
 ```sql
-rp_name  TEXT NOT NULL DEFAULT ''
-discord  TEXT NOT NULL DEFAULT ''
-rp_phone TEXT NOT NULL DEFAULT ''
-rp_birth TEXT NOT NULL DEFAULT ''
+rp_nom    TEXT NOT NULL DEFAULT ''
+rp_prenom TEXT NOT NULL DEFAULT ''
+rp_phone  TEXT NOT NULL DEFAULT ''
+discord   TEXT NOT NULL DEFAULT ''
 ```
 Interface `User` étendue en conséquence.
 
 ### API
-- **`POST /api/register`** (existant, sur invitation) — accepte et valide les 4 champs (longueurs bornées, ex. ≤ 40 chars chacun), les stocke. Validation pseudo/mot de passe inchangée.
-- **`POST /api/profile`** (nouveau, protégé `withAuth`) — met à jour **uniquement** `rp_name`, `discord`, `rp_phone`, `rp_birth` du joueur connecté. Ne touche jamais à `username`, `credit`, `is_admin`, stats. Bornes de longueur appliquées.
+- **`POST /api/register`** (existant, sur invitation) — accepte et valide les 4 champs RP (longueurs bornées, ex. ≤ 40 chars chacun), les stocke. Validation pseudo/mot de passe inchangée.
+- **`POST /api/profile`** (nouveau, protégé `withAuth`) — met à jour **uniquement** `rp_nom`, `rp_prenom`, `rp_phone`, `discord` du joueur connecté. Ne touche jamais à `username`, `credit`, `is_admin`, stats. Bornes de longueur appliquées.
 - **`publicUser()`** — renvoie désormais les 4 champs RP (pour pré-remplir le profil).
 
 ### Page Profil (`/profil`, thème club)
-- En-tête : pseudo + carte XP/niveau (réutilise les composants existants).
+- En-tête : pseudo (login, lecture seule) + carte XP/niveau (réutilise les composants existants).
 - **Stats du compte** (lecture seule) : solde, misé, gagné, net, parties, meilleur gain.
-- **Infos RP éditables** : formulaire (nom perso, Discord, tél RP, date naissance) + bouton "Enregistrer" → `POST /api/profile`.
+- **Infos RP éditables** : formulaire (NOM, Prénom, Numéro, id Discord) + bouton "Enregistrer" → `POST /api/profile`.
 - Pas d'avatar ni de bio (hors périmètre).
 
 ---
@@ -134,7 +134,7 @@ Interface `User` étendue en conséquence.
 ### Admin (caché)
 - `admin.html` = le `#adminPanel` actuel en page autonome (`/admin`), thème admin existant (zinc/violet).
 - **Caché** : aucun lien dans la nav globale ni ailleurs. Un admin qui se connecte est **redirigé automatiquement** vers `/admin` (le shell détecte `user.admin`). Un non-admin qui ouvre `/admin` est redirigé vers `/`. L'API admin reste protégée par `checkAdmin` (403).
-- La **table joueurs** affiche désormais les infos RP (nom perso, Discord) en plus des stats.
+- La **table joueurs** affiche désormais les infos RP (NOM Prénom, Discord) en plus des stats.
 - `admin.js` = la logique admin extraite d'`app.js` (renderAdminUsers, crédits/débit/suppression, invitations, logs, gameinfo).
 
 ---
