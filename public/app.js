@@ -487,8 +487,8 @@ function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
   // s'adapte à la résolution client : limité par la largeur dispo ET la hauteur du viewport
   const avail = PK.parentElement?.clientWidth || PK.clientWidth || 440;
-  let w = Math.max(240, Math.min(avail, 560));
-  const maxH = Math.min(540, Math.round(window.innerHeight * 0.56)); // tient sans scroll
+  let w = Math.max(240, Math.min(avail, 640));
+  const maxH = Math.min(620, Math.round(window.innerHeight * 0.64)); // suit la hauteur de fenêtre
   let h = Math.round(w * 0.8);
   if (h > maxH) { h = maxH; w = Math.min(w, Math.round(h / 0.8)); }  // garde les proportions
   PK_W = w; PK_H = h;
@@ -898,6 +898,14 @@ buildMinesGrid();
 if (typeof lucide !== 'undefined') lucide.createIcons();
 initAnimations();
 const riskSel = $('plinkoRisk'); if (riskSel) riskSel.addEventListener('change', () => drawPlinko());
+/* le canvas Plinko se recalcule au redimensionnement de la fenêtre (sauf pendant une chute) */
+let _pkResizeT;
+window.addEventListener('resize', () => {
+  clearTimeout(_pkResizeT);
+  _pkResizeT = setTimeout(() => {
+    if (!pkAnim && $('view-plinko') && $('view-plinko').classList.contains('active')) { initPlinkoCanvas(); drawPlinko(); }
+  }, 150);
+});
 ['loginPass','loginUser'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); }));
 ['regPass','regUser'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key==='Enter') doRegister(); }));
 (async () => {
