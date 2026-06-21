@@ -359,12 +359,17 @@
                   <h2><i data-lucide="dice-5" class="ic-game"></i> Dice</h2>
                   <span class="sub">Choisissez votre chance de gagner</span>
                 </div>
-                <div class="dice-result" id="diceResult">—</div>
+                <div class="dice-stage">
+                  <div class="dice-result" id="diceResult">—</div>
+                  <div class="dice-result-cap">Dernier lancer</div>
+                </div>
                 <div class="dice-track">
+                  <span class="dice-zone dice-zone-win">GAGNANT</span>
+                  <span class="dice-zone dice-zone-lose">PERDANT</span>
                   <div class="dice-marker" id="diceMarker"></div>
                   <div class="dice-dot" id="diceDot"></div>
                 </div>
-                <div class="dice-scale"><span>0</span><span>50</span><span>100</span></div>
+                <div class="dice-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
                 <div class="slider-row">
                   <label>Chance de gagner <b id="diceChanceLbl">50%</b></label>
                   <input id="diceSlider" type="range" min="2" max="95" value="50" oninput="diceUpdate()">

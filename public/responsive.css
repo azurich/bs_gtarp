@@ -118,14 +118,21 @@
 
 /* ── MINES ────────────────────────────────────────────── */
 @media(max-width:640px){
+  .mines-cfg{padding:12px;gap:10px}
   .mines-grid{gap:6px;max-width:100%}
-  .cell{border-radius:var(--r1);font-size:1.3rem}
-  .mines-info{padding:10px 12px}
+  .cell{border-radius:var(--r1)}
+  .mines-info{padding:10px 8px;gap:4px}
+  .mines-info .lbl{font-size:.54rem;letter-spacing:.04em;line-height:1.2}
   .mines-info .val{font-size:1.3rem}
 }
-@media(max-width:380px){
+@media(max-width:420px){
+  .mines-grid{gap:5px}
+  .mines-info{padding:9px 6px}
+  .mines-info .lbl{font-size:.5rem}
+  .mines-info .val{font-size:1.1rem}
+}
+@media(max-width:340px){
   .mines-grid{gap:4px}
-  .cell{font-size:1.1rem}
 }
 
 /* ── PLINKO ───────────────────────────────────────────── */
@@ -142,11 +149,16 @@
 
 /* ── DICE ─────────────────────────────────────────────── */
 @media(max-width:640px){
-  .dice-result{font-size:4rem}
-  .dice-track{height:36px;border-radius:18px}
-  .dice-dot{width:20px;height:20px}
+  .dice-result{font-size:4.2rem}
+  .dice-track{height:46px;border-radius:23px}
+  .dice-dot{width:26px;height:26px}
+  .dice-zone{font-size:.56rem;letter-spacing:.08em}
   .dice-stats{gap:6px}
   .dice-stats .stat{min-width:80px}
+}
+@media(max-width:380px){
+  .dice-zone{display:none}
+  .dice-result{font-size:3.6rem}
 }
 
 /* ── PROFIL / HISTORIQUE ──────────────────────────────── */

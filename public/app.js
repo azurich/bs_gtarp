@@ -482,42 +482,70 @@ let PK_MULT = {
   high: [66.34,15.92,5.31,1.33,0.53,0.27,0.13,0.27,0.53,1.33,5.31,15.92,66.34],
 };
 let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1, pkTrail = [];
+let PK_W = 440, PK_H = 360;
 function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
-  PK.width  = 500 * PK_DPR;
-  PK.height = 460 * PK_DPR;
+  // résolution interne = taille d'affichage réelle × DPR → rendu net, jamais d'upscaling
+  const cssW = PK.clientWidth || PK.parentElement?.clientWidth || 440;
+  PK_W = Math.max(260, cssW);
+  PK_H = Math.min(Math.round(PK_W * 0.8), 360);   // compact pour tenir sans scroll
+  PK.style.height = PK_H + 'px';
+  PK.width  = Math.round(PK_W * PK_DPR);
+  PK.height = Math.round(PK_H * PK_DPR);
   PCX.setTransform(PK_DPR, 0, 0, PK_DPR, 0, 0);
 }
 function pkColors() { const c = getComputedStyle(document.documentElement); return { gold: c.getPropertyValue('--gold').trim(), dim: c.getPropertyValue('--dim').trim() }; }
-function pkGeom() { const w = 500, h = 460, padX = 40, topY = 40, binY = h - 46, spacing = (w - 2*padX)/PK_ROWS, cx = w/2; return { w, h, padX, topY, binY, spacing, cx }; }
+function pkGeom() {
+  const w = PK_W, h = PK_H;
+  const padX = Math.max(22, w * 0.075), topY = Math.max(22, h * 0.08);
+  const binH = Math.max(26, h * 0.1), binY = h - binH - 6;
+  const spacing = (w - 2 * padX) / PK_ROWS, cx = w / 2;
+  return { w, h, padX, topY, binY, binH, spacing, cx };
+}
 function pkX(level, rights) { const g = pkGeom(); return g.cx + (2*rights - level)*g.spacing/2; }
 function roundRect(x, y, w, h, r) { PCX.beginPath(); PCX.moveTo(x+r,y); PCX.arcTo(x+w,y,x+w,y+h,r); PCX.arcTo(x+w,y+h,x,y+h,r); PCX.arcTo(x,y+h,x,y,r); PCX.arcTo(x,y,x+w,y,r); PCX.closePath(); }
+function pkBinColor(m) {
+  if (m >= 5)   return ['rgba(255,60,120,.85)', 'rgba(180,20,70,.85)'];   // jackpot
+  if (m >= 1.5) return ['rgba(201,168,76,.85)', 'rgba(140,110,30,.8)'];   // chaud (gain)
+  if (m >= 0.9) return ['rgba(124,58,237,.7)',  'rgba(70,30,150,.7)'];    // tiède
+  return ['rgba(60,55,90,.7)', 'rgba(35,30,55,.7)'];                       // froid (perte)
+}
 function drawPlinko() {
   const g = pkGeom(), c = pkColors(), mult = PK_MULT[$('plinkoRisk').value || 'med'];
-  PCX.clearRect(0,0,g.w,g.h);
+  const pegR  = Math.max(1.8, g.spacing * 0.085);
+  const ballR = Math.max(4.5, g.spacing * 0.22);
+  PCX.clearRect(0, 0, g.w, g.h);
+  // pegs dorés
   for (let l = 1; l <= PK_ROWS; l++) for (let s = 0; s <= l; s++) {
-    const x = g.cx+(2*s-l)*g.spacing/2, y = g.topY+(l/PK_ROWS)*(g.binY-g.topY-10);
-    PCX.beginPath(); PCX.fillStyle = 'rgba(201,168,76,.7)'; PCX.shadowColor = 'rgba(201,168,76,.5)'; PCX.shadowBlur = 4;
-    PCX.arc(x,y,3,0,7); PCX.fill(); PCX.shadowBlur = 0;
+    const x = g.cx + (2*s-l)*g.spacing/2, y = g.topY + (l/PK_ROWS)*(g.binY - g.topY - g.spacing*0.4);
+    PCX.beginPath(); PCX.fillStyle = 'rgba(212,180,90,.85)'; PCX.shadowColor = 'rgba(201,168,76,.5)'; PCX.shadowBlur = 3;
+    PCX.arc(x, y, pegR, 0, 7); PCX.fill(); PCX.shadowBlur = 0;
   }
-  const bw = g.spacing;
+  // bins colorés
+  const bw = g.spacing, fs = Math.min(13, Math.max(8, g.spacing * 0.34));
   for (let b = 0; b <= PK_ROWS; b++) {
-    const x = g.cx+(2*b-PK_ROWS)*g.spacing/2, m = mult[b], hot = m >= 3, warm = m >= 1;
-    PCX.fillStyle = b === pkHighlight ? c.gold : (hot ? 'rgba(255,46,136,.30)' : warm ? 'rgba(35,224,214,.16)' : 'rgba(255,255,255,.05)');
-    PCX.strokeStyle = 'rgba(255,255,255,.12)'; roundRect(x-bw/2+2,g.binY,bw-4,34,7); PCX.fill(); PCX.stroke();
-    PCX.fillStyle = b === pkHighlight ? '#1a1206' : c.dim.trim(); PCX.font = '700 13px Inter, system-ui, sans-serif'; PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
-    PCX.fillText(m+'×', x, g.binY+17);
+    const x = g.cx + (2*b-PK_ROWS)*g.spacing/2, m = mult[b], on = b === pkHighlight;
+    const [c1, c2] = pkBinColor(m);
+    const grad = PCX.createLinearGradient(0, g.binY, 0, g.binY + g.binH);
+    if (on) { grad.addColorStop(0, '#ffe9a8'); grad.addColorStop(1, c.gold); }
+    else    { grad.addColorStop(0, c1); grad.addColorStop(1, c2); }
+    PCX.fillStyle = grad;
+    PCX.strokeStyle = 'rgba(0,0,0,.25)'; PCX.lineWidth = 1;
+    roundRect(x - bw/2 + 1.5, g.binY, bw - 3, g.binH, Math.min(7, bw*0.18)); PCX.fill(); PCX.stroke();
+    PCX.fillStyle = on ? '#1a1206' : '#fff'; PCX.font = '700 ' + fs + 'px Inter, system-ui, sans-serif';
+    PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
+    PCX.fillText(m + '×', x, g.binY + g.binH/2);
   }
-  /* traînée lumineuse */
+  // traînée lumineuse
   for (let i = 0; i < pkTrail.length; i++) {
     const t = pkTrail[i], a = (i + 1) / pkTrail.length;
     PCX.beginPath(); PCX.fillStyle = 'rgba(245,224,138,' + (a * 0.35) + ')';
-    PCX.arc(t.x, t.y, 8 * a * 0.8, 0, 7); PCX.fill();
+    PCX.arc(t.x, t.y, ballR * a * 0.8, 0, 7); PCX.fill();
   }
   if (pkBall) {
-    PCX.beginPath(); PCX.fillStyle = '#fff6d8'; PCX.shadowColor = c.gold; PCX.shadowBlur = 22;
-    PCX.arc(pkBall.x,pkBall.y,8,0,7); PCX.fill();
-    PCX.fillStyle = c.gold; PCX.beginPath(); PCX.arc(pkBall.x,pkBall.y,5,0,7); PCX.fill();
+    PCX.beginPath(); PCX.fillStyle = '#fff6d8'; PCX.shadowColor = c.gold; PCX.shadowBlur = 20;
+    PCX.arc(pkBall.x, pkBall.y, ballR, 0, 7); PCX.fill();
+    PCX.fillStyle = c.gold; PCX.beginPath(); PCX.arc(pkBall.x, pkBall.y, ballR*0.6, 0, 7); PCX.fill();
     PCX.shadowBlur = 0;
   }
 }
@@ -529,13 +557,14 @@ async function plinkoDrop() {
   let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message); }
   $('plinkoMsg').textContent = ''; pkHighlight = -1;
   const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
-  const g = pkGeom(); let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; pkTrail = []; $('plinkoBtn').disabled = true;
+  const g = pkGeom(); const span = g.binY - g.topY - g.spacing*0.4;
+  let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; pkTrail = []; $('plinkoBtn').disabled = true;
   function frame(now) {
     const p = Math.min(1, (now-t0)/dur), lf = p*PK_ROWS, li = Math.floor(lf), frac = lf-li;
     let rDone = 0; for (let i = 0; i < li; i++) rDone += steps[i];
     const nextR = li < PK_ROWS ? steps[li] : 0;
     const x0 = pkX(li, rDone), x1 = pkX(li+1, rDone+nextR);
-    const y0 = g.topY+(li/PK_ROWS)*(g.binY-g.topY-10), y1 = g.topY+((li+1)/PK_ROWS)*(g.binY-g.topY-10);
+    const y0 = g.topY+(li/PK_ROWS)*span, y1 = g.topY+((li+1)/PK_ROWS)*span;
     pkBall.x = x0+(x1-x0)*frac; pkBall.y = y0+(y1-y0)*frac+Math.sin(frac*Math.PI)*6;
     pkTrail.push({ x: pkBall.x, y: pkBall.y }); if (pkTrail.length > 12) pkTrail.shift();
     drawPlinko();
