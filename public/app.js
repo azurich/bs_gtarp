@@ -201,6 +201,7 @@ async function enter() {
     refreshBal();
     updateXP(USER.xp || 0, USER.level || 1);
     buildMinesGrid();
+    initSlots();
     try {
       const cfg = await api('/config');
       GAME_RTP = cfg.rtp ?? 0.70;
@@ -230,7 +231,7 @@ function switchTab(v) {
     );
     return;
   }
-  if (v !== 'plinko' && pkAnim) { cancelAnimationFrame(pkAnim); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false; }
+  if (v !== 'plinko' && pkAnim) { cancelAnimationFrame(pkAnim); pkAnim = null; pkBall = null; pkTrail = []; $('plinkoBtn').disabled = false; }
   _doTab(v);
 }
 function _doTab(v) {
@@ -338,6 +339,24 @@ async function loadHistory() {
 
 /* ══════════════════ SLOTS ══════════════════════════════ */
 const SYM = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐'];
+/* symboles dessinés (SVG) — remplacent les emoji */
+const SLOT_SVG = {
+  gem:    '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M6 3 2 9h20l-4-6z" fill="#fff" opacity=".28"/></svg>',
+  bell:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6c0 4-2 6-2 6h16s-2-2-2-6a6 6 0 0 0-6-6z"/><circle cx="12" cy="20" r="2.2"/></svg>',
+  cherry: '<svg viewBox="0 0 24 24"><path d="M11 4c3 1 6 2 9 1" fill="none" stroke="#3a8a4a" stroke-width="1.6" stroke-linecap="round"/><circle cx="7" cy="17" r="4.2" fill="currentColor"/><circle cx="17" cy="15.5" r="4.2" fill="currentColor"/><circle cx="5.6" cy="15.6" r="1.2" fill="#fff" opacity=".4"/></svg>',
+  star:   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 18.1 5 21.4l1.4-6.8L1.3 9.9l6.9-.8z"/></svg>',
+  lemon:  '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="12" rx="9" ry="6.4" transform="rotate(-20 12 12)"/><ellipse cx="9.5" cy="9.5" rx="3" ry="2" fill="#fff" opacity=".3" transform="rotate(-20 12 12)"/></svg>',
+};
+const SLOT_MAP = { '💎':['gem','sym-gem'], '🔔':['bell','sym-bell'], '🍒':['cherry','sym-cherry'], '⭐':['star','sym-star'], '🍋':['lemon','sym-lemon'] };
+function slotSymbolHTML(emoji) {
+  if (emoji === '7️⃣') return '<span class="slot-sym sym-seven">7</span>';
+  const m = SLOT_MAP[emoji];
+  if (!m) return '<span class="slot-sym">' + emoji + '</span>';
+  return '<span class="slot-sym ' + m[1] + '">' + SLOT_SVG[m[0]] + '</span>';
+}
+function initSlots() {
+  ['🍒','🔔','💎'].forEach((s, i) => { const r = $('r'+i); if (r) r.innerHTML = slotSymbolHTML(s); });
+}
 let slotSpinning = false;
 async function spin() {
   if (slotSpinning) return;
@@ -347,19 +366,24 @@ async function spin() {
   const reels = [0,1,2].map(i => $('r'+i));
   reels.forEach(r => { r.classList.add('spin'); r.classList.remove('hit'); });
   $('slotMsg').textContent = '';
-  const tick = setInterval(() => reels.forEach(r => r.textContent = SYM[Math.random()*SYM.length|0]), 80);
+  const tick = setInterval(() => reels.forEach(r => { if (r.classList.contains('spin')) r.innerHTML = slotSymbolHTML(SYM[Math.random()*SYM.length|0]); }), 70);
   let d;
   try { d = await api('/play/slots', 'POST', { bet }); }
   catch (e) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; return toast(e.message); }
+  /* arrêt en cascade des 3 rouleaux pour le suspense */
+  const stops = [600, 850, 1100];
+  stops.forEach((delay, i) => setTimeout(() => {
+    reels[i].classList.remove('spin');
+    reels[i].innerHTML = slotSymbolHTML(d.reels[i]);
+  }, delay));
   setTimeout(() => {
     clearInterval(tick);
-    reels.forEach((r, i) => { r.classList.remove('spin'); r.textContent = d.reels[i]; });
     setBalance(d.balance, d.gain > 0, d.xp, d.level);
     const m = $('slotMsg');
     if (d.gain > 0) { reels.forEach(r => r.classList.add('hit')); m.className = 'msg win'; m.textContent = 'GAGNÉ +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
     else { m.className = 'msg lose'; m.textContent = 'Perdu — retente !'; shakeEl($('view-slots').querySelector('.card')); }
     slotSpinning = false; $('slotBtn').disabled = false;
-  }, 750);
+  }, 1180);
 }
 
 /* ══════════════════ BLACKJACK ══════════════════════════ */
@@ -368,6 +392,7 @@ function renderCard(c) {
   const d = document.createElement('div');
   if (c.back) { d.className = 'pcard back'; return d; }
   d.className = 'pcard ' + (c.c === 'red' ? 'red' : '');
+  d.setAttribute('data-c', c.r);
   d.innerHTML = '<div class="r">' + c.r + '</div><div class="s">' + c.s + '</div>';
   return d;
 }
@@ -399,9 +424,11 @@ async function bjStand() { let d; try { d = await api('/bj/stand', 'POST'); } ca
 
 /* ══════════════════ MINES ══════════════════════════════ */
 let minesActive = false, minesCurrentBet = 0;
+const MINE_GEM  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M6 3 4 9h16l-2-6zM2 9h20" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/></svg>';
+const MINE_BOMB = '<svg viewBox="0 0 24 24"><circle cx="11" cy="14.5" r="7" fill="currentColor"/><path d="M16.5 6.5 19 4m0 0h-2.6M19 4v2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6" fill="#fff" opacity=".4"/></svg>';
 function buildMinesGrid() { const g = $('minesGrid'); g.innerHTML = ''; for (let i = 0; i < 25; i++) { const c = document.createElement('div'); c.className = 'cell'; c.dataset.i = i; c.onclick = () => minesPick(i); g.appendChild(c); } }
 function minesCell(i) { return document.querySelector('.cell[data-i="' + i + '"]'); }
-function revealBombs(bombs) { bombs.forEach(j => { const c = minesCell(j); if (c && !c.classList.contains('gem')) { c.classList.add('bomb','done'); c.textContent = '💣'; } }); }
+function revealBombs(bombs) { bombs.forEach(j => { const c = minesCell(j); if (c && !c.classList.contains('gem')) { c.classList.add('bomb','done'); c.innerHTML = MINE_BOMB; } }); }
 
 async function minesStartGame() {
   const bet = int('minesBet'); if (!bet) return toast('Mise invalide');
@@ -418,13 +445,13 @@ async function minesPick(i) {
   let d; try { d = await api('/mines/pick', 'POST', { i }); } catch (e) { return toast(e.message); }
   cell.classList.add('done');
   if (d.result === 'bomb') {
-    cell.classList.add('bomb'); cell.textContent = '💣'; revealBombs(d.bombs); shakeEl($('minesGrid')); minesActive = false;
+    cell.classList.add('bomb'); cell.innerHTML = MINE_BOMB; revealBombs(d.bombs); shakeEl($('minesGrid')); minesActive = false;
     $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
     setBalance(d.balance, false, d.xp, d.level);
     const m = $('minesMsg'); m.className = 'msg lose'; m.textContent = '💥 Bombe ! Mise perdue.';
     return;
   }
-  cell.classList.add('gem'); cell.textContent = '💎';
+  cell.classList.add('gem'); cell.innerHTML = MINE_GEM;
   $('minesMult').textContent = d.mult.toFixed(2) + '×'; $('minesPot').textContent = fmt(d.pot);
   $('minesGems').textContent = (+$('minesGems').textContent) + 1;
   setBalance(d.balance, undefined, d.xp, d.level);
@@ -454,7 +481,7 @@ let PK_MULT = {
   med:  [14.21,5.33,2.66,1.42,0.71,0.44,0.36,0.44,0.71,1.42,2.66,5.33,14.21],
   high: [66.34,15.92,5.31,1.33,0.53,0.27,0.13,0.27,0.53,1.33,5.31,15.92,66.34],
 };
-let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1;
+let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1, pkTrail = [];
 function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
   PK.width  = 500 * PK_DPR;
@@ -468,8 +495,11 @@ function roundRect(x, y, w, h, r) { PCX.beginPath(); PCX.moveTo(x+r,y); PCX.arcT
 function drawPlinko() {
   const g = pkGeom(), c = pkColors(), mult = PK_MULT[$('plinkoRisk').value || 'med'];
   PCX.clearRect(0,0,g.w,g.h);
-  PCX.fillStyle = 'rgba(255,255,255,.55)';
-  for (let l = 1; l <= PK_ROWS; l++) for (let s = 0; s <= l; s++) { const x = g.cx+(2*s-l)*g.spacing/2, y = g.topY+(l/PK_ROWS)*(g.binY-g.topY-10); PCX.beginPath(); PCX.arc(x,y,3.2,0,7); PCX.fill(); }
+  for (let l = 1; l <= PK_ROWS; l++) for (let s = 0; s <= l; s++) {
+    const x = g.cx+(2*s-l)*g.spacing/2, y = g.topY+(l/PK_ROWS)*(g.binY-g.topY-10);
+    PCX.beginPath(); PCX.fillStyle = 'rgba(201,168,76,.7)'; PCX.shadowColor = 'rgba(201,168,76,.5)'; PCX.shadowBlur = 4;
+    PCX.arc(x,y,3,0,7); PCX.fill(); PCX.shadowBlur = 0;
+  }
   const bw = g.spacing;
   for (let b = 0; b <= PK_ROWS; b++) {
     const x = g.cx+(2*b-PK_ROWS)*g.spacing/2, m = mult[b], hot = m >= 3, warm = m >= 1;
@@ -478,7 +508,18 @@ function drawPlinko() {
     PCX.fillStyle = b === pkHighlight ? '#1a1206' : c.dim.trim(); PCX.font = '700 13px Inter, system-ui, sans-serif'; PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
     PCX.fillText(m+'×', x, g.binY+17);
   }
-  if (pkBall) { PCX.beginPath(); PCX.fillStyle = c.gold; PCX.shadowColor = c.gold; PCX.shadowBlur = 16; PCX.arc(pkBall.x,pkBall.y,8,0,7); PCX.fill(); PCX.shadowBlur = 0; }
+  /* traînée lumineuse */
+  for (let i = 0; i < pkTrail.length; i++) {
+    const t = pkTrail[i], a = (i + 1) / pkTrail.length;
+    PCX.beginPath(); PCX.fillStyle = 'rgba(245,224,138,' + (a * 0.35) + ')';
+    PCX.arc(t.x, t.y, 8 * a * 0.8, 0, 7); PCX.fill();
+  }
+  if (pkBall) {
+    PCX.beginPath(); PCX.fillStyle = '#fff6d8'; PCX.shadowColor = c.gold; PCX.shadowBlur = 22;
+    PCX.arc(pkBall.x,pkBall.y,8,0,7); PCX.fill();
+    PCX.fillStyle = c.gold; PCX.beginPath(); PCX.arc(pkBall.x,pkBall.y,5,0,7); PCX.fill();
+    PCX.shadowBlur = 0;
+  }
 }
 function shuffleArr(a) { for (let i = a.length-1; i > 0; i--) { const j = Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
 async function plinkoDrop() {
@@ -488,7 +529,7 @@ async function plinkoDrop() {
   let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message); }
   $('plinkoMsg').textContent = ''; pkHighlight = -1;
   const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
-  const g = pkGeom(); let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; $('plinkoBtn').disabled = true;
+  const g = pkGeom(); let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; pkTrail = []; $('plinkoBtn').disabled = true;
   function frame(now) {
     const p = Math.min(1, (now-t0)/dur), lf = p*PK_ROWS, li = Math.floor(lf), frac = lf-li;
     let rDone = 0; for (let i = 0; i < li; i++) rDone += steps[i];
@@ -496,10 +537,11 @@ async function plinkoDrop() {
     const x0 = pkX(li, rDone), x1 = pkX(li+1, rDone+nextR);
     const y0 = g.topY+(li/PK_ROWS)*(g.binY-g.topY-10), y1 = g.topY+((li+1)/PK_ROWS)*(g.binY-g.topY-10);
     pkBall.x = x0+(x1-x0)*frac; pkBall.y = y0+(y1-y0)*frac+Math.sin(frac*Math.PI)*6;
+    pkTrail.push({ x: pkBall.x, y: pkBall.y }); if (pkTrail.length > 12) pkTrail.shift();
     drawPlinko();
     if (p < 1) pkAnim = requestAnimationFrame(frame);
     else {
-      pkBall.x = pkX(PK_ROWS, target); pkBall.y = g.binY-4; pkHighlight = target; drawPlinko(); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false;
+      pkBall.x = pkX(PK_ROWS, target); pkBall.y = g.binY-4; pkHighlight = target; pkTrail = []; drawPlinko(); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false;
       setBalance(d.balance, d.gain >= bet, d.xp, d.level);
       const m = $('plinkoMsg');
       if (d.gain >= bet) { m.className = 'msg win'; m.textContent = d.mult + '× → +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
@@ -539,14 +581,14 @@ async function wheelSpin() {
     wheelSpinning = false; $('wBtn').disabled = false;
     setBalance(d.balance, d.gain > 0, d.xp, d.level);
     const m = d.mult, msg = $('wMsg'), wrap = document.querySelector('.wheel-wrap');
-    // Jackpot à 10× (segment max réel côté serveur)
-    if (m >= 10) {
+    // Jackpot au segment max réel côté serveur (15×)
+    if (m >= 15) {
       msg.className = 'msg win'; msg.textContent = '💰 JACKPOT '+m+'× → +'+fmt(d.gain)+' 🪙 !';
       if (wrap) { wrap.classList.add('jackpot-flash'); setTimeout(() => wrap.classList.remove('jackpot-flash'), 2400); }
       checkBigWin(bet, d.gain);
     } else if (m > 0) { msg.className = 'msg win'; msg.textContent = m+'× → +'+fmt(d.gain)+' 🪙'; checkBigWin(bet, d.gain); }
     else              { msg.className = 'msg lose'; msg.textContent = '0× → mise perdue'; }
-  }, 4500);
+  }, 4700);
 }
 
 /* ══════════════════ DICE ═══════════════════════════════ */
