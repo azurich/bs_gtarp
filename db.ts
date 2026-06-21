@@ -72,6 +72,10 @@ const addCol = (tbl: string, col: string, def: string) => {
 }
 addCol('users', 'xp',    'REAL    NOT NULL DEFAULT 0')
 addCol('users', 'level', 'INTEGER NOT NULL DEFAULT 1')
+addCol('users', 'rp_nom',    "TEXT NOT NULL DEFAULT ''")
+addCol('users', 'rp_prenom', "TEXT NOT NULL DEFAULT ''")
+addCol('users', 'rp_phone',  "TEXT NOT NULL DEFAULT ''")
+addCol('users', 'discord',   "TEXT NOT NULL DEFAULT ''")
 
 /* L'économie (RTP) est codée en dur dans games.ts — plus de table settings. */
 
@@ -89,6 +93,10 @@ export interface User {
   xp        : number
   level     : number
   created   : number
+  rp_nom    : string
+  rp_prenom : string
+  rp_phone  : string
+  discord   : string
 }
 
 export interface Session {
