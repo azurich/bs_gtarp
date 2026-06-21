@@ -60,6 +60,7 @@ const Q = {
   getHistory  : db.prepare('SELECT * FROM game_history WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   addXP       : db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?'),
   setLevel    : db.prepare('UPDATE users SET level = ? WHERE id = ?'),
+  setProfile  : db.prepare('UPDATE users SET rp_nom = ?, rp_prenom = ?, rp_phone = ?, discord = ? WHERE id = ?'),
 }
 
 /* ── état des parties stateful ────────────────────────────── */
@@ -339,6 +340,13 @@ const app = new Elysia()
     })
 
     .get('/api/me', ({ user }) => ({ user: publicUser(user as User) }))
+
+    .post('/api/profile', ({ body, user }) => {
+      const b = body as Record<string, unknown>
+      const u = user as User
+      Q.setProfile.run(clip(b.nom), clip(b.prenom), clip(b.phone, 20), clip(b.discord), u.id)
+      return { user: publicUser(Q.userById.get(u.id) as User) }
+    })
 
     .get('/api/config', () => ({ rtp: G.RTP, plinko: G.PK_MULT, wheel: G.WHEEL }))
 
