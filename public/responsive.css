@@ -11,47 +11,44 @@
   .view-inner{padding:16px}
 }
 
-/* ── TOPBAR RESPONSIVE ────────────────────────────────── */
-@media(max-width:860px){
-  .topbar{height:48px;padding:0 14px}
-  .topbar .logo{font-size:1.3rem}
-}
-@media(max-width:640px){
-  .who{display:none}
-  .xp-topbar{display:none}
-  .balance{padding:.3rem .7rem}
-  .balance .bignum{font-size:1rem}
-}
-
-/* ── SIDEBAR MOBILE (barre horizontale) ──────────────── */
+/* ── SIDEBAR MOBILE : header (solde + niveau + déconnexion) + nav scrollable ── */
 @media(max-width:860px){
   .sidebar{
-    width:100%;flex-direction:row;height:auto;
-    padding:4px 8px;gap:2px;
-    overflow-x:auto;overflow-y:hidden;
+    width:100%;flex-direction:column;height:auto;gap:0;padding:0;
+    overflow:visible;position:relative;
     border-right:none;border-bottom:1px solid rgba(91,33,182,.15);
     background:linear-gradient(90deg,#0a0818,#06050f);
-    scrollbar-width:none;
-    position:relative;
   }
   .sidebar::before{display:none}
-  .sidebar::-webkit-scrollbar{display:none}
+  .sidebar-logo{display:none}
+
+  /* HEADER : le bloc user remonte en haut, en ligne */
+  .sidebar-user{
+    order:-1;flex-direction:row;align-items:center;gap:10px;
+    width:100%;padding:8px 12px;
+    border-top:none;border-bottom:1px solid rgba(91,33,182,.12);
+  }
+  .sidebar-user .balance{width:auto;flex:none}
+  .sidebar-user .who{display:none}
+  .sidebar-user .xp-sidebar{display:flex;align-items:center;gap:6px}
+  .sidebar-user .xp-track{display:none}              /* on garde juste "Nv.X" */
+  .sidebar-user .btn.ghost.sm{width:auto;flex:none;margin-left:auto;padding:.45rem .9rem}
+
+  /* NAV : barre horizontale scrollable */
+  .sidebar-nav{
+    flex:none;flex-direction:row;width:100%;
+    overflow-x:auto;overflow-y:hidden;padding:4px 8px;gap:2px;
+    scrollbar-width:none;
+  }
+  .sidebar-nav::-webkit-scrollbar{display:none}
   .nav-section{flex-direction:row;gap:2px}
   .nav-section-label{display:none}
   .nav-spacer{display:none}
-  .nav-divider{
-    width:1px;height:20px;margin:0 3px;
-    align-self:center;background:rgba(91,33,182,.3);
-  }
+  .nav-divider{width:1px;height:20px;margin:0 3px;align-self:center;background:rgba(91,33,182,.3)}
   .nav-item{padding:6px 10px;gap:7px;font-size:.8rem;white-space:nowrap;border-radius:6px}
-  .nav-item.active::before{
-    top:auto;bottom:0;left:50%;transform:translateX(-50%);
-    width:20px;height:2px;border-radius:2px 2px 0 0;
-  }
+  .nav-item.active::before{top:auto;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:2px;border-radius:2px 2px 0 0}
   .ni{width:15px;height:15px}
   .ni svg.lucide{width:14px;height:14px}
-  /* Sidebar user block masqué sur mobile */
-  .sidebar-logo,.sidebar-user{display:none}
 }
 @media(max-width:480px){
   .nav-item span:not(.ni){display:none}

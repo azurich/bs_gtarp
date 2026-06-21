@@ -415,14 +415,13 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 }
 .sidebar-logo .logo span{color:var(--v-500)}
 
-/* Sections nav avec padding interne */
-.sidebar>.nav-section,
-.sidebar>.nav-divider,
-.sidebar>.nav-spacer{
-  padding-left:8px;padding-right:8px;
+/* Zone de navigation : remplit l'espace entre le logo et le bloc user */
+.sidebar-nav{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;padding:0 8px;
 }
-.sidebar>.nav-section{padding-top:10px;padding-bottom:2px}
-.sidebar>.nav-divider{margin:5px 12px}
+.sidebar-nav>.nav-section{padding-top:10px;padding-bottom:2px}
+.sidebar-nav>.nav-divider{margin:5px 4px}
 
 /* Bloc utilisateur en bas */
 .sidebar-user{
