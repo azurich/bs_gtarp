@@ -487,8 +487,8 @@ function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
   // s'adapte à la résolution client : limité par la largeur dispo ET la hauteur du viewport
   const avail = PK.parentElement?.clientWidth || PK.clientWidth || 440;
-  let w = Math.max(240, Math.min(avail, 460));
-  const maxH = Math.min(360, Math.round(window.innerHeight * 0.46)); // tient sans scroll
+  let w = Math.max(240, Math.min(avail, 560));
+  const maxH = Math.min(540, Math.round(window.innerHeight * 0.56)); // tient sans scroll
   let h = Math.round(w * 0.8);
   if (h > maxH) { h = maxH; w = Math.min(w, Math.round(h / 0.8)); }  // garde les proportions
   PK_W = w; PK_H = h;
