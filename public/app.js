@@ -485,12 +485,14 @@ let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1, pkTrail = [];
 let PK_W = 440, PK_H = 360;
 function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
-  // s'adapte à la résolution client : limité par la largeur dispo ET la hauteur du viewport
-  const avail = PK.parentElement?.clientWidth || PK.clientWidth || 440;
-  let w = Math.max(240, Math.min(avail, 640));
-  const maxH = Math.min(620, Math.round(window.innerHeight * 0.64)); // suit la hauteur de fenêtre
+  // mesure l'espace réel du plateau (.game-board) ; fallback viewport si indéfini (mobile)
+  const board = PK.closest('.game-board');
+  let availW, availH;
+  if (board && board.clientHeight > 40) { availW = board.clientWidth; availH = board.clientHeight; }
+  else { availW = (PK.parentElement?.clientWidth || 440); availH = Math.round(window.innerHeight * 0.6); }
+  let w = Math.max(240, Math.min(availW, 700));
   let h = Math.round(w * 0.8);
-  if (h > maxH) { h = maxH; w = Math.min(w, Math.round(h / 0.8)); }  // garde les proportions
+  if (h > availH) { h = availH; w = Math.min(w, availW, Math.round(h / 0.8)); }  // tient en hauteur, garde les proportions
   PK_W = w; PK_H = h;
   // largeur d'affichage = largeur interne (÷DPR) → jamais d'upscaling, rendu net
   PK.style.width  = PK_W + 'px';

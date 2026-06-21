@@ -174,17 +174,19 @@
           </div>
 
           <!-- SLOTS -->
-          <div id="view-slots" class="view">
+          <div id="view-slots" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
                   <h2><i data-lucide="cherry" class="ic-game"></i> Slots</h2>
                   <span class="sub">3 rouleaux — alignez les symboles</span>
                 </div>
-                <div class="reels">
-                  <div class="reel" id="r0">🍒</div>
-                  <div class="reel" id="r1">🔔</div>
-                  <div class="reel" id="r2">💎</div>
+                <div class="game-board">
+                  <div class="reels">
+                    <div class="reel" id="r0">🍒</div>
+                    <div class="reel" id="r1">🔔</div>
+                    <div class="reel" id="r2">💎</div>
+                  </div>
                 </div>
                 <div class="bet-row">
                   <div class="field">
@@ -208,21 +210,23 @@
           </div>
 
           <!-- BLACKJACK -->
-          <div id="view-blackjack" class="view">
+          <div id="view-blackjack" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
                   <h2><i data-lucide="layers-2" class="ic-game"></i> Blackjack</h2>
                   <span class="sub">Battez le croupier sans dépasser 21</span>
                 </div>
-                <div class="bj-table">
-                  <div class="hand">
-                    <h3>Croupier <b id="dealerScore">—</b></h3>
-                    <div class="cards" id="dealerCards"></div>
-                  </div>
-                  <div class="hand">
-                    <h3>Vous <b id="playerScore">—</b></h3>
-                    <div class="cards" id="playerCards"></div>
+                <div class="game-board">
+                  <div class="bj-table">
+                    <div class="hand">
+                      <h3>Croupier <b id="dealerScore">—</b></h3>
+                      <div class="cards" id="dealerCards"></div>
+                    </div>
+                    <div class="hand">
+                      <h3>Vous <b id="playerScore">—</b></h3>
+                      <div class="cards" id="playerCards"></div>
+                    </div>
                   </div>
                 </div>
                 <div id="bjBetRow" class="bet-row">
@@ -247,7 +251,7 @@
           </div>
 
           <!-- MINES -->
-          <div id="view-mines" class="view">
+          <div id="view-mines" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
@@ -272,7 +276,7 @@
                 </div>
                 <div id="minesStart"><button class="btn" onclick="minesStartGame()">JOUER</button></div>
                 <div id="minesCash" class="hidden"><button class="btn gold" onclick="minesCashout()">ENCAISSER</button></div>
-                <div class="mines-grid" id="minesGrid"></div>
+                <div class="game-board"><div class="mines-grid" id="minesGrid"></div></div>
                 <div class="mines-info">
                   <div><div class="lbl">Multiplicateur</div><div class="val" id="minesMult">1.00×</div></div>
                   <div><div class="lbl">Gains potentiels</div><div class="val" id="minesPot">0</div></div>
@@ -284,15 +288,17 @@
           </div>
 
           <!-- PLINKO -->
-          <div id="view-plinko" class="view">
+          <div id="view-plinko" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
                   <h2><i data-lucide="circle-dot" class="ic-game"></i> Plinko</h2>
                   <span class="sub">Laissez tomber la balle</span>
                 </div>
-                <div class="plinko-screen">
-                  <canvas id="plinkoCanvas" width="500" height="460"></canvas>
+                <div class="game-board">
+                  <div class="plinko-screen">
+                    <canvas id="plinkoCanvas" width="500" height="460"></canvas>
+                  </div>
                 </div>
                 <div class="bet-row">
                   <div class="field plinko-risk">
@@ -320,19 +326,21 @@
           </div>
 
           <!-- WHEEL -->
-          <div id="view-wheel" class="view">
+          <div id="view-wheel" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
                   <h2><i data-lucide="disc-3" class="ic-game"></i> Roue</h2>
-                  <span class="sub">Tentez le jackpot 10×</span>
+                  <span class="sub">Tentez le jackpot 15×</span>
                 </div>
-                <div class="wheel-wrap">
-                  <div class="wheel-pointer"></div>
-                  <svg class="wheel-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
-                    <g id="wheelG"></g>
-                  </svg>
-                  <div class="wheel-hub">BS</div>
+                <div class="game-board">
+                  <div class="wheel-wrap">
+                    <div class="wheel-pointer"></div>
+                    <svg class="wheel-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+                      <g id="wheelG"></g>
+                    </svg>
+                    <div class="wheel-hub">BS</div>
+                  </div>
                 </div>
                 <div class="bet-row">
                   <div class="field">
@@ -352,24 +360,26 @@
           </div>
 
           <!-- DICE -->
-          <div id="view-dice" class="view">
+          <div id="view-dice" class="view game-view">
             <div class="view-inner">
               <div class="card">
                 <div class="game-head">
                   <h2><i data-lucide="dice-5" class="ic-game"></i> Dice</h2>
                   <span class="sub">Choisissez votre chance de gagner</span>
                 </div>
-                <div class="dice-stage">
-                  <div class="dice-result" id="diceResult">—</div>
-                  <div class="dice-result-cap">Dernier lancer</div>
+                <div class="game-board game-board-stack">
+                  <div class="dice-stage">
+                    <div class="dice-result" id="diceResult">—</div>
+                    <div class="dice-result-cap">Dernier lancer</div>
+                  </div>
+                  <div class="dice-track">
+                    <span class="dice-zone dice-zone-win">GAGNANT</span>
+                    <span class="dice-zone dice-zone-lose">PERDANT</span>
+                    <div class="dice-marker" id="diceMarker"></div>
+                    <div class="dice-dot" id="diceDot"></div>
+                  </div>
+                  <div class="dice-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
                 </div>
-                <div class="dice-track">
-                  <span class="dice-zone dice-zone-win">GAGNANT</span>
-                  <span class="dice-zone dice-zone-lose">PERDANT</span>
-                  <div class="dice-marker" id="diceMarker"></div>
-                  <div class="dice-dot" id="diceDot"></div>
-                </div>
-                <div class="dice-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
                 <div class="slider-row">
                   <label>Chance de gagner <b id="diceChanceLbl">50%</b></label>
                   <input id="diceSlider" type="range" min="2" max="95" value="50" oninput="diceUpdate()">

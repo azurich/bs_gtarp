@@ -629,6 +629,46 @@ input[type=range]::-webkit-slider-thumb{
 }
 
 /* ══════════════════════════════════════════════════════════
+   PLATEAU DE JEU — adaptation à la résolution
+   • Mobile : .game-board = simple conteneur centré (flux naturel, scroll).
+   • Desktop (≥861px) : la vue de jeu remplit la zone de contenu ;
+     .game-board prend l'espace restant (flex:1) et devient un CONTENEUR ;
+     les éléments se dimensionnent en cqw/cqh (= taille réelle dispo)
+     → toujours le plus grand qui tient, s'adapte en direct au resize.
+══════════════════════════════════════════════════════════ */
+.game-board{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%}
+
+@media(min-width:861px){
+  .game-view.active{height:100%}
+  .game-view>.view-inner{height:100%;max-width:1080px;display:flex;flex-direction:column;padding:14px 24px}
+  .game-view>.view-inner>.card{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+  .game-view .game-head{margin-bottom:0;padding-bottom:10px}
+  .game-board{flex:1;min-height:0;container-type:size}
+
+  /* carrés : plus grand carré qui tient dans le plateau */
+  .game-board .wheel-wrap{width:min(100cqw,100cqh);height:min(100cqw,100cqh);margin:0}
+  .game-board .mines-grid{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:none;grid-template-rows:repeat(5,1fr);margin:0}
+
+  /* rouleaux : remplissent la hauteur, limités par la largeur */
+  .game-board .reels{height:auto;width:auto;max-width:100%;margin:0}
+  .game-board .reel{flex:0 0 auto;height:min(88cqh,30cqw);max-width:none;width:auto;font-size:min(50cqh,18cqw)}
+
+  /* plinko : canvas dimensionné en JS d'après .game-board */
+  .game-board .plinko-screen{margin:0;max-width:100%;max-height:100%}
+
+  /* blackjack : table pleine largeur, cartes en cqh */
+  .game-board .bj-table{width:100%;margin:0}
+  .game-board .pcard{height:min(32cqh,180px)}
+  .game-board .cards{min-height:0}
+
+  /* dice : pile centrée, résultat et piste en cqh/cqw */
+  .game-board-stack{justify-content:center;gap:clamp(10px,3cqh,28px)}
+  .game-board-stack .dice-stage{margin:0;padding:0;background:none}
+  .game-board-stack .dice-result{font-size:min(34cqh,17vw)}
+  .game-board-stack .dice-track{width:100%}
+}
+
+/* ══════════════════════════════════════════════════════════
    SLOTS — machine à reliefs, symboles dessinés
 ══════════════════════════════════════════════════════════ */
 .reels{
