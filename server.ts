@@ -5,6 +5,7 @@
 import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { randomBytes } from 'node:crypto'
+import { join } from 'node:path'
 import db from './db.ts'
 import * as G from './games.ts'
 import type { User, Session } from './db.ts'
@@ -25,9 +26,15 @@ const PORT         = parseInt(process.env.PORT ?? '3000')
 const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
-const CHAT_MAX_AGE = 24 * 60 * 60 * 1_000
 // SECURITY: mise maximale absolue par tour (évite les gros paris instantanés déstabilisants)
 const MAX_BET      = parseInt(process.env.MAX_BET ?? '50000')
+// Types MIME servis depuis ./public
+const MIME: Record<string, string> = {
+  css: 'text/css', js: 'application/javascript', html: 'text/html',
+  json: 'application/json', svg: 'image/svg+xml', ico: 'image/x-icon',
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  webp: 'image/webp', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf',
+}
 
 /* ── requêtes préparées ───────────────────────────────────── */
 const Q = {
@@ -156,7 +163,6 @@ function cleanup() {
   const now = Date.now()
   db.prepare('DELETE FROM sessions WHERE created < ?').run(now - SESSION_TTL)
   db.prepare('DELETE FROM logs WHERE ts < ?').run(now - LOG_MAX_AGE)
-  db.prepare('DELETE FROM chat_messages WHERE ts < ?').run(now - CHAT_MAX_AGE)
   const cut = now - GAME_TTL
   for (const [id, st] of activeBJ)    if (st.startedAt < cut) activeBJ.delete(id)
   for (const [id, st] of activeMines) if (st.startedAt < cut) activeMines.delete(id)
@@ -169,8 +175,11 @@ type Bucket = { n: number; reset: number }
 function rateLimit(windowMs: number, max: number, message: object) {
   const store = new Map<string, Bucket>()
   return new Elysia()
-    .onBeforeHandle({ as: 'scoped' }, ({ request, set }) => {
-      const ip  = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'unknown'
+    .onBeforeHandle({ as: 'scoped' }, ({ request, set, server }) => {
+      // IP réelle : x-forwarded-for derrière un proxy, sinon l'IP de la connexion
+      const ip  = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
+               || server?.requestIP(request)?.address
+               || 'unknown'
       const now = Date.now()
       const b   = store.get(ip) ?? { n: 0, reset: now + windowMs }
       if (now > b.reset) { b.n = 0; b.reset = now + windowMs }
@@ -284,14 +293,17 @@ const app = new Elysia()
       if (p.length > 128) { set.status = 400; return { error: 'Mot de passe trop long (128 max).' } }
       if (Q.userByName.get(u)) { set.status = 400; return { error: 'Ce pseudo existe déjà.' } }
       if (!inviteCode)   { set.status = 403; return { error: "Un lien d'invitation est requis pour créer un compte." } }
-      const invite = db.prepare('SELECT * FROM invites WHERE token = ? AND used = 0').get(inviteCode) as { credits: number } | null
+      const invite = db.prepare('SELECT credits FROM invites WHERE token = ? AND used = 0').get(inviteCode) as { credits: number } | null
       if (!invite) { set.status = 400; return { error: "Lien d'invitation invalide ou déjà utilisé." } }
+      // SECURITY (race TOCTOU) : on RÉSERVE l'invitation de façon atomique AVANT de créer le compte.
+      // Si une autre requête l'a déjà prise entre-temps, changes === 0 → on abandonne.
+      const claim = db.prepare('UPDATE invites SET used = 1, used_by = ? WHERE token = ? AND used = 0').run(u, inviteCode)
+      if (claim.changes === 0) { set.status = 400; return { error: "Lien d'invitation invalide ou déjà utilisé." } }
       const hash  = await Bun.password.hash(p, { algorithm: 'bcrypt', cost: 10 })
       const info  = Q.insertUser.run(u, hash, 0, invite.credits, Date.now())
       const token = randomBytes(32).toString('hex')
       const newId = Number(info.lastInsertRowid)
       Q.insSession.run(token, newId, Date.now())
-      db.prepare('UPDATE invites SET used = 1, used_by = ? WHERE token = ?').run(u, inviteCode)
       logEvent(u, 'auth', `Compte créé via invitation (${invite.credits} crédits)`, invite.credits)
       return { token, user: publicUser(Q.userById.get(newId) as User) }
     })
@@ -496,20 +508,6 @@ const app = new Elysia()
       })) }
     })
 
-    .post('/api/admin/users', async ({ headers, body, set }) => {
-      const adm = checkAdmin(headers as any)
-      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
-      const b = body as any
-      const u = String(b.user ?? '').trim(), p = String(b.pass ?? '1234')
-      const c = Math.floor(Number(b.credit) || 0)
-      if (!validUser(u)) { set.status = 400; return { error: 'Pseudo invalide (3-20 cars, lettres/chiffres/_ ou -).' } }
-      if (Q.userByName.get(u)) { set.status = 400; return { error: 'Existe déjà' } }
-      const hash = await Bun.password.hash(p, { algorithm: 'bcrypt', cost: 10 })
-      Q.insertUser.run(u, hash, 0, c, Date.now())
-      logEvent(adm.username, 'admin', `Compte créé « ${u} » (${c})`, c)
-      return { ok: true }
-    })
-
     .post('/api/admin/credit', ({ headers, body, set }) => {
       const adm = checkAdmin(headers as any)
       if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
@@ -575,10 +573,21 @@ const app = new Elysia()
   )
 
   /* ── Fichiers statiques + fallback SPA ────────────────── */
-  .get('/style.css',     () => new Response(Bun.file('./public/style.css'),     { headers: { 'Content-Type': 'text/css' } }))
-  .get('/app.js',        () => new Response(Bun.file('./public/app.js'),        { headers: { 'Content-Type': 'application/javascript' } }))
-  .get('/lucide.min.js', () => new Response(Bun.file('./public/lucide.min.js'), { headers: { 'Content-Type': 'application/javascript' } }))
-  .get('/*', () => Bun.file('./public/index.html'))
+  // Sert n'importe quel fichier existant de ./public avec le bon MIME ;
+  // sinon (route SPA inconnue) renvoie index.html. Évite le bug "CSS servi en text/html".
+  .get('/*', async ({ request, set }) => {
+    const indexFile = Bun.file(join(import.meta.dir, 'public', 'index.html'))
+    let pathname: string
+    try { pathname = decodeURIComponent(new URL(request.url).pathname) }
+    catch { return indexFile }
+    if (pathname === '/' || pathname.includes('..') || pathname.includes('\0')) return indexFile
+    const ext  = pathname.slice(pathname.lastIndexOf('.') + 1).toLowerCase()
+    if (!MIME[ext]) return indexFile                       // pas une ressource → SPA
+    const file = Bun.file(join(import.meta.dir, 'public', pathname))
+    if (!(await file.exists())) return indexFile
+    set.headers['Content-Type'] = MIME[ext]
+    return file
+  })
 
   /* ── Gestionnaire d'erreurs ───────────────────────────── */
   .onError(({ code, error, set }) => {

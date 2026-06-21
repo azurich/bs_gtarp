@@ -46,13 +46,6 @@ CREATE TABLE IF NOT EXISTS game_history (
   result  TEXT,
   ts      INTEGER NOT NULL
 );
-CREATE TABLE IF NOT EXISTS chat_messages (
-  id       INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id  INTEGER NOT NULL,
-  username TEXT    NOT NULL,
-  msg      TEXT    NOT NULL,
-  ts       INTEGER NOT NULL
-);
 CREATE TABLE IF NOT EXISTS invites (
   token      TEXT    PRIMARY KEY,
   credits    REAL    NOT NULL DEFAULT 1000,
@@ -63,7 +56,6 @@ CREATE TABLE IF NOT EXISTS invites (
 );
 CREATE INDEX IF NOT EXISTS idx_logs_ts   ON logs(ts);
 CREATE INDEX IF NOT EXISTS idx_hist_user ON game_history(user_id, ts);
-CREATE INDEX IF NOT EXISTS idx_chat_ts   ON chat_messages(ts);
 `)
 
 /* ── migrations (colonnes ajoutées après v1) ──────────────── */
