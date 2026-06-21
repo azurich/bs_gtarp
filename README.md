@@ -6,7 +6,7 @@ Aucun joueur ne peut tricher en modifiant le code de sa page.
 
 Jeux : Slots, Blackjack, Démineur, Plinko, Roue de la fortune, Dice.
 Espace joueur (compte, solde, stats, classement) + espace admin
-(création/approvisionnement de comptes, réglage fréquence **et** % de gain par jeu, journal d'activité).
+(création/approvisionnement de comptes, économie RTP fixe en lecture seule, journal d'activité).
 
 ---
 

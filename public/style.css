@@ -1238,14 +1238,16 @@ td .btn{display:inline-block;width:auto;padding:4px 9px;font-size:.72rem;margin:
   border-radius:var(--r2);padding:7px 10px;font-size:.82rem;font-family:var(--body);outline:none;
 }
 #adminPanel .field input:focus,#adminPanel select:focus{border-color:var(--v-500)}
-#adminPanel .set-game{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap}
-#adminPanel .set-game:last-child{border-bottom:none}
-#adminPanel .set-name{font-size:.82rem;font-weight:600;color:var(--tx);min-width:100px;font-family:var(--body)}
-#adminPanel .set-ctl{display:flex;align-items:center;gap:8px;flex:1}
-#adminPanel .set-lbl{font-size:.65rem;color:var(--tx-3);min-width:66px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--body)}
-#adminPanel .set-num{width:58px;background:var(--bg);border:1px solid var(--bdr-med);color:var(--gold);border-radius:var(--r1);padding:4px 7px;font-size:.82rem;text-align:center;font-family:var(--display)}
-#adminPanel .set-unit{font-size:.72rem;color:var(--tx-4);font-family:var(--body)}
-#adminPanel input[type="range"]{accent-color:var(--v-500);flex:1}
+/* Affichage RTP lecture seule */
+#adminPanel .rtp-banner{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+#adminPanel .rtp-banner>div{flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bdr-accent);border-radius:var(--r2);padding:16px 18px}
+#adminPanel .rtp-banner-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3);margin-bottom:6px;font-family:var(--body)}
+#adminPanel .rtp-banner-val{font-family:var(--display);font-size:2rem;font-weight:700;color:var(--v-300);line-height:1}
+#adminPanel .rtp-banner-val.gold{color:var(--gold)}
+#adminPanel .rtp-table{width:100%;border-collapse:collapse;font-size:.82rem}
+#adminPanel .rtp-table th{background:rgba(91,33,182,.06);color:var(--tx-3);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:9px 12px;text-align:left;font-family:var(--body)}
+#adminPanel .rtp-table td{padding:10px 12px;border-bottom:1px solid var(--bdr);color:var(--tx)}
+#adminPanel .rtp-table tr:last-child td{border-bottom:none}
 #adminPanel .adm-log-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
 #adminPanel .log-time{font-size:.7rem;color:var(--tx-3);font-family:var(--body);font-variant-numeric:tabular-nums}
 #adminPanel .log-type{font-size:.62rem;font-weight:700;letter-spacing:.06em;padding:2px 5px;border-radius:var(--r1);text-transform:uppercase;font-family:var(--body)}

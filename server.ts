@@ -11,13 +11,13 @@ import type { User, Session } from './db.ts'
 
 /* ── types internes ───────────────────────────────────────── */
 interface BjState {
-  bet: number; deck: G.Card[]; bias: number; payout: number
+  bet: number; deck: G.Card[]
   player: G.Card[]; dealer: G.Card[]; live: boolean; startedAt: number
 }
 interface MinesState {
   bet: number; bombs: number; bombSet: Set<number>; revealed: Set<number>
   picks: number; gems: number; mult: number; live: boolean
-  bias: number; payout: number; startedAt: number
+  startedAt: number
 }
 
 /* ── constantes ───────────────────────────────────────────── */
@@ -42,8 +42,6 @@ const Q = {
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
   allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level FROM users ORDER BY credit DESC'),
   topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
-  settings    : db.prepare('SELECT * FROM settings'),
-  setSetting  : db.prepare('UPDATE settings SET bias = ?, payout = ? WHERE game = ?'),
   insSession  : db.prepare('INSERT INTO sessions (token, user_id, created) VALUES (?,?,?)'),
   getSession  : db.prepare('SELECT * FROM sessions WHERE token = ?'),
   delSession  : db.prepare('DELETE FROM sessions WHERE token = ?'),
@@ -79,11 +77,6 @@ function computeLevel(xp: number): number {
   let l = 1
   for (let i = 1; i < LEVEL_XP.length; i++) if (xp >= LEVEL_XP[i]) l = i + 1
   return l
-}
-function getSettings(): Record<string, { bias: number; payout: number }> {
-  const m: Record<string, { bias: number; payout: number }> = {}
-  for (const r of Q.settings.all() as any[]) m[r.game] = { bias: r.bias, payout: r.payout }
-  return m
 }
 function logEvent(username: string, type: string, msg: string, amount = 0) {
   Q.insLog.run(Date.now(), username, type, msg, amount)
@@ -137,7 +130,7 @@ function bjView(st: BjState, reveal: boolean) {
   }
 }
 function bjResolve(user: User, st: BjState) {
-  while (G.handVal(st.dealer) < 17) st.dealer.push(G.bjDraw(st.deck, st.dealer, false, st.bias))
+  while (G.handVal(st.dealer) < 17) st.dealer.push(G.bjDraw(st.deck, st.dealer, false, G.BJ_BIAS))
   st.live = false
   const p = G.handVal(st.player), d = G.handVal(st.dealer)
   let outcome: 'win' | 'lose' | 'push'
@@ -148,7 +141,7 @@ function bjResolve(user: User, st: BjState) {
   else                      outcome = 'push'
   if (outcome === 'win') {
     const bj = st.player.length === 2 && p === 21
-    gain = G.scale(st.bet * (bj ? 2.5 : 2), st.payout)
+    gain = Math.round(st.bet * (bj ? G.BJ_BJ_MULT : G.BJ_WIN_MULT))
     payout(user, gain, 'blackjack')
   } else if (outcome === 'push') {
     Q.addCredit.run(st.bet, user.id)
@@ -332,20 +325,18 @@ const app = new Elysia()
 
     .get('/api/me', ({ user }) => ({ user: publicUser(user as User) }))
 
-    .get('/api/config', () => ({ dicePayout: getSettings().dice.payout }))
+    .get('/api/config', () => ({ rtp: G.RTP, plinko: G.PK_MULT, wheel: G.WHEEL }))
 
-    /* ── Jeux one-shot ──────────────────────────────────── */
+    /* ── Jeux one-shot (économie RTP fixe, voir games.ts) ── */
     .post('/api/play/slots', ({ body, user, set }) => {
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      const s = getSettings().slots
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r    = G.playSlots(bet, s.bias, s.payout)
-      const gain = Math.min(r.gain, bet * 40)   // plafond à 40× la mise
-      payout(u, gain, 'slots'); awardXP(u.id, bet)
-      recordHistory(u.id, 'slots', bet, gain, r.reels.join('|'))
-      return { reels: r.reels, gain, ...userSnapshot(u.id) }
+      const r = G.playSlots(bet)
+      payout(u, r.gain, 'slots'); awardXP(u.id, bet)
+      recordHistory(u.id, 'slots', bet, r.gain, r.reels.join('|'))
+      return { reels: r.reels, gain: r.gain, ...userSnapshot(u.id) }
     })
 
     .post('/api/play/plinko', ({ body, user, set }) => {
@@ -354,9 +345,8 @@ const app = new Elysia()
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
-      const s    = getSettings().plinko
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r = G.playPlinko(bet, risk, s.bias, s.payout)
+      const r = G.playPlinko(bet, risk)
       payout(u, r.gain, 'plinko'); awardXP(u.id, bet)
       recordHistory(u.id, 'plinko', bet, r.gain, `x${r.mult}`)
       return { bin: r.bin, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
@@ -366,13 +356,11 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      const s = getSettings().wheel
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r    = G.playWheel(bet, s.bias, s.payout)
-      const gain = Math.min(r.gain, bet * 40)   // plafond à 40× la mise
-      payout(u, gain, 'wheel'); awardXP(u.id, bet)
-      recordHistory(u.id, 'wheel', bet, gain, `x${r.mult}`)
-      return { index: r.index, mult: r.mult, gain, ...userSnapshot(u.id) }
+      const r = G.playWheel(bet)
+      payout(u, r.gain, 'wheel'); awardXP(u.id, bet)
+      recordHistory(u.id, 'wheel', bet, r.gain, `x${r.mult}`)
+      return { index: r.index, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
     })
 
     .post('/api/play/dice', ({ body, user, set }) => {
@@ -381,9 +369,8 @@ const app = new Elysia()
       const bet    = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
-      const s      = getSettings().dice
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits insuffisants' } }
-      const r = G.playDice(bet, chance, s.bias, s.payout)
+      const r = G.playDice(bet, chance)
       payout(u, r.gain, 'dice'); awardXP(u.id, bet)
       recordHistory(u.id, 'dice', bet, r.gain, r.roll + (r.win ? '✓' : '✗'))
       return { roll: r.roll, win: r.win, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
@@ -396,14 +383,13 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const existing = activeBJ.get(u.id)
       if (existing?.live) { set.status = 400; return { error: 'Une partie de Blackjack est déjà en cours.' } }
-      const s    = getSettings().blackjack
       if (!charge(u, bet, 'blackjack')) { set.status = 400; return { error: 'Crédits insuffisants' } }
       const deck = G.freshDeck()
-      const st: BjState = { bet, deck, bias: s.bias, payout: s.payout, player: [], dealer: [], live: true, startedAt: Date.now() }
-      st.player.push(G.bjDraw(deck, st.player, true,  s.bias))
-      st.dealer.push(G.bjDraw(deck, st.dealer, false, s.bias))
-      st.player.push(G.bjDraw(deck, st.player, true,  s.bias))
-      st.dealer.push(G.bjDraw(deck, st.dealer, false, s.bias))
+      const st: BjState = { bet, deck, player: [], dealer: [], live: true, startedAt: Date.now() }
+      st.player.push(G.bjDraw(deck, st.player, true,  G.BJ_BIAS))
+      st.dealer.push(G.bjDraw(deck, st.dealer, false, G.BJ_BIAS))
+      st.player.push(G.bjDraw(deck, st.player, true,  G.BJ_BIAS))
+      st.dealer.push(G.bjDraw(deck, st.dealer, false, G.BJ_BIAS))
       activeBJ.set(u.id, st)
       awardXP(u.id, bet)
       if (G.handVal(st.player) === 21) return bjResolve(u, st)
@@ -414,7 +400,7 @@ const app = new Elysia()
       const u  = user as User
       const st = activeBJ.get(u.id)
       if (!st || !st.live) { set.status = 400; return { error: 'Aucune partie en cours' } }
-      st.player.push(G.bjDraw(st.deck, st.player, true, st.bias))
+      st.player.push(G.bjDraw(st.deck, st.player, true, G.BJ_BIAS))
       if (G.handVal(st.player) > 21) return bjResolve(u, st)
       return { ...bjView(st, false), ...userSnapshot(u.id) }
     })
@@ -435,13 +421,11 @@ const app = new Elysia()
       const existingMines = activeMines.get(u.id)
       if (existingMines?.live) { set.status = 400; return { error: 'Une partie de Démineur est déjà en cours.' } }
       const bombs = Math.max(1, Math.min(24, Math.floor(Number(b.bombs) || 5)))
-      const s     = getSettings().mines
       if (!charge(u, bet, 'mines')) { set.status = 400; return { error: 'Crédits insuffisants' } }
       awardXP(u.id, bet)
       activeMines.set(u.id, {
         bet, bombs, bombSet: G.placeBombs(bombs), revealed: new Set(),
-        picks: 0, gems: 0, mult: 1, live: true,
-        bias: s.bias, payout: s.payout, startedAt: Date.now(),
+        picks: 0, gems: 0, mult: 1, live: true, startedAt: Date.now(),
       })
       return { bombs, mult: 1, pot: 0, ...userSnapshot(u.id) }
     })
@@ -454,24 +438,16 @@ const app = new Elysia()
       if (!(i >= 0 && i < 25)) { set.status = 400; return { error: 'Case invalide' } }
       if (st.revealed.has(i))  { set.status = 400; return { error: 'Case déjà révélée' } }
       st.revealed.add(i)
-      let isBomb = st.bombSet.has(i)
-      if (isBomb && G.favored(st.bias)) {
-        for (let j = 0; j < 25; j++) {
-          if (j !== i && !st.bombSet.has(j) && !st.revealed.has(j)) {
-            st.bombSet.delete(i); st.bombSet.add(j); isBomb = false; break
-          }
-        }
-      }
-      if (isBomb) {
+      if (st.bombSet.has(i)) {
         st.live = false
         recordHistory(u.id, 'mines', st.bet, 0, 'bomb')
         activeMines.delete(u.id)
         return { result: 'bomb', i, bombs: [...st.bombSet], ...userSnapshot(u.id) }
       }
       const safe = 25 - st.bombs, k = st.picks
-      st.mult *= ((25 - k) / (safe - k)) * (1 - 0.03)
+      st.mult *= ((25 - k) / (safe - k)) * (1 - G.MINES_RAKE)
       st.gems++; st.picks++
-      const pot = G.scale(st.bet * st.mult, st.payout)
+      const pot = Math.round(st.bet * st.mult)
       if (st.gems === safe) {
         payout(u, pot, 'mines')
         recordHistory(u.id, 'mines', st.bet, pot, 'sweep')
@@ -485,7 +461,7 @@ const app = new Elysia()
       const u  = user as User
       const st = activeMines.get(u.id)
       if (!st || !st.live) { set.status = 400; return { error: 'Aucune partie en cours' } }
-      const gain = G.scale(st.bet * st.mult, st.payout)
+      const gain = Math.round(st.bet * st.mult)
       payout(u, gain, 'mines')
       recordHistory(u.id, 'mines', st.bet, gain, `${st.gems} gems`)
       st.live = false; activeMines.delete(u.id)
@@ -555,22 +531,10 @@ const app = new Elysia()
       return { ok: true }
     })
 
-    .get('/api/admin/settings', ({ headers, set }) => {
+    /* Économie en lecture seule (RTP fixe, voir games.ts) */
+    .get('/api/admin/gameinfo', ({ headers, set }) => {
       if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
-      return { settings: getSettings() }
-    })
-
-    .post('/api/admin/settings', ({ headers, body, set }) => {
-      const adm = checkAdmin(headers as any)
-      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
-      const b = body as any, game = String(b.game ?? '')
-      if (!(G.GAME_KEYS as readonly string[]).includes(game)) { set.status = 400; return { error: 'Jeu inconnu' } }
-      const cur  = getSettings()[game]
-      const bias = b.bias   != null ? Math.max(0, Math.min(100, Number(b.bias)))                : cur.bias
-      const pay  = b.payout != null ? Math.max(0, Math.min(500, Math.round(Number(b.payout)))) : cur.payout
-      Q.setSetting.run(bias, pay, game)
-      logEvent(adm.username, 'admin', `Réglage ${LABELS[game]} → fréq ${bias}% / gains ${pay}%`)
-      return { ok: true, settings: getSettings() }
+      return { rtp: G.RTP, games: G.GAME_INFO }
     })
 
     .get('/api/admin/logs', ({ headers, query, set }) => {

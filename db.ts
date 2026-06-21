@@ -29,11 +29,6 @@ CREATE TABLE IF NOT EXISTS sessions (
   user_id INTEGER NOT NULL,
   created INTEGER NOT NULL
 );
-CREATE TABLE IF NOT EXISTS settings (
-  game   TEXT PRIMARY KEY,
-  bias   REAL NOT NULL,
-  payout REAL NOT NULL
-);
 CREATE TABLE IF NOT EXISTS logs (
   id       INTEGER PRIMARY KEY AUTOINCREMENT,
   ts       INTEGER NOT NULL,
@@ -78,19 +73,7 @@ const addCol = (tbl: string, col: string, def: string) => {
 addCol('users', 'xp',    'REAL    NOT NULL DEFAULT 0')
 addCol('users', 'level', 'INTEGER NOT NULL DEFAULT 1')
 
-/* ── paramètres par défaut ────────────────────────────────── */
-const DEFAULT_SETTINGS: Record<string, { bias: number; payout: number }> = {
-  slots    : { bias: 17, payout: 93 },   // HE ~7%  (SLOT_PAY réduit: 7️⃣=20x, 💎=8x)
-  blackjack: { bias: 46, payout: 96 },   // HE ~5-7% (croupier légèrement avantagé)
-  mines    : { bias: 50, payout: 95 },   // HE ~5%+  (rake structurel 0.97/case + payout)
-  plinko   : { bias: 25, payout: 93 },   // HE ~4% low, ~18% med, ~29% high
-  wheel    : { bias: 13, payout: 96 },   // HE ~3%  (table redessinée, 50x supprimé)
-  dice     : { bias: 48, payout: 97 },   // HE ~3%  (structurel via payout)
-}
-const seedSetting = db.prepare('INSERT OR IGNORE INTO settings (game, bias, payout) VALUES (?,?,?)')
-for (const g in DEFAULT_SETTINGS) {
-  seedSetting.run(g, DEFAULT_SETTINGS[g].bias, DEFAULT_SETTINGS[g].payout)
-}
+/* L'économie (RTP) est codée en dur dans games.ts — plus de table settings. */
 
 /* ── types exportés ───────────────────────────────────────── */
 export interface User {

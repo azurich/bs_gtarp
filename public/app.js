@@ -4,8 +4,7 @@
 ============================================================ */
 let TOKEN = localStorage.getItem('ns_token') || null;
 let USER  = null;
-let SETTINGS    = null;
-let DICE_PAYOUT = 97;
+let GAME_RTP = 0.70;   // reçu du serveur via /api/config
 const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
 
 /* ── Animations ───────────────────────────────────────────── */
@@ -192,7 +191,6 @@ async function enter() {
     $('appWrap').classList.add('hidden');
     $('adminPanel').classList.remove('hidden');
     $('admWhoName').textContent = USER.username;
-    await loadSettings();
     switchAdminTab('players');
     renderInvites();
     renderLogs();
@@ -203,7 +201,12 @@ async function enter() {
     refreshBal();
     updateXP(USER.xp || 0, USER.level || 1);
     buildMinesGrid();
-    try { DICE_PAYOUT = (await api('/config')).dicePayout; } catch (e) {}
+    try {
+      const cfg = await api('/config');
+      GAME_RTP = cfg.rtp ?? 0.70;
+      if (cfg.plinko) PK_MULT = cfg.plinko;
+      if (cfg.wheel)  WHEEL   = cfg.wheel;
+    } catch (e) {}
     switchTab('home');
   }
 }
@@ -215,6 +218,7 @@ function switchAdminTab(v) {
   if (v === 'players') renderAdminUsers();
   if (v === 'logs')    renderLogs();
   if (v === 'invites') renderInvites();
+  if (v === 'games')   renderGameInfo();
 }
 
 function switchTab(v) {
@@ -444,7 +448,12 @@ async function minesCashout() {
 
 /* ══════════════════ PLINKO ══════════════════════════════ */
 const PK = $('plinkoCanvas'), PCX = PK.getContext('2d'), PK_ROWS = 12;
-const PK_MULT = { low: [2.1,1.6,1.3,1.1,1,0.7,0.5,0.7,1,1.1,1.3,1.6,2.1], med: [8.1,3,1.6,1,0.7,0.4,0.3,0.4,0.7,1,1.6,3,8.1], high: [26,8,3,1.2,0.5,0.3,0.2,0.3,0.5,1.2,3,8,26] };
+/* valeurs par défaut, écrasées par /api/config (source de vérité = games.ts) */
+let PK_MULT = {
+  low:  [3.44,1.84,1.38,1.15,0.80,0.57,0.46,0.57,0.80,1.15,1.38,1.84,3.44],
+  med:  [14.21,5.33,2.66,1.42,0.71,0.44,0.36,0.44,0.71,1.42,2.66,5.33,14.21],
+  high: [66.34,15.92,5.31,1.33,0.53,0.27,0.13,0.27,0.53,1.33,5.31,15.92,66.34],
+};
 let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1;
 function initPlinkoCanvas() {
   PK_DPR = window.devicePixelRatio || 1;
@@ -501,8 +510,8 @@ async function plinkoDrop() {
 }
 
 /* ══════════════════ WHEEL ═══════════════════════════════ */
-// SECURITY: tableau synchronisé avec games.ts côté serveur (suppression du segment 50× inexistant)
-const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 0, 10];
+/* défaut écrasé par /api/config (source de vérité = games.ts) */
+let WHEEL = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15];
 let wheelBuilt = false, wheelSpinning = false, wheelRot = 0;
 function wheelColor(m) { return m===0?'#1c1430':m>=50?'#ffd24d':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
 function buildWheel() {
@@ -545,7 +554,7 @@ let diceRolling = false;
 function diceUpdate() {
   const c = Math.max(2, Math.min(95, +$('diceSlider').value));
   $('diceChanceLbl').textContent = c+'%'; $('diceTargetLbl').textContent = c.toFixed(2);
-  const eff = (100/c)*(DICE_PAYOUT/100);
+  const eff = (100/c)*GAME_RTP;
   $('diceMult').textContent = eff.toFixed(2)+'×';
   const bet = Math.floor(+$('diceBet').value)||0; $('dicePot').textContent = fmt(bet*eff);
   document.documentElement.style.setProperty('--win', c+'%'); $('diceMarker').style.left = c+'%';
@@ -610,10 +619,7 @@ async function renderProfil() {
 }
 
 /* ══════════════════ ADMIN ══════════════════════════════ */
-const LABELS    = { slots:'Slots', blackjack:'Blackjack', mines:'Démineur', plinko:'Plinko', wheel:'Roue', dice:'Dice' };
 const GAME_ICON = { slots:'🎰', blackjack:'🃏', mines:'💣', plinko:'🪙', wheel:'🎡', dice:'🎲' };
-const GAME_KEYS = ['slots','blackjack','mines','plinko','wheel','dice'];
-function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 async function renderAdminUsers() {
   try {
@@ -690,44 +696,25 @@ function adminDelete(u) {
   );
 }
 
-async function loadSettings() { try { SETTINGS = (await api('/admin/settings')).settings; renderSettings(); } catch (e) {} }
-function renderSettings() {
-  const box = $('settingsBox'); if (!box || !SETTINGS) return; let h = '';
-  for (const g of GAME_KEYS) {
-    const s = SETTINGS[g];
-    h += '<div class="set-game"><div class="set-name">'+GAME_ICON[g]+' '+LABELS[g]+'</div>'
-      + '<div class="set-ctl"><span class="set-lbl">Fréquence</span>'
-      + '<input type="range" id="set'+cap(g)+'" min="0" max="100" step="0.5" value="'+s.bias+'" oninput="setBias(\''+g+'\',this.value)">'
-      + '<input type="number" id="num'+cap(g)+'" min="0" max="100" step="0.5" value="'+s.bias+'" oninput="setBias(\''+g+'\',this.value)" class="set-num"><span class="set-unit">%</span></div>'
-      + '<div class="set-ctl"><span class="set-lbl">Gains</span>'
-      + '<input type="number" id="pay'+cap(g)+'" min="0" max="500" step="1" value="'+s.payout+'" oninput="setPayout(\''+g+'\',this.value)" class="set-num"><span class="set-unit">%</span></div></div>';
-  }
+async function renderGameInfo() {
+  const box = $('settingsBox'); if (!box) return;
+  box.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
+  let d; try { d = await api('/admin/gameinfo'); } catch (e) { box.innerHTML = '<p class="hint">Erreur de chargement.</p>'; return; }
+  const houseEdge = Math.round((1 - d.rtp) * 100);
+  let h = '<div class="rtp-banner">'
+    + '<div><div class="rtp-banner-lbl">RTP global (reversé aux joueurs)</div><div class="rtp-banner-val">' + Math.round(d.rtp*100) + '%</div></div>'
+    + '<div><div class="rtp-banner-lbl">Marge maison</div><div class="rtp-banner-val gold">' + houseEdge + '%</div></div>'
+    + '</div>';
+  h += '<table class="rtp-table"><thead><tr><th>Machine</th><th>RTP</th><th>Marge</th><th>Détail</th></tr></thead><tbody>';
+  d.games.forEach(g => {
+    const icon = GAME_ICON[g.key] || '🎮';
+    h += '<tr><td><b>' + icon + ' ' + esc(g.label) + '</b></td>'
+      + '<td>' + Math.round(g.rtp*100) + '%</td>'
+      + '<td style="color:var(--gold);font-weight:700">' + Math.round((1-g.rtp)*100) + '%</td>'
+      + '<td style="color:var(--tx-3)">' + esc(g.note) + '</td></tr>';
+  });
+  h += '</tbody></table>';
   box.innerHTML = h;
-}
-const _debounce = {};
-function pushSetting(game) {
-  clearTimeout(_debounce[game]);
-  _debounce[game] = setTimeout(async () => {
-    try { SETTINGS = (await api('/admin/settings','POST',{game,bias:SETTINGS[game].bias,payout:SETTINGS[game].payout})).settings; if (game==='dice') DICE_PAYOUT=SETTINGS.dice.payout; }
-    catch (e) { toast(e.message); }
-  }, 350);
-}
-function setBias(game, v) {
-  v = Math.max(0, Math.min(100, parseFloat(v)||0)); SETTINGS[game].bias = v;
-  const r=$('set'+cap(game)),n=$('num'+cap(game)); if(r&&+r.value!==v)r.value=v; if(n&&+n.value!==v)n.value=v; pushSetting(game);
-}
-function setPayout(game, v) {
-  v = Math.max(0, Math.min(500, Math.round(parseFloat(v)||0))); SETTINGS[game].payout = v;
-  const p=$('pay'+cap(game)); if(p&&+p.value!==v)p.value=v; pushSetting(game);
-}
-async function presetAll(kind) {
-  const P = {
-    house:    { bias:{slots:28,blackjack:42,mines:38,plinko:33,wheel:33,dice:40}, pay:{slots:90,blackjack:95,mines:92,plinko:90,wheel:90,dice:92} },
-    fair:     { bias:{slots:50,blackjack:50,mines:50,plinko:50,wheel:50,dice:50}, pay:{slots:100,blackjack:100,mines:100,plinko:100,wheel:100,dice:100} },
-    generous: { bias:{slots:62,blackjack:58,mines:60,plinko:60,wheel:60,dice:60}, pay:{slots:108,blackjack:104,mines:106,plinko:108,wheel:108,dice:105} },
-  }[kind];
-  for (const g of GAME_KEYS) { try { SETTINGS = (await api('/admin/settings','POST',{game:g,bias:P.bias[g],payout:P.pay[g]})).settings; } catch(e){} }
-  DICE_PAYOUT = SETTINGS.dice.payout; renderSettings(); toast('Préréglage « '+kind+' » appliqué');
 }
 
 /* ── LOGS ─────────────────────────────────────────────────── */

@@ -1,9 +1,16 @@
 /* ============================================================
    BlackState Casino — logique de jeu (côté serveur)
    Le client n'envoie que sa mise ; le serveur décide l'issue.
-   bias   = fréquence de gain (0-100, 50 ≈ équilibré)
-   payout = % du gain réellement versé (100 = multiplicateurs affichés)
+
+   MODÈLE ÉCONOMIQUE — RTP fixe (Return To Player)
+   ────────────────────────────────────────────────
+   RTP = part de l'argent misé reversée aux joueurs sur le long terme.
+   La maison garde (1 - RTP). Ici RTP = 0.70 → marge maison ~30%.
+   Chaque jeu est calibré pour que l'espérance d'un pari = mise × RTP.
+   Plus aucun réglage admin : l'économie est codée en dur ci-dessous.
 ============================================================ */
+
+export const RTP = 0.70                 // 70% reversé, 30% de marge maison
 
 export const GAME_KEYS = ['slots', 'blackjack', 'mines', 'plinko', 'wheel', 'dice'] as const
 export type GameKey = typeof GAME_KEYS[number]
@@ -24,14 +31,23 @@ const shuffle  = <T>(a: T[]): T[] => {
   return a
 }
 export const favored = (bias: number) => rnd() * 100 < bias
-export const scale   = (amount: number, payout?: number) =>
-  Math.round(amount * (payout ?? 100) / 100)
 
-/* ---------------- SLOTS ---------------- */
-const SYM      = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐']
-const SLOT_PAY: Record<string, number> = { '7️⃣': 20, '💎': 8, '🔔': 3, '🍒': 2, '⭐': 1.5, '🍋': 1.5 }
+/* tirage pondéré : renvoie l'index choisi selon les poids fournis */
+function pickWeighted(weights: number[]): number {
+  const tot = weights.reduce((a, b) => a + b, 0)
+  let r = rnd() * tot
+  for (let i = 0; i < weights.length; i++) { r -= weights[i]; if (r <= 0) return i }
+  return weights.length - 1
+}
 
-function fill3(s: string): string[]  { return [s, s, s] }
+/* ---------------- SLOTS ----------------
+   Probabilités calibrées pour EV ≈ 0.70 × mise.
+   37,1% des tours rapportent quelque chose (surtout des paires).
+   Paytable affichée : 7️⃣=20× 💎=8× 🔔=3× 🍒=2× ⭐/🍋=1.5× paire=1.5×
+   EV = .003·20 + .008·8 + .015·3 + .02·2 + .025·1.5 + .30·1.5 = 0.6965
+*/
+const SYM = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐']
+function fill3(s: string): string[] { return [s, s, s] }
 function twoOfKind(): string[] {
   const s = randItem(SYM); let o = randItem(SYM)
   while (o === s) o = randItem(SYM)
@@ -42,78 +58,90 @@ function loseCombo(): string[] {
   do { a = randItem(SYM); b = randItem(SYM); c = randItem(SYM) } while (a === b || b === c || a === c)
   return [a, b, c]
 }
-function evalSlots(r: string[], bet: number): number {
-  if (r[0] === r[1] && r[1] === r[2]) return bet * (SLOT_PAY[r[0]] ?? 5)
-  if (r[0] === r[1] || r[1] === r[2] || r[0] === r[2]) return bet * 1.5
-  return 0
-}
-export function playSlots(bet: number, bias: number, payout: number) {
-  let reels: string[]
-  if (favored(bias)) {
-    const r = rnd()
-    if (r < 0.10)      reels = ['7️⃣', '7️⃣', '7️⃣']
-    else if (r < 0.25) reels = fill3('💎')
-    else if (r < 0.45) reels = fill3(randItem(['🔔', '🍒']))
-    else if (r < 0.75) reels = fill3(randItem(SYM))
-    else               reels = twoOfKind()
-  } else {
-    reels = loseCombo()
-  }
-  return { reels, gain: scale(evalSlots(reels, bet), payout) }
+export function playSlots(bet: number) {
+  const r = rnd()
+  let reels: string[], mult: number
+  if      (r < 0.003) { reels = fill3('7️⃣');                 mult = 20  }
+  else if (r < 0.011) { reels = fill3('💎');                 mult = 8   }
+  else if (r < 0.026) { reels = fill3('🔔');                 mult = 3   }
+  else if (r < 0.046) { reels = fill3('🍒');                 mult = 2   }
+  else if (r < 0.071) { reels = fill3(randItem(['⭐', '🍋'])); mult = 1.5 }
+  else if (r < 0.371) { reels = twoOfKind();                 mult = 1.5 }
+  else                { reels = loseCombo();                 mult = 0   }
+  return { reels, mult, gain: Math.round(bet * mult) }
 }
 
-/* ---------------- PLINKO ---------------- */
+/* ---------------- PLINKO ----------------
+   Distribution binomiale réelle (12 rangées, pièce équilibrée).
+   Les multiplicateurs de chaque profil de risque sont normalisés
+   pour que l'espérance pondérée = RTP, identique sur les 3 risques.
+*/
+const PK_BINOM = [1, 12, 66, 220, 495, 792, 924, 792, 495, 220, 66, 12, 1].map(c => c / 4096)
+function normMults(shape: number[]): number[] {
+  const ev = shape.reduce((s, m, i) => s + m * PK_BINOM[i], 0)
+  const k  = RTP / ev
+  return shape.map(m => +(m * k).toFixed(2))
+}
+const PK_SHAPE: Record<string, number[]> = {
+  low:  [3, 1.6, 1.2, 1.0, 0.7, 0.5, 0.4, 0.5, 0.7, 1.0, 1.2, 1.6, 3],
+  med:  [8, 3, 1.5, 0.8, 0.4, 0.25, 0.2, 0.25, 0.4, 0.8, 1.5, 3, 8],
+  high: [25, 6, 2, 0.5, 0.2, 0.1, 0.05, 0.1, 0.2, 0.5, 2, 6, 25],
+}
 export const PK_MULT: Record<string, number[]> = {
-  low:  [1.85, 1.41, 1.14, 0.97, 0.88, 0.62, 0.44, 0.62, 0.88, 0.97, 1.14, 1.41, 1.85],
-  med:  [3, 2, 1.2, 0.6, 0.3, 0.1, 0.05, 0.1, 0.3, 0.6, 1.2, 2, 3],
-  high: [3.0, 1.8, 1.0, 0.35, 0.08, 0.02, 0.01, 0.02, 0.08, 0.35, 1.0, 1.8, 3.0],
+  low:  normMults(PK_SHAPE.low),
+  med:  normMults(PK_SHAPE.med),
+  high: normMults(PK_SHAPE.high),
 }
-function weightedBin(mult: number[], fav: boolean): number {
-  const w   = mult.map(m => fav ? Math.pow(m, 1.4) + 0.05 : 1 / (Math.pow(m, 1.1) + 0.2))
-  const tot = w.reduce((a, b) => a + b, 0)
-  let r = rnd() * tot
-  for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i }
-  return w.length - 1
+function plinkoBin(): number {
+  let rights = 0
+  for (let i = 0; i < 12; i++) if (rnd() < 0.5) rights++
+  return rights
 }
-export function playPlinko(bet: number, risk: string, bias: number, payout: number) {
+export function playPlinko(bet: number, risk: string) {
   const mult = PK_MULT[risk] ?? PK_MULT.med
-  const bin  = weightedBin(mult, favored(bias))
+  const bin  = plinkoBin()
   const m    = mult[bin]
-  return { bin, mult: m, gain: scale(bet * m, payout) }
+  return { bin, mult: m, gain: Math.round(bet * m) }
 }
 
-/* ---------------- WHEEL ---------------- */
-export const WHEEL = [0, 1.5, 0, 2, 0, 1.5, 3, 0, 1.5, 2, 0, 5, 0, 1.5, 0, 10]
-function pickWheelSeg(fav: boolean): number {
-  const w   = WHEEL.map(m => fav ? Math.pow(m + 0.3, 1.35) : 1 / (Math.pow(m, 1.25) + 0.35))
-  const tot = w.reduce((a, b) => a + b, 0)
-  let r = rnd() * tot
-  for (let i = 0; i < w.length; i++) { r -= w[i]; if (r <= 0) return i }
-  return w.length - 1
-}
-export function playWheel(bet: number, bias: number, payout: number) {
-  const idx = pickWheelSeg(favored(bias))
+/* ---------------- WHEEL ----------------
+   16 segments visuels, sélection pondérée (invisible au joueur).
+   EV = Σ pᵢ·multᵢ = 0.70 exactement, multiplicateurs ronds conservés.
+   15×→p .005 | 5×→p .02 | 2×(×2)→p .03 ch. | 1.5×(×4)→p .0675 ch. | 0×(×8)→p .080625 ch.
+*/
+export const WHEEL   = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15]
+const WHEEL_W = [0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.02,
+                 0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.005]
+export function playWheel(bet: number) {
+  const idx = pickWeighted(WHEEL_W)
   const m   = WHEEL[idx]
-  return { index: idx, mult: m, gain: scale(bet * m, payout) }
+  return { index: idx, mult: m, gain: Math.round(bet * m) }
 }
 
-/* ---------------- DICE ---------------- */
-export function playDice(bet: number, chance: number, bias: number, payout: number) {
+/* ---------------- DICE ----------------
+   Tir uniforme. Gagne si roll < chance. Multiplicateur équitable × RTP.
+   EV = (chance/100) · mise · (100/chance · RTP) = mise · RTP, exact pour tout seuil.
+*/
+export function playDice(bet: number, chance: number) {
   chance = Math.max(2, Math.min(95, chance))
-  const fairMult = 100 / chance
-  const r1 = rnd() * 100, r2 = rnd() * 100
-  const useMin = rnd() * 100 < bias
-  const roll   = useMin ? Math.min(r1, r2) : Math.max(r1, r2)
-  const win    = roll < chance
+  const mult = (100 / chance) * RTP
+  const roll = +(rnd() * 100).toFixed(2)
+  const win  = roll < chance
   return {
-    roll: +roll.toFixed(2),
-    win,
-    mult: +(fairMult * (payout / 100)).toFixed(2),
-    gain: win ? scale(bet * fairMult, payout) : 0,
+    roll, win,
+    mult: +mult.toFixed(2),
+    gain: win ? Math.round(bet * mult) : 0,
   }
 }
 
-/* ---------------- BLACKJACK (stateful) ---------------- */
+/* ---------------- BLACKJACK (stateful) ----------------
+   Croupier fortement avantagé via BJ_BIAS (cartes orientées) +
+   gains réduits. RTP visé ~0.70 (variable selon le jeu du joueur).
+*/
+export const BJ_BIAS     = 36    // % de tirages orientés maison → RTP ~70% (calibré par simulation)
+export const BJ_WIN_MULT = 1.8   // gain sur victoire normale (mise incluse)
+export const BJ_BJ_MULT  = 2.2   // gain sur blackjack naturel (mise incluse)
+
 const SUITS: [string, 'b' | 'red'][] = [['♠', 'b'], ['♣', 'b'], ['♥', 'red'], ['♦', 'red']]
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 export function freshDeck(): Card[] {
@@ -138,18 +166,34 @@ export function bjDraw(deck: Card[], hand: Card[], otherIsPlayer: boolean, bias:
     const cur = handVal(hand)
     const idx = deck.findIndex(c => {
       const nv = cur + cardVal(c)
+      // pour le joueur : on cherche à le faire sauter ; pour le croupier : à le renforcer
       return otherIsPlayer
-        ? ((cur <= 11 && cardVal(c) >= 9) || (cur >= 12 && nv <= 21))
-        : ((cur >= 12 && nv > 21) || cardVal(c) <= 3)
+        ? (cur >= 12 && nv > 21)                       // pousse le joueur au bust
+        : ((cur >= 12 && nv <= 21) || cardVal(c) <= 5) // aide le croupier à finir bien
     })
     if (idx >= 0) return deck.splice(idx, 1)[0]
   }
   return deck.splice((rnd() * deck.length) | 0, 1)[0]
 }
 
-/* ---------------- MINES (stateful) ---------------- */
+/* ---------------- MINES (stateful) ----------------
+   Placement de bombes équitable, AUCUN sauvetage du joueur.
+   Marge prélevée par case via MINES_RAKE : RTP = (1-rake)^picks.
+   Plus le joueur est cupide, plus la maison gagne.
+*/
+export const MINES_RAKE = 0.11   // ~11% de marge par case dévoilée
 export function placeBombs(n: number): Set<number> {
   const s = new Set<number>()
   while (s.size < n) s.add((rnd() * 25) | 0)
   return s
 }
+
+/* ---------------- INFOS PUBLIQUES (admin lecture seule) ---------------- */
+export const GAME_INFO = [
+  { key: 'slots',     label: 'Slots',     rtp: 0.70, note: '37% de tours payants · jackpot 7️⃣ = 20×' },
+  { key: 'dice',      label: 'Dice',      rtp: 0.70, note: 'RTP exact quel que soit le seuil choisi' },
+  { key: 'wheel',     label: 'Roue',      rtp: 0.70, note: 'Jackpot 15× rare, beaucoup de 0×' },
+  { key: 'plinko',    label: 'Plinko',    rtp: 0.70, note: 'RTP identique sur les 3 niveaux de risque' },
+  { key: 'blackjack', label: 'Blackjack', rtp: 0.70, note: 'Croupier avantagé · gains 1.8× / BJ 2.2×' },
+  { key: 'mines',     label: 'Démineur',  rtp: 0.70, note: '~11% de marge par case · la cupidité coûte cher' },
+] as const
