@@ -10,9 +10,14 @@ Cible : Ubuntu 22.04/24.04. Toutes les commandes en SSH (`root` ou `sudo`).
 - **Hostinger** : VPS → KVM → image Ubuntu 24.04.
 - Ajoute ta clé SSH à la création, note l'**IP publique**.
 
-## 2. (Recommandé) Un nom de domaine
-Crée un enregistrement DNS **A** : `casino.ton-domaine.com → IP_DU_VPS`.
-Sans domaine, tu pourras quand même tester via `http://IP_DU_VPS` (sans HTTPS).
+## 2. DNS — sous-domaine `blackstate.azurich.fr`
+Chez le gestionnaire DNS d'`azurich.fr`, ajoute :
+
+| Type | Nom | Valeur |
+|------|-----|--------|
+| `A`  | `blackstate` | `IP_DU_VPS` |
+
+Propagation : quelques minutes à ~1h. Le Caddyfile fourni est déjà réglé sur ce domaine.
 
 ## 3. Connexion + mises à jour
 ```bash
@@ -73,13 +78,12 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmo
 curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
 apt update && apt install -y caddy
 
-# Édite le domaine puis installe la config
-nano /opt/blackstate/deploy/Caddyfile        # remplace casino.ton-domaine.com
+# Le Caddyfile est déjà réglé sur blackstate.azurich.fr
 cp /opt/blackstate/deploy/Caddyfile /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
-Caddy obtient le certificat Let's Encrypt automatiquement.
-Ton site est en ligne sur **https://casino.ton-domaine.com** 🎉
+Caddy obtient le certificat Let's Encrypt automatiquement (dès que le DNS pointe vers le VPS).
+Ton site est en ligne sur **https://blackstate.azurich.fr** 🎉
 
 ## 9. Sauvegardes quotidiennes (important !)
 ```bash

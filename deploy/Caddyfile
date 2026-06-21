@@ -1,8 +1,8 @@
 # Reverse-proxy + HTTPS automatique (Let's Encrypt).
-# Remplace "casino.ton-domaine.com" par ton vrai domaine (un enregistrement
-# DNS A doit pointer vers l'IP du VPS). Caddy gère le certificat tout seul.
+# Un enregistrement DNS A "blackstate" doit pointer vers l'IP du VPS.
+# Caddy gère le certificat tout seul.
 
-casino.ton-domaine.com {
+blackstate.azurich.fr {
     reverse_proxy localhost:3000
     encode gzip
 }
