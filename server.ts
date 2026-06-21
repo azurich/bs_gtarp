@@ -40,7 +40,7 @@ const MIME: Record<string, string> = {
 const Q = {
   userByName  : db.prepare('SELECT * FROM users WHERE username = ?'),
   userById    : db.prepare('SELECT * FROM users WHERE id = ?'),
-  insertUser  : db.prepare('INSERT INTO users (username, pass_hash, is_admin, credit, created) VALUES (?,?,?,?,?)'),
+  insertUser  : db.prepare('INSERT INTO users (username, pass_hash, is_admin, credit, created, rp_nom, rp_prenom, rp_phone, discord) VALUES (?,?,?,?,?,?,?,?,?)'),
   setCredit   : db.prepare('UPDATE users SET credit = ? WHERE id = ?'),
   // SECURITY (race condition): bumpWager inclut une condition WHERE credit >= ? pour être atomique
   bumpWager   : db.prepare('UPDATE users SET credit = credit - ?, wagered = wagered + ?, played = played + 1 WHERE id = ? AND credit >= ?'),
@@ -69,6 +69,7 @@ const activeMines = new Map<number, MinesState>()
 /* ── helpers ──────────────────────────────────────────────── */
 const RE_USER   = /^[a-zA-Z0-9_-]{3,20}$/
 const validUser = (u: string) => RE_USER.test(u)
+const clip = (v: unknown, max = 40) => String(v ?? '').trim().slice(0, max)
 const intBet    = (v: unknown) => {
   const n = Math.floor(Number(v))
   // SECURITY: vérifie que la mise est un entier positif et ne dépasse pas MAX_BET
@@ -96,6 +97,7 @@ function publicUser(u: User) {
     xp       : u.xp   ?? 0,
     level    : u.level ?? 1,
     stats    : { wagered: Math.floor(u.wagered), won: Math.floor(u.won), played: u.played, biggest: Math.floor(u.biggest) },
+    rp       : { nom: u.rp_nom ?? '', prenom: u.rp_prenom ?? '', phone: u.rp_phone ?? '', discord: u.discord ?? '' },
   }
 }
 function userSnapshot(id: number) {
@@ -299,8 +301,9 @@ const app = new Elysia()
       // Si une autre requête l'a déjà prise entre-temps, changes === 0 → on abandonne.
       const claim = db.prepare('UPDATE invites SET used = 1, used_by = ? WHERE token = ? AND used = 0').run(u, inviteCode)
       if (claim.changes === 0) { set.status = 400; return { error: "Lien d'invitation invalide ou déjà utilisé." } }
+      const rpNom = clip(b.nom), rpPrenom = clip(b.prenom), rpPhone = clip(b.phone, 20), rpDiscord = clip(b.discord)
       const hash  = await Bun.password.hash(p, { algorithm: 'bcrypt', cost: 10 })
-      const info  = Q.insertUser.run(u, hash, 0, invite.credits, Date.now())
+      const info  = Q.insertUser.run(u, hash, 0, invite.credits, Date.now(), rpNom, rpPrenom, rpPhone, rpDiscord)
       const token = randomBytes(32).toString('hex')
       const newId = Number(info.lastInsertRowid)
       Q.insSession.run(token, newId, Date.now())
