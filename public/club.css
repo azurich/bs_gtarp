@@ -128,8 +128,8 @@
 }
 .hub-wallet-val {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--display, 'Cormorant Garamond', serif);
-  font-size: 2.6rem; font-weight: 700; color: var(--accent);
+  font-family: var(--num); font-variant-numeric: tabular-nums;
+  font-size: 2.4rem; font-weight: 700; letter-spacing: -.01em; color: var(--accent);
 }
 
 /* ── Cartes d'univers ── */
@@ -223,8 +223,8 @@
   text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
 }
 .stat .val {
-  font-size: 1.25rem; font-weight: 700; color: var(--accent);
-  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.3rem; font-weight: 700; color: var(--accent);
+  font-family: var(--num); font-variant-numeric: tabular-nums;
 }
 
 /* ── Fight coming soon ── */

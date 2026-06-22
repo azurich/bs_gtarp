@@ -99,7 +99,7 @@ body{
   background:var(--bg);border:1px solid var(--bdr-accent);
   border-radius:var(--r2);padding:14px 18px;min-width:140px;
 }
-.adm-stat-chip .val{display:block;font-family:var(--display);font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1}
+.adm-stat-chip .val{display:block;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1}
 .adm-stat-chip .lbl{display:block;font-size:.65rem;color:var(--tx-3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--body)}
 
 /* ── tables admin ────────────────────────────────────────── */
@@ -180,7 +180,7 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 .rtp-banner{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 .rtp-banner>div{flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bdr-accent);border-radius:var(--r2);padding:16px 18px}
 .rtp-banner-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3);margin-bottom:6px;font-family:var(--body)}
-.rtp-banner-val{font-family:var(--display);font-size:2rem;font-weight:700;color:var(--accent-2);line-height:1}
+.rtp-banner-val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:2rem;font-weight:700;color:var(--accent-2);line-height:1}
 .rtp-banner-val.gold{color:var(--gold)}
 .rtp-table{width:100%;border-collapse:collapse;font-size:.82rem}
 .rtp-table th{background:rgba(201,168,76,.06);color:var(--tx-3);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:9px 12px;text-align:left;font-family:var(--body)}

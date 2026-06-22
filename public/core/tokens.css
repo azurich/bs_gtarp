@@ -78,6 +78,8 @@
   /* ── Typographie ── */
   --display:'Cormorant Garamond',Georgia,serif;
   --body:'Inter',system-ui,sans-serif;
+  /* typo dédiée aux chiffres : Inter en chiffres tabulaires (alignés, largeur fixe) */
+  --num:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
 
 /* ── RESET & BASE ───────────────────────────────────────── */
@@ -109,7 +111,8 @@ svg.lucide{display:inline-block;vertical-align:middle;stroke:currentColor;fill:n
 .ic-title{width:18px;height:18px;stroke-width:1.8;margin-right:6px;vertical-align:sub}
 
 /* ── TYPOGRAPHY ─────────────────────────────────────────── */
-h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
+h1,h2,h3{font-family:var(--display);letter-spacing:-0.02em}
+.bignum{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.01em}
 .logo{
   font-family:var(--display);font-size:1.6rem;letter-spacing:.05em;
   color:var(--tx);line-height:1;user-select:none;font-weight:600;
