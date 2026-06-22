@@ -73,6 +73,9 @@
           <div class="nav-spacer"></div>
           <div class="nav-divider"></div>
           <div class="nav-section">
+            <button class="nav-item" data-v="levels" onclick="switchTab('levels')">
+              <span class="ni"><i data-lucide="award"></i></span><span>Niveaux</span>
+            </button>
             <button class="nav-item" data-v="history" onclick="switchTab('history')">
               <span class="ni"><i data-lucide="history"></i></span><span>Historique</span>
             </button>
@@ -149,9 +152,30 @@
                 <div id="homeWinsFeed"><div class="loading-row"><span class="spinner"></span></div></div>
               </div>
 
-              <h3 class="section-title" style="margin-top:28px"><i data-lucide="trophy" class="ic-title"></i> Classement — Meilleurs gains</h3>
+              <div class="lb-head">
+                <h3 class="section-title" style="margin:28px 0 0"><i data-lucide="trophy" class="ic-title"></i> Classement</h3>
+                <div class="lb-switch">
+                  <button class="lb-chip" data-lb="level" onclick="setLeaderType('level')">Niveau</button>
+                  <button class="lb-chip" data-lb="won" onclick="setLeaderType('won')">Gains</button>
+                  <button class="lb-chip" data-lb="lost" onclick="setLeaderType('lost')">Pertes</button>
+                </div>
+              </div>
               <div class="card anim-up" data-delay="7" style="padding:16px">
                 <div id="homeLeaderWrap"><div class="loading-row"><span class="spinner"></span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NIVEAUX -->
+          <div id="view-levels" class="view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="award" class="ic-game"></i> Niveaux &amp; Récompenses</h2>
+                  <span class="sub">Gagnez 1 XP par crédit misé. Montez en niveau et débloquez des bonus en Crédits Club.</span>
+                </div>
+                <div id="levelsCurrent" class="levels-current"></div>
+                <div id="levelsTable" class="levels-grid"></div>
               </div>
             </div>
           </div>

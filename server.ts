@@ -49,6 +49,8 @@ const Q = {
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
   allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level, rp_nom, rp_prenom, discord FROM users ORDER BY credit DESC'),
   topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
+  lbLevel     : db.prepare('SELECT username, won, credit, level, xp FROM users WHERE is_admin = 0 ORDER BY level DESC, xp DESC LIMIT 10'),
+  lbLost      : db.prepare('SELECT username, won, credit, level, (wagered - won) AS lost FROM users WHERE is_admin = 0 ORDER BY (wagered - won) DESC LIMIT 10'),
   insSession  : db.prepare('INSERT INTO sessions (token, user_id, created) VALUES (?,?,?)'),
   getSession  : db.prepare('SELECT * FROM sessions WHERE token = ?'),
   delSession  : db.prepare('DELETE FROM sessions WHERE token = ?'),
@@ -520,14 +522,20 @@ const app = new Elysia()
       history: Q.getHistory.all((user as User).id)
     }))
 
-    .get('/api/leaderboard', () => ({
-      top: (Q.topUsers.all() as any[]).map(u => ({
-        name  : u.username,
-        won   : Math.floor(u.won),
-        credit: Math.floor(u.credit),
-        level : u.level || 1,
-      }))
-    }))
+    .get('/api/leaderboard', ({ query }) => {
+      const type = (query as any).type === 'level' ? 'level'
+                 : (query as any).type === 'lost'  ? 'lost'  : 'won'
+      const rows = (type === 'level' ? Q.lbLevel : type === 'lost' ? Q.lbLost : Q.topUsers).all() as any[]
+      return {
+        type,
+        top: rows.map(u => {
+          const value = type === 'level' ? (u.level || 1)
+                      : type === 'lost'  ? Math.max(0, Math.floor(u.lost ?? 0))
+                      : Math.floor(u.won || 0)
+          return { name: u.username, level: u.level || 1, won: Math.floor(u.won || 0), value }
+        })
+      }
+    })
 
     .get('/api/biggest-wins', () => ({
       wins: (Q.bigWins.all() as any[]).map(w => ({

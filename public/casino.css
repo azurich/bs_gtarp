@@ -638,6 +638,39 @@ input[type=range]::-webkit-slider-thumb{
 .win-amt{display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:700;font-family:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap}
 .home-empty{color:var(--tx-3);padding:16px;text-align:center;font-size:.9rem}
 
+/* ── Sélecteur de classement (chips) ── */
+.lb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lb-switch{display:inline-flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:999px;padding:3px}
+.lb-chip{
+  border:none;background:none;cursor:pointer;border-radius:999px;padding:6px 14px;
+  font-family:var(--body);font-size:.8rem;font-weight:600;color:var(--tx-3);
+  transition:color .15s,background .15s;
+}
+.lb-chip:hover{color:var(--tx-2)}
+.lb-chip.active{background:var(--accent-soft);color:var(--accent-2)}
+
+/* ── Page Niveaux & récompenses ── */
+.levels-current{
+  display:flex;flex-direction:column;gap:6px;margin-bottom:20px;padding:18px 22px;
+  border:1px solid var(--accent-dim);border-radius:var(--r3);
+  background:radial-gradient(ellipse 80% 130% at 82% 50%,rgba(124,58,237,.14),transparent 60%),var(--surface-1);
+}
+.lvc-badge{font-family:var(--display);font-size:1.4rem;color:var(--tx)}
+.lvc-badge b{color:var(--v-300);font-variant-numeric:tabular-nums}
+.lvc-next{font-size:.9rem;color:var(--tx-2)}
+.lvc-next b{color:var(--accent-2)}
+.levels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.lvl-tier{
+  border:1px solid var(--bdr);border-radius:var(--r3);padding:16px 14px;text-align:center;
+  background:var(--surface-1);opacity:.8;transition:opacity .15s,border-color .15s;
+}
+.lvl-tier.reached{border-color:rgba(16,185,129,.4);background:linear-gradient(160deg,rgba(16,185,129,.08),var(--surface-1));opacity:1}
+.lvl-tier.next{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft);opacity:1}
+.lvt-lvl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3);font-family:var(--body);margin-bottom:8px}
+.lvt-rew{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.8rem;font-weight:700;color:var(--gold);line-height:1}
+.lvt-lbl{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-4);font-family:var(--body);margin-top:5px}
+.lvl-tier.reached .lvt-lbl{color:var(--green)}
+
 /* ── Responsive home ── */
 @media(max-width:600px){
   .home-hero{padding:18px}

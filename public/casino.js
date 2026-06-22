@@ -149,6 +149,7 @@ function _doTab(v) {
   if (v === 'plinko')  { initPlinkoCanvas(); drawPlinko(); }
   if (v === 'wheel')   buildWheel();
   if (v === 'dice')    diceUpdate();
+  if (v === 'levels')  renderLevels();
   if (v === 'history') loadHistory();
 }
 
@@ -180,6 +181,7 @@ async function renderHome() {
     netEl.textContent = (net >= 0 ? '+' : '-') + Math.abs(Math.floor(net)).toLocaleString('fr-FR');
   }
   renderWinsFeed();
+  leaderType = null;          // tirage aléatoire du classement à chaque venue
   renderLeaderboard();
 }
 
@@ -198,50 +200,86 @@ async function renderWinsFeed() {
   } catch (e) { wrap.innerHTML = '<p class="home-empty">Impossible de charger les gains.</p>'; }
 }
 
+let leaderType = null;
+const LB_META = {
+  level: { col: 'Niveau', podium: p => 'Niv. ' + p.value, cell: p => 'Niv. ' + p.value },
+  won:   { col: 'Gains',  podium: p => fmt(p.value) + ' <span class="podium-coin">🪙</span>', cell: p => fmt(p.value) },
+  lost:  { col: 'Perdu',  podium: p => fmt(p.value) + ' <span class="podium-coin">🪙</span>', cell: p => fmt(p.value) },
+};
+function setLeaderType(t) { leaderType = t; renderLeaderboard(); }
+
 async function renderLeaderboard() {
+  if (!leaderType) leaderType = ['level', 'won', 'lost'][Math.floor(Math.random() * 3)];
+  const meta = LB_META[leaderType] || LB_META.won;
+  document.querySelectorAll('.lb-chip').forEach(c => c.classList.toggle('active', c.dataset.lb === leaderType));
   const wrap = $('homeLeaderWrap');
   if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
   try {
-    const top = (await api('/leaderboard')).top;
-    if (!top.length) { wrap.innerHTML = '<p style="color:var(--tx-3);padding:16px">Aucun joueur pour l\'instant.</p>'; return; }
+    const top = (await api('/leaderboard?type=' + leaderType)).top || [];
+    if (!top.length) { if (wrap) wrap.innerHTML = '<p class="home-empty">Aucun joueur pour l\'instant.</p>'; return; }
 
-    // Podium top 3 — rangs basés sur l'index réel, ordre visuel [2e, 1er, 3e]
     const ranked = top.slice(0, 3).map((p, i) => ({ ...p, rank: i + 1 }));
     const visualIdx = [1, 0, 2]; // 2e gauche, 1er centre, 3e droite
-
     let podiumHtml = '<div class="podium">';
     visualIdx.forEach(idx => {
-      const p = ranked[idx];
-      if (!p) return;
+      const p = ranked[idx]; if (!p) return;
       const isMine = p.name === USER.username;
       podiumHtml += '<div class="podium-place p' + p.rank + (isMine ? ' is-me' : '') + '">'
         + (p.rank === 1 ? '<div class="podium-crown">♛</div>' : '')
         + '<div class="podium-name">' + esc(p.name) + '</div>'
-        + '<div class="podium-won">' + fmt(p.won || 0) + ' <span class="podium-coin">🪙</span></div>'
+        + '<div class="podium-won">' + meta.podium(p) + '</div>'
         + '<div class="podium-block"><span>' + p.rank + '</span></div>'
         + '</div>';
     });
     podiumHtml += '</div>';
 
-    // Reste 4-10
     let tableHtml = '';
     if (top.length > 3) {
-      tableHtml = '<table class="leader-table"><thead><tr><th>#</th><th>Joueur</th><th>Nv.</th><th>Gains</th></tr></thead><tbody>';
+      tableHtml = '<table class="leader-table"><thead><tr><th>#</th><th>Joueur</th><th>Nv.</th><th>' + meta.col + '</th></tr></thead><tbody>';
       top.slice(3).forEach((p, i) => {
         const isMine = p.name === USER.username;
         tableHtml += '<tr' + (isMine ? ' class="is-me-row"' : '') + '>'
           + '<td>' + (i + 4) + '</td>'
           + '<td>' + esc(p.name) + (isMine ? ' <span style="color:var(--v-300)">(vous)</span>' : '') + '</td>'
           + '<td style="color:var(--tx-3)">' + (p.level || 1) + '</td>'
-          + '<td style="color:var(--gold);font-family:var(--display)">' + fmt(p.won || 0) + '</td>'
+          + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums">' + meta.cell(p) + '</td>'
           + '</tr>';
       });
       tableHtml += '</tbody></table>';
     }
-
     if (wrap) wrap.innerHTML = podiumHtml + tableHtml;
   } catch (e) {
-    if (wrap) wrap.innerHTML = '<p style="color:var(--tx-3);padding:16px">Impossible de charger le classement.</p>';
+    if (wrap) wrap.innerHTML = '<p class="home-empty">Impossible de charger le classement.</p>';
+  }
+}
+
+/* ── Niveaux & récompenses ────────────────────────────────── */
+function renderLevels() {
+  if (!USER) return;
+  const lvl = USER.level || 1, xp = USER.xp || 0;
+  const cur = $('levelsCurrent');
+  if (cur) {
+    const nextM = (Math.floor(lvl / 10) + 1) * 10;
+    cur.innerHTML =
+      '<div class="lvc-badge">Niveau <b>' + lvl + '</b> · ' + esc(levelTitle(lvl)) + '</div>'
+      + (lvl < MAX_LEVEL
+          ? '<div class="lvc-next">Prochain bonus : <b>Niveau ' + nextM + '</b> → +' + fmt((nextM / 10) * 1000) + ' Crédits Club</div>'
+          : '<div class="lvc-next">Niveau maximum atteint 🏆</div>');
+  }
+  const tbl = $('levelsTable');
+  if (tbl) {
+    let html = '';
+    const nextM = (Math.floor(lvl / 10) + 1) * 10;
+    for (let m = 10; m <= 100; m += 10) {
+      const reached = lvl >= m;
+      const isNext = !reached && m === nextM;
+      html += '<div class="lvl-tier' + (reached ? ' reached' : '') + (isNext ? ' next' : '') + '">'
+        + '<div class="lvt-lvl">Niveau ' + m + '</div>'
+        + '<div class="lvt-rew">+' + fmt((m / 10) * 1000) + '</div>'
+        + '<div class="lvt-lbl">' + (reached ? 'Débloqué' : 'Crédits Club') + '</div>'
+        + '</div>';
+    }
+    tbl.innerHTML = html;
   }
 }
 
