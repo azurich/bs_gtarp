@@ -2,9 +2,6 @@
    Extracted from style.css. Shared tokens (btn, modal, toast, table base) remain in tokens.css.
 */
 
-/* ── icône logout ────────────────────────────────────────── */
-.adm-logout-btn svg.lucide{width:13px;height:13px;stroke-width:2}
-
 /* ── panel racine ────────────────────────────────────────── */
 body{
   --a-bg:      var(--bg);
@@ -26,58 +23,6 @@ body{
 
 /* ── shell flex ──────────────────────────────────────────── */
 .adm-shell{display:flex;height:100vh;overflow:hidden}
-
-/* ── sidebar admin ───────────────────────────────────────── */
-.adm-nav-panel{
-  width:220px;flex:none;
-  background:linear-gradient(180deg,#0a0818,#06050f);
-  border-right:1px solid rgba(201,168,76,.12);
-  display:flex;flex-direction:column;
-  position:sticky;top:0;height:100vh;overflow-y:auto;
-}
-.adm-brand-area{
-  padding:18px 16px 14px;border-bottom:1px solid rgba(201,168,76,.1);
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.adm-brand-logo{
-  font-family:var(--display);font-size:1.4rem;
-  letter-spacing:.05em;color:var(--tx);font-weight:600;
-}
-.adm-brand-logo span{color:var(--accent)}
-.adm-brand-badge{
-  font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  padding:2px 6px;border-radius:var(--r1);
-  background:rgba(201,168,76,.2);color:var(--accent-2);
-  border:1px solid rgba(201,168,76,.3);font-family:var(--body);
-}
-.adm-nav-links{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
-.adm-nl{
-  display:flex;align-items:center;gap:9px;
-  padding:7px 10px;border-radius:var(--r2);
-  color:var(--tx-3);cursor:pointer;font-size:.84rem;
-  font-weight:500;transition:color var(--dur-fast),background var(--dur-fast);
-  border:none;background:none;width:100%;text-align:left;font-family:var(--body);
-  position:relative;
-}
-.adm-nl svg.lucide{width:16px;height:16px;stroke-width:1.75;flex:none;color:inherit}
-.adm-nl:hover{color:rgba(245,240,255,.82);background:rgba(201,168,76,.1)}
-.adm-nl.active{color:var(--accent-2);background:rgba(201,168,76,.14)}
-.adm-nl.active::before{
-  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
-  width:2px;height:16px;background:var(--accent);border-radius:0 2px 2px 0;
-}
-.adm-nav-foot{padding:14px 14px 18px;border-top:1px solid rgba(201,168,76,.1)}
-.adm-who-line{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
-.adm-who-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx-4);font-family:var(--body)}
-.adm-who-name{font-size:.875rem;font-weight:600;color:var(--tx)}
-.adm-logout-btn{
-  width:100%;padding:7px 10px;border-radius:var(--r2);
-  background:transparent;border:1px solid var(--bdr-med);
-  color:var(--tx-3);cursor:pointer;font-size:.78rem;
-  font-family:var(--body);transition:all var(--dur-fast);
-  display:flex;align-items:center;gap:6px;
-}
-.adm-logout-btn:hover{background:rgba(255,255,255,.04);color:var(--tx)}
 
 /* ── main admin ──────────────────────────────────────────── */
 .adm-main{flex:1;padding:28px 32px;overflow-y:auto;min-width:0}
@@ -231,11 +176,5 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 /* ── mobile admin ────────────────────────────────────────── */
 @media(max-width:680px){
   .adm-shell{flex-direction:column}
-  .adm-nav-panel{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap}
-  .adm-brand-area{flex:none;border-bottom:none;border-right:1px solid rgba(201,168,76,.1);padding:10px 12px}
-  .adm-nav-links{flex-direction:row;padding:5px 6px;flex:1;gap:2px}
-  .adm-nl{padding:6px 8px;font-size:.78rem;gap:6px}
-  .adm-nl::before{display:none}
-  .adm-nav-foot{display:none}
   .adm-main{padding:14px}
 }
