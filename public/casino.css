@@ -656,7 +656,7 @@ input[type=range]::-webkit-slider-thumb{
 .home-empty{color:var(--tx-3);padding:16px;text-align:center;font-size:.9rem}
 
 /* ── Sélecteur de classement (chips) ── */
-.lb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lb-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:28px 0 14px}
 .lb-switch{display:inline-flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:999px;padding:3px}
 .lb-chip{
   border:none;background:none;cursor:pointer;border-radius:999px;padding:6px 14px;
