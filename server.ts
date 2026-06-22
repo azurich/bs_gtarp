@@ -212,18 +212,19 @@ const CSP = [
 
 /* ── plugins d'authentification ───────────────────────────── */
 const withAuth = new Elysia({ name: 'auth' })
-  .derive({ as: 'scoped' }, ({ headers, error }) => {
+  .derive({ as: 'scoped' }, ({ headers, status }) => {
+    // Elysia 1.3+ : le helper de court-circuit s'appelle `status` (ex-`error`).
     const token = (headers['authorization'] ?? '').replace(/^Bearer\s+/i, '').trim()
                || (headers['x-token'] ?? '').trim()
-    if (!token) return error(401, { error: 'Non connecté' })
+    if (!token) return status(401, { error: 'Non connecté' })
     const session = Q.getSession.get(token) as Session | null
-    if (!session) return error(401, { error: 'Session invalide' })
+    if (!session) return status(401, { error: 'Session invalide' })
     if (Date.now() - session.created > SESSION_TTL) {
       Q.delSession.run(token)
-      return error(401, { error: 'Session expirée, reconnecte-toi.' })
+      return status(401, { error: 'Session expirée, reconnecte-toi.' })
     }
     const user = Q.userById.get(session.user_id) as User | null
-    if (!user) return error(401, { error: 'Compte introuvable' })
+    if (!user) return status(401, { error: 'Compte introuvable' })
     return { user, authToken: token }
   })
 
