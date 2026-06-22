@@ -590,21 +590,25 @@ const app = new Elysia()
     })
   )
 
-  /* ── Fichiers statiques + fallback SPA ────────────────── */
-  // Sert n'importe quel fichier existant de ./public avec le bon MIME ;
-  // sinon (route SPA inconnue) renvoie index.html. Évite le bug "CSS servi en text/html".
+  /* ── Routing multi-pages + fichiers statiques ─────────── */
   .get('/*', async ({ request, set }) => {
-    const indexFile = Bun.file(join(import.meta.dir, 'public', 'index.html'))
+    const pub  = (f: string) => Bun.file(join(import.meta.dir, 'public', f))
+    const PAGES: Record<string, string> = {
+      '/': 'club.html', '/casino': 'casino.html', '/fight': 'fight.html',
+      '/profil': 'profil.html', '/admin': 'admin.html',
+    }
     let pathname: string
     try { pathname = decodeURIComponent(new URL(request.url).pathname) }
-    catch { return indexFile }
-    if (pathname === '/' || pathname.includes('..') || pathname.includes('\0')) return indexFile
-    const ext  = pathname.slice(pathname.lastIndexOf('.') + 1).toLowerCase()
-    if (!MIME[ext]) return indexFile                       // pas une ressource → SPA
-    const file = Bun.file(join(import.meta.dir, 'public', pathname))
-    if (!(await file.exists())) return indexFile
-    set.headers['Content-Type'] = MIME[ext]
-    return file
+    catch { return pub('club.html') }
+    if (pathname.includes('..') || pathname.includes('\0')) return pub('club.html')
+    const clean = pathname.replace(/\/+$/, '') || '/'
+    if (PAGES[clean]) { set.headers['Content-Type'] = 'text/html'; return pub(PAGES[clean]) }
+    const ext = pathname.slice(pathname.lastIndexOf('.') + 1).toLowerCase()
+    if (MIME[ext]) {
+      const file = pub(pathname)
+      if (await file.exists()) { set.headers['Content-Type'] = MIME[ext]; return file }
+    }
+    set.headers['Content-Type'] = 'text/html'; return pub('club.html')   // fallback
   })
 
   /* ── Gestionnaire d'erreurs ───────────────────────────── */
