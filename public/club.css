@@ -91,7 +91,7 @@
 }
 .join-modal.hidden { display: none; }
 .join-modal-card {
-  background: #0c0a1a;
+  background: linear-gradient(160deg, #0d0b07, #080706);
   border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
   border-radius: 16px; padding: 28px 30px 24px; width: 100%; max-width: 440px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px var(--accent-soft, rgba(201, 168, 76, .14));
