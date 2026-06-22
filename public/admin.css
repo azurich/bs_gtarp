@@ -32,8 +32,8 @@ body{
 .adm-shell::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
-    radial-gradient(ellipse 46% 40% at 72% 4%, rgba(201,168,76,.16), transparent 60%),
-    radial-gradient(ellipse 42% 34% at 102% 104%, rgba(201,168,76,.11), transparent 60%);
+    radial-gradient(ellipse 46% 40% at 72% 2%, rgba(201,168,76,.16), transparent 60%),
+    radial-gradient(ellipse 55% 40% at 58% 102%, rgba(201,168,76,.12), transparent 62%);
 }
 
 /* ── main admin ──────────────────────────────────────────── */
