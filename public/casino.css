@@ -57,9 +57,14 @@
   flex:none;
 }
 .sidebar-logo .logo{
-  font-size:1.4rem;letter-spacing:.05em;
+  font-size:1.4rem;letter-spacing:.05em;line-height:1.05;
 }
 .sidebar-logo .logo span{color:var(--v-500)}
+.sidebar-logo-sub{
+  font-family:var(--display);font-size:.72rem;font-weight:600;
+  letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);
+  margin-top:1px;padding-left:.34em;
+}
 
 /* Zone de navigation : remplit l'espace entre le logo et le bloc user */
 .sidebar-nav{
