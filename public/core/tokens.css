@@ -269,6 +269,38 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 }
 .field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 
+/* ── Sélecteur custom (design type shadcn) — voir core/ui-select.js ── */
+.sel{position:relative;display:block;min-width:96px}
+.sel-native{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;clip:rect(0 0 0 0);margin:-1px}
+.sel-trigger{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+  background:rgba(255,255,255,.05);border:1px solid var(--bdr-med);border-radius:var(--r2);
+  padding:.6rem .8rem;color:var(--tx);font-family:var(--body);font-size:.9rem;font-weight:500;
+  cursor:pointer;text-align:left;transition:border-color .15s,background .15s,box-shadow .15s;
+}
+.sel-trigger:hover{border-color:var(--accent-soft);background:rgba(255,255,255,.07)}
+.sel.open .sel-trigger{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.sel-value{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sel-caret{width:15px;height:15px;flex:none;opacity:.55;transition:transform .18s ease}
+.sel.open .sel-caret{transform:rotate(180deg);opacity:.9}
+.sel-panel{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:80;
+  background:#0c0a14;border:1px solid var(--accent-dim,var(--bdr-med));border-radius:var(--r2);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);padding:5px;
+  max-height:240px;overflow-y:auto;
+  opacity:0;transform:translateY(-6px) scale(.98);transform-origin:top;pointer-events:none;
+  transition:opacity .15s ease,transform .15s var(--ease-out,ease);
+}
+.sel.open .sel-panel{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.sel-opt{
+  padding:.5rem .7rem;border-radius:calc(var(--r2) - 3px);cursor:pointer;
+  font-size:.9rem;color:var(--tx-2);transition:background .12s,color .12s;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sel-opt:hover{background:var(--accent-soft);color:var(--tx)}
+.sel-opt.active{background:var(--accent-soft);color:var(--accent-2);font-weight:600}
+.sel-opt.active::after{content:'✓';font-size:.8rem;opacity:.85}
+
 .err{color:var(--red);font-size:.8rem;text-align:center;min-height:1.2rem;margin:.4rem 0;font-weight:600}
 
 /* ══════════════════════════════════════════════════════════
