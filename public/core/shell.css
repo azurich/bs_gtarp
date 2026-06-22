@@ -1,0 +1,17 @@
+.bs-nav{display:flex;align-items:center;gap:22px;height:60px;padding:0 22px;
+  background:linear-gradient(180deg,#0a0818,#06050f);border-bottom:1px solid rgba(255,255,255,.06);
+  position:sticky;top:0;z-index:40}
+.bs-logo{font-family:var(--display,'Cormorant Garamond',serif);font-size:1.5rem;font-weight:700;
+  letter-spacing:.04em;color:#f5f0ff;text-decoration:none}
+.bs-logo span{color:var(--accent)}
+.bs-nav-links{display:flex;gap:6px;margin-left:8px}
+.bs-nav-link{padding:7px 14px;border-radius:8px;color:rgba(230,225,245,.7);text-decoration:none;
+  font-weight:600;font-size:.9rem;transition:color .15s,background-color .15s}
+.bs-nav-link:hover{color:#fff;background:rgba(255,255,255,.05)}
+.bs-nav-link.active{color:var(--accent-2);background:var(--accent-soft)}
+.bs-nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.bs-user{display:flex;align-items:center;gap:12px}
+.bs-bal{display:inline-flex;align-items:center;gap:7px;font-weight:700;color:#f5f0ff}
+.bs-coin{width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--accent-2),var(--accent));
+  box-shadow:0 0 8px var(--accent-glow)}
+@media(max-width:640px){ .bs-nav{gap:10px;padding:0 12px;height:54px} .bs-nav-link{padding:6px 9px;font-size:.82rem} .bs-bal{font-size:.85rem} }
