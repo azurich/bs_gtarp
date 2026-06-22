@@ -33,20 +33,25 @@
 
     <!-- CONNEXION (déconnecté) -->
     <section id="portalLogin" class="portal-gate hidden">
-      <h1 class="portal-logo">Black<span>State</span></h1>
-      <p class="portal-pitch">Club privé de Los Santos — casino, et bientôt l'arène Fight.</p>
+      <div class="portal-brand">
+        <h1 class="portal-logo">Black<span>State</span></h1>
+        <div class="portal-logo-club">Club</div>
+      </div>
       <div class="portal-card">
         <label>Pseudo<input id="loginUser" autocomplete="username"></label>
         <label>Mot de passe<input id="loginPass" type="password" autocomplete="current-password"></label>
         <div id="loginErr" class="form-err"></div>
         <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
-        <p class="portal-note">L'accès se fait uniquement sur invitation.</p>
+        <button type="button" class="portal-note portal-note-link" onclick="showJoinInfo()">L'accès se fait uniquement sur invitation.</button>
       </div>
     </section>
 
     <!-- INSCRIPTION (via lien d'invitation) -->
     <section id="registerSection" class="portal-gate hidden">
-      <h1 class="portal-logo">Black<span>State</span></h1>
+      <div class="portal-brand">
+        <h1 class="portal-logo">Black<span>State</span></h1>
+        <div class="portal-logo-club">Club</div>
+      </div>
       <div class="portal-card">
         <h2>Créer mon compte</h2>
         <p id="inviteBanner" class="invite-banner"></p>

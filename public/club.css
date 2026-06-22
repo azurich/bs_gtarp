@@ -13,25 +13,28 @@
   gap: 0;
 }
 
+.portal-brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; }
 .portal-logo {
   font-family: var(--display, 'Cormorant Garamond', serif);
   font-size: clamp(2.8rem, 7vw, 5rem);
   font-weight: 700;
   letter-spacing: .04em;
   color: #f5f0ff;
-  margin: 0 0 10px;
-  line-height: 1.05;
+  margin: 0;
+  line-height: 1.02;
   text-align: center;
 }
 .portal-logo span { color: var(--accent); }
 .portal-logo.sm { font-size: 1.6rem; margin: 0; }
-
-.portal-pitch {
-  font-size: 1.05rem;
-  color: rgba(230, 225, 245, .6);
-  margin: 0 0 30px;
-  text-align: center;
-  max-width: 440px;
+.portal-logo-club {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: clamp(1.3rem, 3.4vw, 2.1rem);
+  font-weight: 600;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 2px;
+  padding-left: .42em;   /* compense le letter-spacing pour rester centré */
 }
 
 /* ── Cartes login / inscription ── */
@@ -72,6 +75,13 @@
 .portal-note {
   font-size: .82rem; color: rgba(230, 225, 245, .4); text-align: center; margin: 16px 0 0;
 }
+.portal-note-link {
+  display: block; width: 100%; margin: 16px 0 0; padding: 0;
+  background: none; border: none; cursor: pointer; font: inherit;
+  font-size: .82rem; color: rgba(230, 225, 245, .45); text-align: center;
+  text-decoration: underline; text-underline-offset: 3px; transition: color .15s;
+}
+.portal-note-link:hover { color: var(--accent); }
 
 /* ── Hub (connecté) ── */
 .portal-hub {

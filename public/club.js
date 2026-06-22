@@ -27,6 +27,14 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
   if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
 
+function showJoinInfo() {
+  // Popup placeholder — contenu à personnaliser plus tard
+  openModal('Rejoindre le club',
+    `<p class="club-text">Le BlackState Club est accessible <b>sur invitation uniquement</b>.</p>
+     <p class="club-text" style="margin-top:10px">Pour obtenir une invitation, contactez un membre du club en RP… (à compléter).</p>`,
+    null);
+}
+
 async function doPortalLogin() {
   $('loginErr').textContent = '';
   try {

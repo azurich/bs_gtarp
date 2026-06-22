@@ -87,8 +87,8 @@ body{
   font-family:var(--body);color:var(--tx);min-height:100vh;overflow-x:hidden;
   font-size:14px;line-height:1.5;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 0%,rgba(46,16,101,.35),transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%,rgba(91,33,182,.12),transparent 55%),
+    radial-gradient(ellipse 80% 50% at 20% 0%,var(--halo-1,rgba(46,16,101,.35)),transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%,var(--halo-2,rgba(91,33,182,.12)),transparent 55%),
     #05050c;
   background-attachment:fixed;
 }
@@ -365,10 +365,14 @@ tbody tr:hover td{background:var(--accent-soft)}
    ACCENT PAR UNIVERS (défaut = club/or)
 ══════════════════════════════════════════════════════════ */
 :root{ --accent:#c9a84c; --accent-2:#e0bd5a; --accent-soft:rgba(201,168,76,.14);
-       --accent-glow:rgba(201,168,76,.45); --accent-dim:rgba(201,168,76,.30); }
+       --accent-glow:rgba(201,168,76,.45); --accent-dim:rgba(201,168,76,.30);
+       --halo-1:rgba(120,92,28,.30); --halo-2:rgba(201,168,76,.10); }
 body[data-universe="club"]{ --accent:#c9a84c; --accent-2:#e0bd5a; --accent-soft:rgba(201,168,76,.14);
-       --accent-glow:rgba(201,168,76,.45); --accent-dim:rgba(201,168,76,.30); }
+       --accent-glow:rgba(201,168,76,.45); --accent-dim:rgba(201,168,76,.30);
+       --halo-1:rgba(120,92,28,.30); --halo-2:rgba(201,168,76,.10); }
 body[data-universe="casino"]{ --accent:#7c3aed; --accent-2:#a78bfa; --accent-soft:rgba(124,58,237,.16);
-       --accent-glow:rgba(124,58,237,.5); --accent-dim:rgba(124,58,237,.3); }
+       --accent-glow:rgba(124,58,237,.5); --accent-dim:rgba(124,58,237,.3);
+       --halo-1:rgba(46,16,101,.35); --halo-2:rgba(91,33,182,.12); }
 body[data-universe="fight"]{ --accent:#e23b3b; --accent-2:#ff6a6a; --accent-soft:rgba(226,59,59,.16);
-       --accent-glow:rgba(226,59,59,.5); --accent-dim:rgba(226,59,59,.3); }
+       --accent-glow:rgba(226,59,59,.5); --accent-dim:rgba(226,59,59,.3);
+       --halo-1:rgba(101,22,22,.35); --halo-2:rgba(226,59,59,.12); }
