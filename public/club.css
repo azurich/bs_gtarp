@@ -83,6 +83,28 @@
 }
 .portal-note-link:hover { color: var(--accent); }
 
+/* ── Popup "Rejoindre le club" (noir & or) ── */
+.join-modal {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5, 5, 12, .85); backdrop-filter: blur(8px); padding: 20px;
+}
+.join-modal.hidden { display: none; }
+.join-modal-card {
+  background: #0c0a1a;
+  border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
+  border-radius: 16px; padding: 28px 30px 24px; width: 100%; max-width: 440px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px var(--accent-soft, rgba(201, 168, 76, .14));
+  animation: modalIn .22s var(--ease-back, ease);
+}
+.join-modal-card h3 {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.6rem; font-weight: 600; color: var(--accent); margin: 0 0 14px;
+}
+.join-modal-card p { color: rgba(230, 225, 245, .7); line-height: 1.7; margin: 0 0 12px; font-size: .95rem; }
+.join-modal-card p b { color: #f5f0ff; }
+.join-modal-card .btn { width: 100%; margin-top: 10px; }
+
 /* ── Hub (connecté) ── */
 .portal-hub {
   width: 100%; max-width: 820px;

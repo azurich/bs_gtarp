@@ -18,14 +18,14 @@
 </head>
 <body data-universe="club">
   <div id="toast"></div>
-  <div id="modalOverlay" class="hidden">
-    <div class="modal">
-      <h3 id="modalTitle"></h3>
-      <div id="modalBody"></div>
-      <div class="modal-actions">
-        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
-        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
-      </div>
+
+  <!-- Popup "Rejoindre le club" — thème noir & or, contenu personnalisable -->
+  <div id="joinModal" class="join-modal hidden" onclick="if(event.target===this)closeJoinModal()">
+    <div class="join-modal-card">
+      <h3>Rejoindre le club</h3>
+      <p>Le BlackState Club est accessible <b>sur invitation uniquement</b>.</p>
+      <p>Pour obtenir une invitation, contactez un membre du club en RP… (à personnaliser).</p>
+      <button class="btn" onclick="closeJoinModal()">Fermer</button>
     </div>
   </div>
 
