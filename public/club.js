@@ -12,7 +12,7 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
     // Inscription via invitation
     try {
       const inv = await api('/invite/' + INVITE_TOKEN);
-      $('inviteBanner').textContent = `Invitation valide · ${fmt(inv.credits)} crédits offerts`;
+      $('inviteBanner').textContent = `Invitation valide · ${fmt(inv.credits)} Crédits Club offerts`;
       $('registerSection').classList.remove('hidden');
     } catch (e) {
       toast(e.message, 4000);

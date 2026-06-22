@@ -39,7 +39,7 @@ async function renderAdminUsers() {
     const nbPlayers    = users.filter(u => !u.admin).length;
     $('playerStats').innerHTML =
       '<div class="adm-stat-chip"><span class="val">' + nbPlayers + '</span><span class="lbl">Joueurs</span></div>'
-    + '<div class="adm-stat-chip"><span class="val">' + fmt(totalCredits) + '</span><span class="lbl">Crédits en circulation</span></div>'
+    + '<div class="adm-stat-chip"><span class="val">' + fmt(totalCredits) + '</span><span class="lbl">Crédits Club en circulation</span></div>'
     + '<div class="adm-stat-chip"><span class="val">' + fmt(totalWagered) + '</span><span class="lbl">Total misé</span></div>';
     let rows = '<tr><th>Pseudo</th><th>Joueur RP</th><th>Discord</th><th>Crédits</th><th>Misé</th><th>Nv.</th><th>Rôle</th><th>Actions</th></tr>';
     users.forEach(u => {
