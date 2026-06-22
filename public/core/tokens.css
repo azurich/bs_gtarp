@@ -272,25 +272,26 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 .err{color:var(--red);font-size:.8rem;text-align:center;min-height:1.2rem;margin:.4rem 0;font-weight:600}
 
 /* ══════════════════════════════════════════════════════════
-   MODAL
+   MODAL — sélecteurs canoniques (structure partagée)
 ══════════════════════════════════════════════════════════ */
-.modal-overlay{
+#modalOverlay{
   position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;
   background:rgba(5,5,12,.85);backdrop-filter:blur(8px);padding:20px;
   animation:overlayIn .2s var(--ease-out);
 }
-.modal-card{
+#modalOverlay.hidden{display:none!important}
+.modal{
   background:var(--surface-1);border:1px solid var(--bdr-med);border-radius:var(--r3);
   padding:26px 26px 20px;width:100%;max-width:430px;
   box-shadow:var(--shadow-lg);
   animation:modalIn .22s var(--ease-back);
 }
-.modal-title{font-family:var(--display);font-size:1.5rem;color:var(--tx);margin-bottom:12px;letter-spacing:.02em;font-weight:600}
-.modal-body{color:var(--tx-3);font-size:.85rem;margin-bottom:18px;line-height:1.6;font-family:var(--body)}
-.modal-body .field{margin-bottom:0}
-.modal-body p{color:var(--tx-3)}
-.modal-btns{display:flex;gap:10px}
-.modal-btns .btn{flex:1;margin-top:0}
+.modal h3{font-family:var(--display);font-size:1.5rem;color:var(--tx);margin-bottom:12px;letter-spacing:.02em;font-weight:600}
+#modalBody{color:var(--tx-3);font-size:.85rem;margin-bottom:18px;line-height:1.6;font-family:var(--body)}
+#modalBody .field{margin-bottom:0}
+#modalBody p{color:var(--tx-3)}
+.modal-actions{display:flex;gap:10px}
+.modal-actions .btn{flex:1;margin-top:0}
 
 /* ══════════════════════════════════════════════════════════
    TOAST

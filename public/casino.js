@@ -41,7 +41,7 @@ const LEVEL_XP     = [0, 500, 2000, 5000, 10000, 20000, 35000, 55000, 80000, 110
 const LEVEL_TITLES = ['Débutant', 'Novice', 'Joueur', 'Habitué', 'Vétéran', 'Expert', 'Pro', 'Shark', 'Légende', 'VIP'];
 
 /* ── helpers UI ───────────────────────────────────────────── */
-function refreshBal() { if (USER) { const el = $('balVal'); if (el) el.textContent = fmt(USER.credit); } }
+function refreshBal() { if (USER) { const el = $('balVal'); if (el) el.textContent = fmt(USER.credit); } if (typeof refreshNavBal === 'function') refreshNavBal(); }
 function flashBal(win) {
   const b = $('balBox');
   if (!b) return;
@@ -57,6 +57,7 @@ function setBalance(b, win, xp, level) {
   if (el) countUp(el, Math.floor(b), 500);
   if (win !== undefined) flashBal(win);
   if (xp != null) updateXP(xp, level || 1);
+  if (typeof refreshNavBal === 'function') refreshNavBal();
 }
 function int(id) { const n = Math.floor(+$(id).value); return Number.isFinite(n) && n > 0 ? n : 0; }
 function qbet(id, op) { const el = $(id); let v = Math.floor(+el.value) || 0; if (op === 'half') v = Math.max(1, Math.floor(v/2)); else if (op === 'double') v *= 2; else if (op === 'max') v = Math.floor(USER ? USER.credit : 0); el.value = Math.max(1, v); }

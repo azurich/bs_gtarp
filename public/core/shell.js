@@ -6,7 +6,7 @@ function renderShell() {
     `<a class="bs-nav-link${uni===key?' active':''}" data-u="${key}" href="${href}">${label}</a>`;
   const right = USER
     ? `<div class="bs-user">
-         <span class="bs-bal"><span class="bs-coin"></span>${fmt(USER.credit)}</span>
+         <span class="bs-bal" id="navBal"><span class="bs-coin"></span>${fmt(USER.credit)}</span>
          <a class="bs-nav-link" href="/profil">${esc(USER.username)}</a>
          <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
        </div>`
@@ -21,6 +21,11 @@ function renderShell() {
        </nav>
        <div class="bs-nav-right">${right}</div>
      </header>`;
+}
+
+function refreshNavBal() {
+  const e = $('navBal');
+  if (e && USER) e.innerHTML = '<span class="bs-coin"></span>' + fmt(USER.credit);
 }
 
 function openLoginModal() {

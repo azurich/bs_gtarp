@@ -26,49 +26,10 @@
 }
 .logo span{color:var(--v-500)}
 
-/* ── Auth form btn override (animation pulse) ───────────── */
-.auth-form .btn:last-of-type{animation:pulseGold 2s ease 1.4s 1}
-
 /* TOPBAR — supprimée, styles neutralisés */
 .topbar{display:none}
 .tb-left{display:none}
 .tb-right{display:none}
-
-/* ── Who / Balance / XP (sidebar) ──────────────────────── */
-.who{font-size:.78rem;color:var(--tx-3);white-space:nowrap;font-family:var(--body)}
-.who b{color:var(--tx);font-weight:500}
-.balance{
-  display:flex;align-items:center;gap:.6rem;
-  background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);
-  padding:.35rem .85rem;border-radius:var(--r4);transition:all var(--dur-fast) ease;
-  width:100%;
-}
-.balance.flash-win{box-shadow:0 0 20px rgba(16,185,129,.4);border-color:var(--green)}
-.balance.flash-lose{box-shadow:0 0 20px rgba(244,63,94,.3);border-color:var(--red)}
-.balance .coin{
-  width:14px;height:14px;border-radius:50%;flex:none;
-  background:radial-gradient(circle at 35% 30%,#f5e090,var(--gold) 60%,#8a6a1a);
-  box-shadow:0 0 6px rgba(201,168,76,.5);
-}
-.balance .bignum{
-  font-family:var(--display);font-size:1.15rem;color:var(--gold);
-  letter-spacing:.02em;font-weight:700;
-}
-/* XP sidebar */
-.xp-sidebar{display:flex;align-items:center;gap:.6rem;flex:none;width:100%}
-.xp-lvl-badge{
-  font-family:var(--body);font-size:.75rem;color:var(--tx-3);white-space:nowrap;
-}
-.xp-lvl-badge b{color:var(--v-300);font-size:.85rem;font-weight:700}
-.xp-track{
-  flex:1;height:3px;border-radius:2px;
-  background:rgba(255,255,255,.08);overflow:hidden;
-}
-.xp-fill{
-  height:100%;border-radius:2px;
-  background:linear-gradient(90deg,var(--v-700),var(--v-300));
-  transition:width .8s var(--ease-out);width:0%;
-}
 
 /* ══════════════════════════════════════════════════════════
    MAIN LAYOUT
@@ -675,27 +636,6 @@ input[type=range]::-webkit-slider-thumb{
   filter:drop-shadow(0 0 30px rgba(201,168,76,.6));
   animation:winpop .5s var(--ease-back);
 }
-
-/* ── MODAL (casino) ─────────────────────────────────────── */
-/* Uses .hidden from tokens.css. The casino modal has simpler structure from task-7 */
-#modalOverlay{
-  position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;
-  background:rgba(5,5,12,.85);backdrop-filter:blur(8px);padding:20px;
-  animation:overlayIn .2s var(--ease-out);
-}
-#modalOverlay.hidden{display:none!important}
-.modal{
-  background:var(--surface-1);border:1px solid var(--bdr-med);border-radius:var(--r3);
-  padding:26px 26px 20px;width:100%;max-width:430px;
-  box-shadow:var(--shadow-lg);
-  animation:modalIn .22s var(--ease-back);
-}
-.modal h3{font-family:var(--display);font-size:1.5rem;color:var(--tx);margin-bottom:12px;letter-spacing:.02em;font-weight:600}
-#modalBody{color:var(--tx-3);font-size:.85rem;margin-bottom:18px;line-height:1.6;font-family:var(--body)}
-#modalBody .field{margin-bottom:0}
-#modalBody p{color:var(--tx-3)}
-.modal-actions{display:flex;gap:10px}
-.modal-actions .btn{flex:1;margin-top:0}
 
 /* ── PODIUM ─────────────────────────────────────────────── */
 .podium{
