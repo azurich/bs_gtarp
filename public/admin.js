@@ -37,9 +37,14 @@ function switchAdminTab(v) {
 }
 
 /* ── joueurs ──────────────────────────────────────────────── */
+let ADMIN_USERS = [];
+let _userQuery = '';
+let _userSort = { key: 'credit', dir: -1 };   // -1 = décroissant, 1 = croissant
+
 async function renderAdminUsers() {
   try {
     const users = (await api('/admin/users')).users;
+    ADMIN_USERS = users;
     const totalCredits = users.reduce((s, u) => s + u.credit, 0);
     const totalWagered = users.reduce((s, u) => s + u.wagered, 0);
     const nbPlayers    = users.filter(u => !u.admin).length;
@@ -47,29 +52,63 @@ async function renderAdminUsers() {
       '<div class="adm-stat-chip"><span class="val">' + nbPlayers + '</span><span class="lbl">Joueurs</span></div>'
     + '<div class="adm-stat-chip"><span class="val">' + fmt(totalCredits) + '</span><span class="lbl">Crédits Club en circulation</span></div>'
     + '<div class="adm-stat-chip"><span class="val">' + fmt(totalWagered) + '</span><span class="lbl">Total misé</span></div>';
-    let rows = '<tr><th>Pseudo</th><th>Joueur RP</th><th>Discord</th><th>Crédits Club</th><th>Misé</th><th>Nv.</th><th>Rôle</th><th>Actions</th></tr>';
-    users.forEach(u => {
-      const n   = esc(u.name || u.username);
-      const rpName = (u.rp_nom || u.rp_prenom)
-        ? esc((u.rp_nom || '').toUpperCase()) + ' ' + esc(u.rp_prenom || '')
-        : '<span style="color:var(--a-tx-dim)">—</span>';
-      const discord = u.discord ? esc(u.discord) : '<span style="color:var(--a-tx-dim)">—</span>';
-      rows += '<tr>'
-        + '<td><b>' + n + '</b></td>'
-        + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + rpName + '</td>'
-        + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + discord + '</td>'
-        + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700">' + fmt(u.credit) + '</td>'
-        + '<td style="color:var(--a-tx-muted);font-family:var(--num);font-variant-numeric:tabular-nums">' + fmt(u.wagered) + '</td>'
-        + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
-        + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
-        + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
-        + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name || u.username) + '\')">+ Crédits</button>'
-        + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name || u.username) + '\')">Retirer</button>'
-        + ((u.name || u.username) !== (USER && USER.username) ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name || u.username) + '\')">Supprimer</button>' : '')
-        + '</td></tr>';
-    });
-    $('userTable').innerHTML = rows;
+    paintUsers();
   } catch (e) {}
+}
+
+function filterUsers(q) { _userQuery = (q || '').toLowerCase().trim(); paintUsers(); }
+
+function sortUsers(key) {
+  if (_userSort.key === key) _userSort.dir *= -1;
+  else _userSort = { key: key, dir: key === 'name' ? 1 : -1 };   // texte ↑, nombres ↓ par défaut
+  paintUsers();
+}
+
+function paintUsers() {
+  const q = _userQuery;
+  let list = ADMIN_USERS.filter(u => {
+    if (!q) return true;
+    return [(u.name || u.username), u.rp_nom, u.rp_prenom, u.discord].join(' ').toLowerCase().indexOf(q) !== -1;
+  });
+  const key = _userSort.key, dir = _userSort.dir;
+  list = list.slice().sort((a, b) => {
+    if (key === 'name') {
+      const av = (a.name || a.username || '').toLowerCase(), bv = (b.name || b.username || '').toLowerCase();
+      return av < bv ? -dir : av > bv ? dir : 0;
+    }
+    return ((a[key] || 0) - (b[key] || 0)) * dir;
+  });
+
+  const arrow = k => _userSort.key === k ? (_userSort.dir < 0 ? ' ▾' : ' ▴') : '';
+  const th = (k, label) => '<th class="adm-sort' + (_userSort.key === k ? ' active' : '') + '" onclick="sortUsers(\'' + k + '\')">' + label + arrow(k) + '</th>';
+  let rows = '<tr>'
+    + th('name', 'Pseudo') + '<th>Joueur RP</th><th>Discord</th>'
+    + th('credit', 'Crédits Club') + th('wagered', 'Misé') + th('level', 'Nv.')
+    + '<th>Rôle</th><th>Actions</th></tr>';
+  if (!list.length) rows += '<tr><td colspan="8" style="color:var(--dim);padding:18px">Aucun joueur trouvé.</td></tr>';
+  list.forEach(u => {
+    const n   = esc(u.name || u.username);
+    const rpName = (u.rp_nom || u.rp_prenom)
+      ? esc((u.rp_nom || '').toUpperCase()) + ' ' + esc(u.rp_prenom || '')
+      : '<span style="color:var(--a-tx-dim)">—</span>';
+    const discord = u.discord ? esc(u.discord) : '<span style="color:var(--a-tx-dim)">—</span>';
+    rows += '<tr>'
+      + '<td><b>' + n + '</b></td>'
+      + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + rpName + '</td>'
+      + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + discord + '</td>'
+      + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700">' + fmt(u.credit) + '</td>'
+      + '<td style="color:var(--a-tx-muted);font-family:var(--num);font-variant-numeric:tabular-nums">' + fmt(u.wagered) + '</td>'
+      + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
+      + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
+      + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
+      + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name || u.username) + '\')">+ Crédits</button>'
+      + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name || u.username) + '\')">Retirer</button>'
+      + ((u.name || u.username) !== (USER && USER.username) ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name || u.username) + '\')">Supprimer</button>' : '')
+      + '</td></tr>';
+  });
+  $('userTable').innerHTML = rows;
+  const c = $('userCount');
+  if (c) c.textContent = list.length + (list.length !== ADMIN_USERS.length ? ' / ' + ADMIN_USERS.length : '') + (list.length > 1 ? ' joueurs' : ' joueur');
 }
 
 function adminCredit(u) {

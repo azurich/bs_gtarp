@@ -68,6 +68,13 @@
         </div>
         <div id="playerStats" class="adm-stats"></div>
         <div class="adm-content-card">
+          <div class="adm-table-toolbar">
+            <div class="adm-search">
+              <i data-lucide="search"></i>
+              <input id="userSearch" type="text" placeholder="Rechercher (pseudo, nom RP, Discord)…" oninput="filterUsers(this.value)">
+            </div>
+            <span id="userCount" class="adm-count"></span>
+          </div>
           <div class="tablewrap"><table id="userTable"></table></div>
         </div>
       </div>

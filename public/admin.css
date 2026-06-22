@@ -45,6 +45,17 @@ body{
   font-family:var(--display);font-size:1.8rem;font-weight:500;
   color:var(--tx);letter-spacing:-.01em;
 }
+
+/* ── recherche + tri de la table joueurs ──────────────────── */
+.adm-table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.adm-search{display:flex;align-items:center;gap:8px;flex:1;max-width:380px;background:rgba(255,255,255,.04);border:1px solid var(--bdr-med);border-radius:var(--r2);padding:8px 12px;transition:border-color var(--dur-fast)}
+.adm-search:focus-within{border-color:var(--accent-dim)}
+.adm-search svg.lucide{width:16px;height:16px;color:var(--a-tx-dim);flex:none}
+.adm-search input{flex:1;background:none;border:none;outline:none;color:var(--tx);font-family:var(--body);font-size:.85rem;min-width:0}
+.adm-search input::placeholder{color:var(--a-tx-dim)}
+.adm-count{font-size:.78rem;color:var(--a-tx-muted);white-space:nowrap;font-family:var(--num);font-variant-numeric:tabular-nums}
+.adm-sort{cursor:pointer;user-select:none;white-space:nowrap;transition:color var(--dur-fast)}
+.adm-sort:hover,.adm-sort.active{color:var(--accent-2)}
 .adm-content-card{
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
   border-radius:var(--r3);padding:20px 22px;margin-bottom:16px;
