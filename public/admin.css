@@ -29,7 +29,14 @@ body{
 .adm-shell{display:flex;height:100vh;overflow:hidden}
 
 /* ── main admin ──────────────────────────────────────────── */
-.adm-main{flex:1;padding:28px 32px;overflow-y:auto;min-width:0}
+.adm-main{
+  flex:1;padding:28px 32px;overflow-y:auto;min-width:0;
+  /* halos dorés d'ambiance pour contraster avec le noir */
+  background:
+    radial-gradient(ellipse 70% 55% at 96% -10%, rgba(201,168,76,.11), transparent 62%),
+    radial-gradient(ellipse 60% 45% at 0% 110%, rgba(201,168,76,.06), transparent 62%);
+  background-attachment:fixed;
+}
 .adm-view{display:block}
 .adm-view.hidden{display:none}
 .adm-page-head{margin-bottom:20px}
