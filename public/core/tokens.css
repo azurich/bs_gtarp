@@ -281,9 +281,11 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 }
 #modalOverlay.hidden{display:none!important}
 .modal{
-  background:var(--surface-1);border:1px solid var(--bdr-med);border-radius:var(--r3);
+  background:var(--surface-1);
+  border:1px solid var(--accent-dim,var(--bdr-med));border-radius:var(--r3);
   padding:26px 26px 20px;width:100%;max-width:430px;
-  box-shadow:var(--shadow-lg);
+  /* anneau/ombre suit l'accent de l'univers (or sur le club, violet casino, rouge fight) */
+  box-shadow:0 20px 48px rgba(5,5,12,.8),0 0 0 1px var(--accent-soft,rgba(255,255,255,.08));
   animation:modalIn .22s var(--ease-back);
 }
 .modal h3{font-family:var(--display);font-size:1.5rem;color:var(--tx);margin-bottom:12px;letter-spacing:.02em;font-weight:600}
