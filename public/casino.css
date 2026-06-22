@@ -625,6 +625,15 @@ input[type=range]::-webkit-slider-thumb{
 .home-game-card[data-game="wheel"]    {background:linear-gradient(160deg,#1a1200,#0d0a00)}
 .home-game-card[data-game="dice"]     {background:linear-gradient(160deg,#0f1016,#07080c)}
 .home-game-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-v);border-color:var(--accent)}
+/* DA par machine : couleur d'icône signature (accueil uniquement) */
+.home-game-card[data-game="slots"]     .hg-icon .gi{color:#b794f6}
+.home-game-card[data-game="blackjack"] .hg-icon .gi{color:#5fa8f5}
+.home-game-card[data-game="mines"]     .hg-icon .gi{color:#f06b6b}
+.home-game-card[data-game="plinko"]    .hg-icon .gi{color:#36d39b}
+.home-game-card[data-game="wheel"]     .hg-icon .gi{color:#e8c45f}
+.home-game-card[data-game="dice"]      .hg-icon .gi{color:#84dbe2}
+.home-game-card .hg-icon .gi{filter:drop-shadow(0 0 10px currentColor)}
+.home-game-card:hover .hg-icon .gi{filter:drop-shadow(0 0 16px currentColor)}
 .hg-icon{display:flex;align-items:center;justify-content:center;margin-bottom:10px;height:44px}
 .hg-icon svg.lucide{width:36px;height:36px;stroke-width:1.4;color:var(--v-300)}
 .hg-name{font-family:var(--display);font-size:1.1rem;letter-spacing:.03em;margin-bottom:8px;color:var(--tx)}
