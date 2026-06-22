@@ -94,7 +94,7 @@
 .nav-section-label{
   font-family:var(--display);font-style:italic;font-weight:500;
   font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
-  color:rgba(167,139,250,.45);padding:10px 12px 4px;
+  color:rgba(190,178,235,.62);padding:10px 12px 4px;
 }
 .nav-divider{
   height:1px;margin:5px 4px;flex:none;
@@ -109,7 +109,7 @@
   background:none;border:none;
   width:100%;text-align:left;
   font-family:var(--body);font-size:.84rem;font-weight:500;letter-spacing:0;
-  color:var(--tx-3);
+  color:rgba(245,240,255,.74);
   cursor:pointer;user-select:none;position:relative;
   transition:color var(--dur-fast) ease, background-color var(--dur-fast) ease;
   text-decoration:none;
