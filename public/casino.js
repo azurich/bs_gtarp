@@ -147,7 +147,7 @@ const GAME_LABEL = { slots:'Slots', blackjack:'Blackjack', mines:'Démineur', pl
 
 async function renderHome() {
   if (!USER) return;
-  $('homeUser').textContent = USER.username;
+  $('homeUser').textContent = (USER.rp && USER.rp.prenom) ? USER.rp.prenom : USER.username;
   // Niveau / XP
   const lvl = USER.level || 1, xp = USER.xp || 0;
   updateXP(xp, lvl);                                   // remplit #xpLevel + #xpFill

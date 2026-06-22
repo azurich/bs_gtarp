@@ -5,7 +5,7 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
   if (u) {
     if (u.admin) { location.href = '/admin'; return; }
     // HUB connecté
-    $('hubUser').textContent = u.username;
+    $('hubUser').textContent = (u.rp && u.rp.prenom) ? u.rp.prenom : u.username;
     refreshNavBal();
     $('portalHub').classList.remove('hidden');
   } else if (INVITE_TOKEN) {
