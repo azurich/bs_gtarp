@@ -1,0 +1,111 @@
+/* ══════════════════════════════════════════════════════════
+   Sidebar partagée (thème-aware via var(--accent*)).
+   Or sur le Club/Admin, violet sur le Casino. Calquée sur la
+   sidebar du casino. Inclut le bloc bas (.sidebar-foot).
+══════════════════════════════════════════════════════════ */
+.sidebar{
+  width:220px;flex:none;
+  background:linear-gradient(180deg,#0a0818 0%,#06050f 100%);
+  border-right:1px solid rgba(255,255,255,.06);
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;position:relative;
+}
+.sidebar::before{
+  content:'';pointer-events:none;position:absolute;top:0;left:0;right:0;height:160px;
+  background:radial-gradient(ellipse 140% 80% at 50% -20%,var(--accent-dim),transparent 70%);
+}
+
+/* Logo (bandeau) */
+.sidebar-logo{
+  padding:18px 14px 15px;text-align:center;flex:none;position:relative;z-index:1;
+  background:linear-gradient(180deg,var(--accent-soft),transparent);
+  border-bottom:1px solid var(--accent-dim);
+}
+.sidebar-logo .logo{font-size:1.4rem;letter-spacing:.05em;line-height:1.05}
+.sidebar-logo .logo span{color:var(--accent)}
+.sidebar-logo-sub{
+  font-family:var(--display);font-size:.72rem;font-weight:600;
+  letter-spacing:.34em;text-transform:uppercase;color:var(--accent-2);
+  margin-top:1px;padding-left:.34em;
+}
+
+/* Zone de navigation */
+.sidebar-nav{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;padding:0 8px;position:relative;z-index:1;
+}
+.sidebar-nav>.nav-section{padding-top:10px;padding-bottom:2px}
+.sidebar-nav>.nav-divider{margin:5px 4px}
+
+.nav-section{display:flex;flex-direction:column;gap:2px}
+.nav-section-label{
+  font-family:var(--display);font-style:italic;font-weight:500;
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(230,225,245,.5);padding:10px 12px 4px;
+}
+.nav-divider{
+  height:1px;margin:5px 4px;flex:none;
+  background:linear-gradient(90deg,transparent,var(--accent-dim),transparent);
+}
+.nav-spacer{flex:1;min-height:8px}
+
+/* Items */
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:var(--r2);background:none;border:none;
+  width:100%;text-align:left;
+  font-family:var(--body);font-size:.84rem;font-weight:500;
+  color:rgba(245,240,255,.74);
+  cursor:pointer;user-select:none;position:relative;text-decoration:none;
+  transition:color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.nav-item:hover{color:rgba(245,240,255,.9);background:var(--accent-soft)}
+.nav-item.active{color:var(--accent-2);background:var(--accent-soft)}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:2px;height:18px;border-radius:0 2px 2px 0;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));
+  box-shadow:0 0 8px var(--accent-glow);
+}
+.nav-item:focus{outline:none}
+.nav-item:focus-visible{outline:2px solid var(--accent-dim);outline-offset:-2px}
+.nav-item.active .ni svg.lucide{color:var(--accent-2);filter:drop-shadow(0 0 4px var(--accent-glow))}
+.ni{width:17px;height:17px;flex:none;display:flex;align-items:center;justify-content:center;color:inherit}
+.ni svg.lucide{width:17px;height:17px}
+
+/* Bas de sidebar */
+.sidebar-foot{
+  flex:none;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;
+  padding:12px 12px 14px;border-top:1px solid rgba(255,255,255,.06);
+}
+.side-credit{display:flex;flex-direction:column;gap:3px;padding:2px 4px 6px}
+.side-credit-lbl{font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(230,225,245,.45)}
+.side-credit-val{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:1.05rem;color:#f5f0ff}
+.sidebar-foot .btn{width:100%;justify-content:center}
+.side-portal{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.side-portal svg{width:15px;height:15px}
+
+/* ── Mobile : barre horizontale + bloc bas en header ── */
+@media(max-width:860px){
+  .sidebar{
+    width:100%;flex-direction:column;height:auto;gap:0;padding:0;overflow:visible;
+    border-right:none;border-bottom:1px solid var(--accent-dim);
+  }
+  .sidebar::before{display:none}
+  .sidebar-logo{display:none}
+  .sidebar-foot{
+    order:-1;flex-direction:row;align-items:center;gap:10px;width:100%;padding:8px 12px;
+    border-top:none;border-bottom:1px solid var(--accent-dim);
+  }
+  .sidebar-foot .side-credit{flex-direction:row;align-items:center;gap:8px;padding:0}
+  .sidebar-foot .side-credit-lbl{display:none}
+  .sidebar-foot .btn{width:auto;flex:none;padding:.45rem .9rem}
+  .sidebar-foot .side-portal{margin-left:auto}
+  .sidebar-nav{flex:none;flex-direction:row;width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 8px;gap:2px;scrollbar-width:none}
+  .sidebar-nav::-webkit-scrollbar{display:none}
+  .nav-section{flex-direction:row;gap:2px}
+  .nav-section-label,.nav-spacer{display:none}
+  .nav-divider{width:1px;height:20px;margin:0 3px;align-self:center;background:var(--accent-dim)}
+  .nav-item{padding:6px 10px;gap:7px;font-size:.8rem;white-space:nowrap}
+  .nav-item.active::before{top:auto;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:2px;border-radius:2px 2px 0 0}
+}

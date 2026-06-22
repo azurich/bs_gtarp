@@ -21,7 +21,7 @@ function _copyText(text) {
 
 /* ── navigation onglets ───────────────────────────────────── */
 function switchAdminTab(v) {
-  document.querySelectorAll('.adm-nl').forEach(t => t.classList.toggle('active', t.dataset.at === v));
+  document.querySelectorAll('.sidebar .nav-item').forEach(t => t.classList.toggle('active', t.dataset.v === v));
   document.querySelectorAll('.adm-view').forEach(x => x.classList.add('hidden'));
   $('at-' + v).classList.remove('hidden');
   if (v === 'players') renderAdminUsers();
@@ -227,7 +227,6 @@ async function renderInvites() {
 /* ── bootstrap ────────────────────────────────────────────── */
 (async () => {
   const u = await requireAdmin(); if (!u) return;
-  renderShell();
   const w = $('admWhoName'); if (w) w.textContent = u.username;
   switchAdminTab('players'); renderInvites(); renderLogs();
   if (typeof lucide !== 'undefined') lucide.createIcons();

@@ -9,15 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/core/tokens.css">
   <link rel="stylesheet" href="/admin.css">
-  <link rel="stylesheet" href="/core/shell.css">
   <link rel="stylesheet" href="/responsive.css">
+  <link rel="stylesheet" href="/core/sidebar.css">
   <script defer src="/lucide.min.js"></script>
   <script defer src="/core/auth.js"></script>
-  <script defer src="/core/shell.js"></script>
   <script defer src="/admin.js"></script>
 </head>
 <body data-universe="club">
-  <div id="bs-shell"></div>
   <div id="toast"></div>
   <div id="modalOverlay" class="hidden">
     <div class="modal">
@@ -32,35 +30,36 @@
 
   <div class="adm-shell">
 
-    <aside class="adm-nav-panel">
-      <div class="adm-brand-area">
-        <div class="adm-brand-logo">Black<span>State</span></div>
-        <div class="adm-brand-badge">ADMIN</div>
+    <nav class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo">Black<span>State</span></div>
+        <div class="sidebar-logo-sub">Admin</div>
       </div>
-      <nav class="adm-nav-links">
-        <div class="adm-nl active" data-at="players" onclick="switchAdminTab('players')">
-          <i data-lucide="users"></i><span>Joueurs</span>
+      <div class="sidebar-nav">
+        <div class="nav-section">
+          <button class="nav-item active" data-v="players" onclick="switchAdminTab('players')">
+            <span class="ni"><i data-lucide="users"></i></span><span>Joueurs</span>
+          </button>
+          <button class="nav-item" data-v="invites" onclick="switchAdminTab('invites')">
+            <span class="ni"><i data-lucide="ticket"></i></span><span>Invitations</span>
+          </button>
+          <button class="nav-item" data-v="games" onclick="switchAdminTab('games')">
+            <span class="ni"><i data-lucide="sliders-horizontal"></i></span><span>Machines</span>
+          </button>
+          <button class="nav-item" data-v="logs" onclick="switchAdminTab('logs')">
+            <span class="ni"><i data-lucide="file-text"></i></span><span>Logs</span>
+          </button>
         </div>
-        <div class="adm-nl" data-at="invites" onclick="switchAdminTab('invites')">
-          <i data-lucide="link-2"></i><span>Invitations</span>
-        </div>
-        <div class="adm-nl" data-at="games" onclick="switchAdminTab('games')">
-          <i data-lucide="sliders-horizontal"></i><span>Machines</span>
-        </div>
-        <div class="adm-nl" data-at="logs" onclick="switchAdminTab('logs')">
-          <i data-lucide="file-text"></i><span>Logs</span>
-        </div>
-      </nav>
-      <div class="adm-nav-foot">
-        <div class="adm-who-line">
-          <span class="adm-who-lbl">Connecté</span>
-          <b id="admWhoName" class="adm-who-name"></b>
-        </div>
-        <button class="adm-logout-btn" onclick="logout()">
-          <i data-lucide="log-out" class="ic-sm"></i> Déconnexion
-        </button>
       </div>
-    </aside>
+      <div class="sidebar-foot">
+        <div class="side-credit">
+          <span class="side-credit-lbl">Connecté</span>
+          <span class="side-credit-val" id="admWhoName"></span>
+        </div>
+        <a class="btn ghost sm side-portal" href="/"><i data-lucide="arrow-left"></i> Portail</a>
+        <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
+      </div>
+    </nav>
 
     <main class="adm-main">
 

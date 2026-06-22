@@ -25,7 +25,7 @@ body{
 }
 
 /* ── shell flex ──────────────────────────────────────────── */
-.adm-shell{display:flex;min-height:100vh}
+.adm-shell{display:flex;height:100vh;overflow:hidden}
 
 /* ── sidebar admin ───────────────────────────────────────── */
 .adm-nav-panel{
