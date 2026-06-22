@@ -1,2 +1,2 @@
 getMe().then(renderShell);
-if (typeof lucide !== 'undefined') document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+if (typeof lucide !== 'undefined') lucide.createIcons();
