@@ -52,8 +52,10 @@
 
 /* Logo dans la sidebar */
 .sidebar-logo{
-  padding:16px 14px 12px;
-  border-bottom:1px solid rgba(91,33,182,.12);
+  padding:18px 14px 15px;
+  background:linear-gradient(180deg,rgba(124,58,237,.13),rgba(124,58,237,.02));
+  border-bottom:1px solid rgba(124,58,237,.22);
+  text-align:center;
   flex:none;
 }
 .sidebar-logo .logo{
