@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BlackState — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/core/tokens.css">
+  <link rel="stylesheet" href="/admin.css">
+  <link rel="stylesheet" href="/core/shell.css">
+  <link rel="stylesheet" href="/responsive.css">
+  <script defer src="/lucide.min.js"></script>
+  <script defer src="/core/auth.js"></script>
+  <script defer src="/core/shell.js"></script>
+  <script defer src="/admin.js"></script>
+</head>
+<body data-universe="casino">
+  <div id="bs-shell"></div>
+  <div id="toast"></div>
+  <div id="modalOverlay" class="hidden">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
+        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-shell">
+
+    <aside class="adm-nav-panel">
+      <div class="adm-brand-area">
+        <div class="adm-brand-logo">Black<span>State</span></div>
+        <div class="adm-brand-badge">ADMIN</div>
+      </div>
+      <nav class="adm-nav-links">
+        <div class="adm-nl active" data-at="players" onclick="switchAdminTab('players')">
+          <i data-lucide="users"></i><span>Joueurs</span>
+        </div>
+        <div class="adm-nl" data-at="invites" onclick="switchAdminTab('invites')">
+          <i data-lucide="link-2"></i><span>Invitations</span>
+        </div>
+        <div class="adm-nl" data-at="games" onclick="switchAdminTab('games')">
+          <i data-lucide="sliders-horizontal"></i><span>Machines</span>
+        </div>
+        <div class="adm-nl" data-at="logs" onclick="switchAdminTab('logs')">
+          <i data-lucide="file-text"></i><span>Logs</span>
+        </div>
+      </nav>
+      <div class="adm-nav-foot">
+        <div class="adm-who-line">
+          <span class="adm-who-lbl">Connecté</span>
+          <b id="admWhoName" class="adm-who-name"></b>
+        </div>
+        <button class="adm-logout-btn" onclick="logout()">
+          <i data-lucide="log-out" class="ic-sm"></i> Déconnexion
+        </button>
+      </div>
+    </aside>
+
+    <main class="adm-main">
+
+      <div id="at-players" class="adm-view">
+        <div class="adm-page-head">
+          <h1 class="adm-page-title">Gestion des joueurs</h1>
+        </div>
+        <div id="playerStats" class="adm-stats"></div>
+        <div class="adm-content-card">
+          <div class="tablewrap"><table id="userTable"></table></div>
+        </div>
+      </div>
+
+      <div id="at-invites" class="adm-view hidden">
+        <div class="adm-page-head">
+          <h1 class="adm-page-title">Liens d'invitation</h1>
+        </div>
+        <div class="adm-content-card">
+          <p class="hint" style="margin-bottom:16px">Génère un lien unique à envoyer au joueur. Il choisit son pseudo et mot de passe — le compte est créé avec les crédits définis ici.</p>
+          <div class="invite-gen-row">
+            <div class="field" style="margin:0;flex:1;max-width:220px">
+              <label>Crédits à attribuer</label>
+              <input id="inviteAmt" type="number" min="0" value="5000">
+            </div>
+            <button class="btn sm gold" onclick="adminGenInvite()" style="align-self:flex-end">
+              <i data-lucide="plus" class="ic-sm"></i> Générer un lien
+            </button>
+          </div>
+          <div id="inviteResult" class="invite-result hidden">
+            <div class="invite-link-box">
+              <span id="inviteLinkText" class="invite-link-url"></span>
+              <button class="btn sm ghost" onclick="copyInviteLink()">
+                <i data-lucide="copy" class="ic-sm"></i> Copier
+              </button>
+            </div>
+          </div>
+          <div class="tablewrap" style="margin-top:20px"><table id="inviteTable"></table></div>
+        </div>
+      </div>
+
+      <div id="at-games" class="adm-view hidden">
+        <div class="adm-page-head">
+          <h1 class="adm-page-title">Économie des machines</h1>
+        </div>
+        <div class="adm-content-card">
+          <p class="hint" style="margin-bottom:14px">Réglage fixe, non modifiable. Le RTP est codé en dur : chaque machine est calibrée pour reverser une part fixe des mises, le reste est la marge maison.</p>
+          <div id="settingsBox"></div>
+        </div>
+      </div>
+
+      <div id="at-logs" class="adm-view hidden">
+        <div class="adm-page-head">
+          <h1 class="adm-page-title">Journal d'activité</h1>
+        </div>
+        <div class="adm-content-card">
+          <div class="adm-log-bar">
+            <select id="logFilter" onchange="renderLogs()">
+              <option value="">Tous les types</option>
+              <option value="auth">Auth</option>
+              <option value="bet">Mises</option>
+              <option value="win">Gains</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn sm ghost" onclick="clearLogs()">Vider</button>
+            <button class="btn sm ghost" onclick="exportLogs()">Exporter CSV</button>
+          </div>
+          <div class="tablewrap"><table id="logTable"></table></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</body>
+</html>

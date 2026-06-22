@@ -1,0 +1,241 @@
+/* BlackState — Admin styles
+   Extracted from style.css. Shared tokens (btn, modal, toast, table base) remain in tokens.css.
+*/
+
+/* ── icône logout ────────────────────────────────────────── */
+.adm-logout-btn svg.lucide{width:13px;height:13px;stroke-width:2}
+
+/* ── panel racine ────────────────────────────────────────── */
+body{
+  --a-bg:      var(--bg);
+  --a-surface: var(--surface-1);
+  --a-surface2:var(--surface-2);
+  --a-border:  var(--bdr);
+  --a-border2: var(--bdr-med);
+  --a-accent:  var(--v-700);
+  --a-tx:      var(--tx);
+  --a-tx-muted:var(--tx-2);
+  --a-tx-dim:  var(--tx-3);
+  --a-danger:  var(--red);
+  --a-success: var(--green);
+  --a-r:       var(--r2);
+  background:var(--bg);color:var(--tx);
+  font-family:var(--body);font-size:.875rem;
+  margin:0;min-height:100vh;
+}
+
+/* ── shell flex ──────────────────────────────────────────── */
+.adm-shell{display:flex;min-height:100vh}
+
+/* ── sidebar admin ───────────────────────────────────────── */
+.adm-nav-panel{
+  width:220px;flex:none;
+  background:linear-gradient(180deg,#0a0818,#06050f);
+  border-right:1px solid rgba(91,33,182,.12);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.adm-brand-area{
+  padding:18px 16px 14px;border-bottom:1px solid rgba(91,33,182,.1);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.adm-brand-logo{
+  font-family:var(--display);font-size:1.4rem;
+  letter-spacing:.05em;color:var(--tx);font-weight:600;
+}
+.adm-brand-logo span{color:var(--v-500)}
+.adm-brand-badge{
+  font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 6px;border-radius:var(--r1);
+  background:rgba(91,33,182,.2);color:var(--v-300);
+  border:1px solid rgba(91,33,182,.3);font-family:var(--body);
+}
+.adm-nav-links{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.adm-nl{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:var(--r2);
+  color:var(--tx-3);cursor:pointer;font-size:.84rem;
+  font-weight:500;transition:color var(--dur-fast),background var(--dur-fast);
+  border:none;background:none;width:100%;text-align:left;font-family:var(--body);
+  position:relative;
+}
+.adm-nl svg.lucide{width:16px;height:16px;stroke-width:1.75;flex:none;color:inherit}
+.adm-nl:hover{color:rgba(245,240,255,.82);background:rgba(91,33,182,.1)}
+.adm-nl.active{color:var(--v-300);background:rgba(91,33,182,.14)}
+.adm-nl.active::before{
+  content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:2px;height:16px;background:var(--v-700);border-radius:0 2px 2px 0;
+}
+.adm-nav-foot{padding:14px 14px 18px;border-top:1px solid rgba(91,33,182,.1)}
+.adm-who-line{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.adm-who-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--tx-4);font-family:var(--body)}
+.adm-who-name{font-size:.875rem;font-weight:600;color:var(--tx)}
+.adm-logout-btn{
+  width:100%;padding:7px 10px;border-radius:var(--r2);
+  background:transparent;border:1px solid var(--bdr-med);
+  color:var(--tx-3);cursor:pointer;font-size:.78rem;
+  font-family:var(--body);transition:all var(--dur-fast);
+  display:flex;align-items:center;gap:6px;
+}
+.adm-logout-btn:hover{background:rgba(255,255,255,.04);color:var(--tx)}
+
+/* ── main admin ──────────────────────────────────────────── */
+.adm-main{flex:1;padding:28px 32px;overflow-y:auto;min-width:0}
+.adm-view{display:block}
+.adm-view.hidden{display:none}
+.adm-page-head{margin-bottom:20px}
+.adm-page-title{
+  font-family:var(--display);font-size:1.8rem;font-weight:500;
+  color:var(--tx);letter-spacing:-.01em;
+}
+.adm-content-card{
+  background:var(--surface-1);border:1px solid var(--bdr);
+  border-radius:var(--r3);padding:20px 22px;margin-bottom:16px;
+}
+
+/* ── stat chips ──────────────────────────────────────────── */
+.adm-stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.adm-stat-chip{
+  background:var(--bg);border:1px solid var(--bdr-accent);
+  border-radius:var(--r2);padding:14px 18px;min-width:140px;
+}
+.adm-stat-chip .val{display:block;font-family:var(--display);font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1}
+.adm-stat-chip .lbl{display:block;font-size:.65rem;color:var(--tx-3);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;font-family:var(--body)}
+
+/* ── tables admin ────────────────────────────────────────── */
+.tablewrap{overflow-x:auto;border:1px solid var(--bdr);border-radius:var(--r2)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{
+  background:rgba(91,33,182,.06);color:var(--tx-3);
+  font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;
+  padding:10px 14px;text-align:left;border-bottom:1px solid var(--bdr);font-family:var(--body);
+}
+td{padding:11px 14px;border-bottom:1px solid var(--bdr);vertical-align:middle;color:var(--tx)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(91,33,182,.04)}
+
+/* ── boutons admin ───────────────────────────────────────── */
+.btn{
+  border-radius:var(--r2);font-family:var(--body);font-size:.78rem;font-weight:600;
+  letter-spacing:.02em;padding:7px 12px;cursor:pointer;
+  background:rgba(255,255,255,.05);color:var(--tx);
+  border:1px solid var(--bdr-med);
+  transition:background var(--dur-fast),color var(--dur-fast),border-color var(--dur-fast),opacity var(--dur-fast);
+  transform:none;box-shadow:none;
+}
+.btn::after{display:none}
+.btn:hover{transform:none;box-shadow:none;background:rgba(255,255,255,.1);border-color:var(--bdr-accent)}
+.btn:active{transform:none;opacity:.65;transition-duration:.06s}
+.btn.gold{background:var(--gold);color:#0d0a00;border-color:var(--gold);font-weight:700}
+.btn.gold:hover{background:#d8bb60;border-color:#d8bb60;opacity:1}
+.btn.ghost{background:transparent;color:var(--tx-2);border-color:var(--bdr-med)}
+.btn.ghost:hover{background:rgba(255,255,255,.06);color:var(--tx);border-color:var(--bdr-med)}
+.btn[onclick*="adminCredit"]{color:#c4b5fd;background:rgba(91,33,182,.12);border-color:rgba(124,58,237,.35)}
+.btn[onclick*="adminCredit"]:hover{background:rgba(91,33,182,.22);border-color:var(--v-500)}
+.btn[onclick*="adminDebit"]{color:#fdba74;background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.35)}
+.btn[onclick*="adminDebit"]:hover{background:rgba(251,146,60,.2);border-color:#fb923c}
+.btn[onclick*="adminDelete"]{color:#fda4af;background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.35)}
+.btn[onclick*="adminDelete"]:hover{background:rgba(244,63,94,.2);border-color:var(--red)}
+.btn.sm{padding:5px 9px;font-size:.72rem}
+
+/* ── misc admin ──────────────────────────────────────────── */
+.adm-preset-row{display:flex;gap:8px;flex-wrap:wrap;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--bdr)}
+.adm-lvl{color:var(--tx-3);font-weight:600}
+.adminbadge{background:var(--v-700);color:var(--tx);font-size:.6rem;padding:1px 5px;border-radius:var(--r1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-family:var(--body)}
+.admin-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:860px){.admin-grid{grid-template-columns:1.25fr 1fr}}
+
+/* ── log bar ─────────────────────────────────────────────── */
+.adm-log-bar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.log-time{color:var(--tx-3);font-size:.7rem;white-space:nowrap;font-family:var(--body);font-variant-numeric:tabular-nums}
+.log-type{font-family:var(--body);font-size:.62rem;font-weight:700;letter-spacing:.06em;padding:2px 5px;border-radius:var(--r1);text-transform:uppercase}
+.lt-auth{background:rgba(91,33,182,.12);color:#c4b5fd}
+.lt-bet{background:var(--gold-dim);color:var(--gold)}
+.lt-win{background:var(--green-dim);color:var(--green)}
+.lt-admin{background:rgba(91,33,182,.12);color:var(--v-300)}
+.lt-sys{background:rgba(255,255,255,.04);color:var(--tx-4)}
+.hint{font-size:.78rem;color:var(--tx-3);line-height:1.5;font-family:var(--body)}
+
+/* ── invite ──────────────────────────────────────────────── */
+.invite-gen-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.invite-result{margin-top:14px}
+.invite-link-box{
+  display:flex;gap:10px;align-items:center;
+  background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r2);padding:10px 14px;
+}
+.invite-link-url{flex:1;font-family:var(--body);font-size:.75rem;color:var(--tx-3);word-break:break-all}
+.invite-tag{font-size:.65rem;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:var(--r1);font-family:var(--body)}
+.inv-ok{background:var(--green-dim);color:var(--green)}
+.inv-used{background:rgba(255,255,255,.04);color:var(--tx-4)}
+
+/* ── champs formulaire admin ─────────────────────────────── */
+.field label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3)}
+.field input, select{
+  background:var(--bg);border:1px solid var(--bdr-med);color:var(--tx);
+  border-radius:var(--r2);padding:7px 10px;font-size:.82rem;font-family:var(--body);outline:none;
+}
+.field input:focus, select:focus{border-color:var(--v-500)}
+
+/* ── RTP lecture seule ───────────────────────────────────── */
+.rtp-banner{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.rtp-banner>div{flex:1;min-width:160px;background:var(--bg);border:1px solid var(--bdr-accent);border-radius:var(--r2);padding:16px 18px}
+.rtp-banner-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3);margin-bottom:6px;font-family:var(--body)}
+.rtp-banner-val{font-family:var(--display);font-size:2rem;font-weight:700;color:var(--v-300);line-height:1}
+.rtp-banner-val.gold{color:var(--gold)}
+.rtp-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.rtp-table th{background:rgba(91,33,182,.06);color:var(--tx-3);font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:9px 12px;text-align:left;font-family:var(--body)}
+.rtp-table td{padding:10px 12px;border-bottom:1px solid var(--bdr);color:var(--tx)}
+.rtp-table tr:last-child td{border-bottom:none}
+
+/* ── spinner ─────────────────────────────────────────────── */
+.spinner{
+  display:inline-block;width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--bdr-med);border-top-color:var(--v-300);
+  animation:spin .7s linear infinite;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-row{display:flex;justify-content:center;padding:20px}
+
+/* ── modal (page admin autonome) ────────────────────────── */
+#modalOverlay{
+  position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;
+  background:rgba(5,5,12,.85);backdrop-filter:blur(8px);padding:20px;
+}
+#modalOverlay.hidden{display:none}
+.modal{
+  background:var(--surface-1);border:1px solid var(--bdr-med);border-radius:var(--r3);
+  padding:26px 26px 20px;width:100%;max-width:430px;
+  box-shadow:var(--shadow-lg);
+}
+#modalTitle{font-family:var(--display);font-size:1.5rem;color:var(--tx);margin-bottom:12px;letter-spacing:.02em;font-weight:600}
+#modalBody{color:var(--tx-3);font-size:.85rem;margin-bottom:18px;line-height:1.6;font-family:var(--body)}
+#modalBody .field{margin-bottom:0}
+#modalBody p{color:var(--tx-3)}
+.modal-actions{display:flex;gap:10px;flex-direction:row-reverse}
+.modal-actions .btn{flex:1;margin-top:0}
+
+/* ── toast ───────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);z-index:99;
+  background:var(--surface-1);border:1px solid var(--bdr-med);color:var(--tx);
+  padding:10px 20px;border-radius:var(--r4);font-weight:600;font-family:var(--body);
+  box-shadow:var(--shadow-lg);opacity:0;font-size:.82rem;
+  transition:opacity .4s ease, transform .4s ease;
+  white-space:nowrap;
+}
+#toast.show{
+  transform:translateX(-50%) translateY(0);opacity:1;
+  transition:opacity .12s ease, transform .22s var(--ease-back);
+}
+
+/* ── mobile admin ────────────────────────────────────────── */
+@media(max-width:680px){
+  .adm-shell{flex-direction:column}
+  .adm-nav-panel{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap}
+  .adm-brand-area{flex:none;border-bottom:none;border-right:1px solid rgba(91,33,182,.1);padding:10px 12px}
+  .adm-nav-links{flex-direction:row;padding:5px 6px;flex:1;gap:2px}
+  .adm-nl{padding:6px 8px;font-size:.78rem;gap:6px}
+  .adm-nl::before{display:none}
+  .adm-nav-foot{display:none}
+  .adm-main{padding:14px}
+}

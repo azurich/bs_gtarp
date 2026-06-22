@@ -47,7 +47,7 @@ const Q = {
   bumpWin     : db.prepare('UPDATE users SET credit = credit + ?, won = won + ?, biggest = MAX(biggest, ?) WHERE id = ?'),
   addCredit   : db.prepare('UPDATE users SET credit = credit + ? WHERE id = ?'),
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
-  allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level FROM users ORDER BY credit DESC'),
+  allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level, rp_nom, rp_prenom, discord FROM users ORDER BY credit DESC'),
   topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
   insSession  : db.prepare('INSERT INTO sessions (token, user_id, created) VALUES (?,?,?)'),
   getSession  : db.prepare('SELECT * FROM sessions WHERE token = ?'),
