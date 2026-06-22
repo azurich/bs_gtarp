@@ -227,7 +227,7 @@
 @media(hover:none) and (pointer:coarse){
   /* Sur écran tactile, désactiver les hover states qui restent collés */
   .home-game-card:hover{transform:none;box-shadow:none}
-  .btn:hover{transform:none;box-shadow:0 4px 16px rgba(91,33,182,.25)}
+  .btn:hover{transform:none;box-shadow:0 4px 16px var(--accent-glow)}
   .cell:hover:not(.done){transform:none;box-shadow:none;border-color:rgba(91,33,182,.15)}
   .nav-item:hover{background:none}
   /* Tap highlight transparent */

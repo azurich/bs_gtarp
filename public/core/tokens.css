@@ -114,7 +114,7 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
   font-family:var(--display);font-size:1.6rem;letter-spacing:.05em;
   color:var(--tx);line-height:1;user-select:none;font-weight:600;
 }
-.logo span{color:var(--v-500)}
+.logo span{color:var(--accent)}
 
 /* ══════════════════════════════════════════════════════════
    ANIMATIONS — système unifié
@@ -209,7 +209,7 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
   box-shadow:none;color:var(--accent-2);
 }
 .btn.ghost::after{display:none}
-.btn.ghost:hover{border-color:var(--accent);background:var(--v-dim);box-shadow:0 0 0 1px rgba(124,58,237,.12)}
+.btn.ghost:hover{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent-soft)}
 .btn.ghost:active{opacity:.8}
 
 .btn.sm{--lift:-1px;width:auto;padding:.4rem .85rem;font-size:.78rem;margin-top:0}
@@ -267,7 +267,7 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
   border:1px solid var(--bdr-med);border-radius:var(--r2);
   padding:.65rem .75rem;background:rgba(0,0,0,.3);
 }
-.field select:focus{border-color:var(--accent,var(--v-500));box-shadow:0 0 0 3px var(--v-dim)}
+.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 
 .err{color:var(--red);font-size:.8rem;text-align:center;min-height:1.2rem;margin:.4rem 0;font-weight:600}
 
@@ -361,10 +361,23 @@ tbody tr:hover td{background:var(--accent-soft)}
   color:var(--red);font-family:var(--body);
   background:var(--red-dim);border:1px solid rgba(244,63,94,.15);
 }
-.msg.info{color:var(--v-300);font-family:var(--body)}
+.msg.info{color:var(--accent-2);font-family:var(--body)}
 
 /* ══════════════════════════════════════════════════════════
-   ACCENT PAR UNIVERS (défaut = club/or)
+   THÈMES PAR CATÉGORIE DU SITE — source unique de vérité
+   Chaque page déclare <body data-universe="…"> et hérite de :
+     --accent / --accent-2  : couleur principale + claire
+     --accent-soft/-dim/-glow : variantes (fonds, bordures, lueurs)
+     --halo-1 / --halo-2    : halos d'ambiance du fond
+
+   • club   → NOIR & OR   (or #c9a84c) — portail /, profil
+   • casino → VIOLET      (#7c3aed)    — /casino
+   • fight  → ROUGE       (#e23b3b)    — /fight (à venir)
+
+   Tous les composants partagés utilisent var(--accent*) → ils
+   prennent automatiquement le thème de la page. Ne JAMAIS coder
+   une couleur d'accent en dur dans un composant partagé.
+   (Le casino garde en plus sa palette --v-* dans casino.css.)
 ══════════════════════════════════════════════════════════ */
 :root{ --accent:#c9a84c; --accent-2:#e0bd5a; --accent-soft:rgba(201,168,76,.14);
        --accent-glow:rgba(201,168,76,.45); --accent-dim:rgba(201,168,76,.30);
