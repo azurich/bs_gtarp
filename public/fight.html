@@ -12,23 +12,13 @@
   <link rel="stylesheet" href="/core/shell.css">
   <link rel="stylesheet" href="/responsive.css">
   <script defer src="/lucide.min.js"></script>
-  <script defer src="/core/auth.js"></script>
-  <script defer src="/core/shell.js"></script>
   <script defer src="/fight.js"></script>
 </head>
 <body data-universe="fight">
-  <div id="bs-shell"></div>
-  <div id="toast"></div>
-  <div id="modalOverlay" class="hidden">
-    <div class="modal">
-      <h3 id="modalTitle"></h3>
-      <div id="modalBody"></div>
-      <div class="modal-actions">
-        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
-        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
-      </div>
-    </div>
-  </div>
+  <header class="page-head-bar">
+    <a class="bs-logo" href="/">Black<span>State</span></a>
+    <a class="btn ghost sm side-portal" href="/"><i data-lucide="arrow-left"></i> Portail</a>
+  </header>
 
   <main class="fight-soon">
     <h1 class="fight-title">FIGHT</h1>

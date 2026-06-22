@@ -17,7 +17,6 @@
   <script defer src="/club.js"></script>
 </head>
 <body data-universe="club">
-  <div id="bs-shell"></div>
   <div id="toast"></div>
   <div id="modalOverlay" class="hidden">
     <div class="modal">
@@ -30,38 +29,70 @@
     </div>
   </div>
 
-  <main class="club">
-    <section class="club-hero">
-      <h1 class="club-title">Black<span>State</span></h1>
-      <p class="club-tagline">Le club privé. Casino, et bientôt l'arène Fight.</p>
-    </section>
+  <main class="portal">
 
-    <section id="registerSection" class="club-section hidden">
-      <h2>Créer mon compte</h2>
-      <p id="inviteBanner" class="invite-banner"></p>
-      <div class="reg-grid">
-        <label>Pseudo (login)<input id="regUser" autocomplete="username"></label>
-        <label>Mot de passe<input id="regPass" type="password" autocomplete="new-password"></label>
-        <label>NOM<input id="regNom"></label>
-        <label>Prénom<input id="regPrenom"></label>
-        <label>Numéro (tél RP)<input id="regPhone"></label>
-        <label>id Discord<input id="regDiscord"></label>
+    <!-- CONNEXION (déconnecté) -->
+    <section id="portalLogin" class="portal-gate hidden">
+      <h1 class="portal-logo">Black<span>State</span></h1>
+      <p class="portal-pitch">Club privé de Los Santos — casino, et bientôt l'arène Fight.</p>
+      <div class="portal-card">
+        <label>Pseudo<input id="loginUser" autocomplete="username"></label>
+        <label>Mot de passe<input id="loginPass" type="password" autocomplete="current-password"></label>
+        <div id="loginErr" class="form-err"></div>
+        <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
+        <p class="portal-note">L'accès se fait uniquement sur invitation.</p>
       </div>
-      <div id="regErr" class="form-err"></div>
-      <button class="btn" onclick="submitRegister()">Créer mon compte</button>
     </section>
 
-    <section class="club-section">
-      <h2>Le Club</h2>
-      <p class="club-text">BlackState est un cercle de jeu clandestin de Los Santos…
-        (texte de présentation à personnaliser).</p>
+    <!-- INSCRIPTION (via lien d'invitation) -->
+    <section id="registerSection" class="portal-gate hidden">
+      <h1 class="portal-logo">Black<span>State</span></h1>
+      <div class="portal-card">
+        <h2>Créer mon compte</h2>
+        <p id="inviteBanner" class="invite-banner"></p>
+        <div class="reg-grid">
+          <label>Pseudo (login)<input id="regUser" autocomplete="username"></label>
+          <label>Mot de passe<input id="regPass" type="password" autocomplete="new-password"></label>
+          <label>NOM<input id="regNom"></label>
+          <label>Prénom<input id="regPrenom"></label>
+          <label>Numéro (tél RP)<input id="regPhone"></label>
+          <label>id Discord<input id="regDiscord"></label>
+        </div>
+        <div id="regErr" class="form-err"></div>
+        <button class="btn" onclick="submitRegister()">Créer mon compte</button>
+      </div>
     </section>
 
-    <section class="club-section">
-      <h2>Nous rejoindre</h2>
-      <p class="club-text">L'accès se fait uniquement sur invitation…
-        (démarche à personnaliser).</p>
+    <!-- HUB (connecté) -->
+    <section id="portalHub" class="portal-hub hidden">
+      <div class="hub-top">
+        <h1 class="portal-logo sm">Black<span>State</span></h1>
+        <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
+      </div>
+      <p class="hub-hello">Bonjour <b id="hubUser"></b></p>
+      <div class="hub-wallet">
+        <span class="hub-wallet-lbl">Crédits Club</span>
+        <span class="hub-wallet-val"><span class="bs-coin"></span><b id="hubCredit" data-credit>0</b></span>
+      </div>
+      <div class="universe-cards">
+        <a class="universe-card uni-casino" href="/casino">
+          <span class="uni-ic"><i data-lucide="dice-5"></i></span>
+          <span class="uni-name">Casino</span>
+          <span class="uni-desc">Machines, cartes, roue…</span>
+        </a>
+        <span class="universe-card uni-fight disabled">
+          <span class="uni-ic"><i data-lucide="swords"></i></span>
+          <span class="uni-name">Fight</span>
+          <span class="uni-desc">Combats — Bientôt</span>
+        </span>
+        <a class="universe-card uni-profil" href="/profil">
+          <span class="uni-ic"><i data-lucide="user"></i></span>
+          <span class="uni-name">Profil</span>
+          <span class="uni-desc">Mes infos & stats</span>
+        </a>
+      </div>
     </section>
+
   </main>
 </body>
 </html>

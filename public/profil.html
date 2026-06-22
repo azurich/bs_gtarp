@@ -17,24 +17,22 @@
   <script defer src="/profil.js"></script>
 </head>
 <body data-universe="club">
-  <div id="bs-shell"></div>
   <div id="toast"></div>
-  <div id="modalOverlay" class="hidden">
-    <div class="modal">
-      <h3 id="modalTitle"></h3>
-      <div id="modalBody"></div>
-      <div class="modal-actions">
-        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
-        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
-      </div>
-    </div>
-  </div>
 
-  <main class="club">
+  <main class="page">
+    <div class="page-head">
+      <a class="bs-logo" href="/">Black<span>State</span></a>
+      <a class="btn ghost sm side-portal" href="/"><i data-lucide="arrow-left"></i> Portail</a>
+    </div>
+
     <section class="club-section">
-      <h2>Mon profil — <span id="pName"></span></h2>
-      <div id="pStats" class="profil-stats"></div>
+      <h2>Compte — <span id="pName"></span></h2>
+      <div class="hub-wallet" style="margin-top:6px">
+        <span class="hub-wallet-lbl">Crédits Club</span>
+        <span class="hub-wallet-val"><span class="bs-coin"></span><b id="pCredit" data-credit>0</b></span>
+      </div>
     </section>
+
     <section class="club-section">
       <h2>Infos RP</h2>
       <div class="reg-grid">
@@ -45,6 +43,16 @@
       </div>
       <div id="pErr" class="form-err"></div>
       <button class="btn" onclick="saveProfile()">Enregistrer</button>
+    </section>
+
+    <section class="club-section">
+      <h2>Casino</h2>
+      <div id="pStats" class="profil-stats"></div>
+    </section>
+
+    <section class="club-section">
+      <h2>Fight</h2>
+      <p class="club-text">Vos statistiques de combat apparaîtront ici. <b>Bientôt disponible.</b></p>
     </section>
   </main>
 </body>

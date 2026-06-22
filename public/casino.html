@@ -17,7 +17,6 @@
   <script defer src="/casino.js"></script>
 </head>
 <body data-universe="casino">
-  <div id="bs-shell"></div>
   <div id="toast"></div>
   <div id="modalOverlay" class="hidden">
     <div class="modal">
@@ -83,6 +82,14 @@
             </a>
           </div>
           </div><!-- /sidebar-nav -->
+          <div class="sidebar-foot">
+            <div class="side-credit">
+              <span class="side-credit-lbl">Crédits Club</span>
+              <span class="side-credit-val"><span class="bs-coin"></span><b id="sideCredit" data-credit>0</b></span>
+            </div>
+            <a class="btn ghost sm side-portal" href="/"><i data-lucide="arrow-left"></i> Portail</a>
+            <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
+          </div>
         </nav>
 
         <!-- CONTENT -->

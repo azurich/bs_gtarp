@@ -69,6 +69,21 @@
 .sidebar-nav>.nav-section{padding-top:10px;padding-bottom:2px}
 .sidebar-nav>.nav-divider{margin:5px 4px}
 
+/* Bas de sidebar : Crédits Club + retour portail + déconnexion */
+.sidebar-foot{
+  flex:none;display:flex;flex-direction:column;gap:8px;
+  padding:12px 12px 14px;border-top:1px solid rgba(255,255,255,.06);
+}
+.side-credit{display:flex;flex-direction:column;gap:3px;padding:2px 4px 6px}
+.side-credit-lbl{
+  font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(230,225,245,.45);
+}
+.side-credit-val{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:1.15rem;color:#f5f0ff}
+.sidebar-foot .btn{width:100%;justify-content:center}
+.side-portal{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.side-portal svg{width:15px;height:15px}
+
 .sidebar::before{
   content:'';pointer-events:none;position:absolute;
   top:0;left:0;right:0;height:160px;

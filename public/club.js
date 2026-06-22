@@ -1,20 +1,39 @@
 const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
+
 (async () => {
   const u = await getMe();
-  renderShell();
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-  if (u) {                                   // déjà connecté
+  if (u) {
     if (u.admin) { location.href = '/admin'; return; }
-    return;                                   // reste sur la vitrine
-  }
-  if (INVITE_TOKEN) {
+    // HUB connecté
+    $('hubUser').textContent = u.username;
+    refreshNavBal();
+    $('portalHub').classList.remove('hidden');
+  } else if (INVITE_TOKEN) {
+    // Inscription via invitation
     try {
       const inv = await api('/invite/' + INVITE_TOKEN);
-      $('registerSection').classList.remove('hidden');
       $('inviteBanner').textContent = `Invitation valide · ${fmt(inv.credits)} crédits offerts`;
-    } catch (e) { toast(e.message, 4000); }
+      $('registerSection').classList.remove('hidden');
+    } catch (e) {
+      toast(e.message, 4000);
+      $('portalLogin').classList.remove('hidden');
+    }
+  } else {
+    // Connexion
+    $('portalLogin').classList.remove('hidden');
+    const pass = $('loginPass');
+    if (pass) pass.addEventListener('keydown', e => { if (e.key === 'Enter') doPortalLogin(); });
   }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
+
+async function doPortalLogin() {
+  $('loginErr').textContent = '';
+  try {
+    const u = await doLogin($('loginUser').value.trim(), $('loginPass').value);
+    location.href = u.admin ? '/admin' : '/';   // recharge sur le hub
+  } catch (e) { $('loginErr').textContent = e.message; }
+}
 
 async function submitRegister() {
   $('regErr').textContent = '';
@@ -25,6 +44,6 @@ async function submitRegister() {
       phone: $('regPhone').value, discord: $('regDiscord').value,
     });
     TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
-    location.href = '/casino';
+    location.href = '/';   // arrive sur le hub
   } catch (e) { $('regErr').textContent = e.message; }
 }

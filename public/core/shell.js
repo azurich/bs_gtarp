@@ -24,8 +24,11 @@ function renderShell() {
 }
 
 function refreshNavBal() {
-  const e = $('navBal');
-  if (e && USER) e.innerHTML = '<span class="bs-coin"></span>' + fmt(USER.credit);
+  if (!USER) return;
+  const txt = fmt(USER.credit);
+  const nav = $('navBal'); if (nav) nav.innerHTML = '<span class="bs-coin"></span>' + txt;
+  // éléments de solde "Crédits Club" (sidebar casino, hub portail, profil…)
+  document.querySelectorAll('[data-credit]').forEach(e => { e.textContent = txt; });
 }
 
 function openLoginModal() {

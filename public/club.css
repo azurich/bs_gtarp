@@ -1,204 +1,230 @@
-/* ── Club & shared page primitives ── */
+/* ══════════════════════════════════════════════════════════
+   Portail Club + primitives de page partagées (profil, fight)
+══════════════════════════════════════════════════════════ */
 
-/* Page container */
-.club {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 48px 24px 80px;
+/* ── Portail (page /) ── */
+.portal {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 0;
 }
 
-/* Hero */
-.club-hero {
-  text-align: center;
-  padding: 64px 24px 48px;
-}
-
-.club-title {
+.portal-logo {
   font-family: var(--display, 'Cormorant Garamond', serif);
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.8rem, 7vw, 5rem);
   font-weight: 700;
   letter-spacing: .04em;
   color: #f5f0ff;
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   line-height: 1.05;
+  text-align: center;
 }
+.portal-logo span { color: var(--accent); }
+.portal-logo.sm { font-size: 1.6rem; margin: 0; }
 
-.club-title span {
-  color: var(--accent);
-}
-
-.club-tagline {
-  font-size: 1.15rem;
-  color: rgba(230, 225, 245, .65);
-  margin: 0;
-  letter-spacing: .01em;
-}
-
-/* Card-like sections */
-.club-section {
-  background: rgba(255, 255, 255, .03);
-  border: 1px solid rgba(255, 255, 255, .07);
-  border-radius: 16px;
-  padding: 32px 36px;
-}
-
-.club-section h2 {
-  font-family: var(--display, 'Cormorant Garamond', serif);
-  font-size: 1.7rem;
-  font-weight: 600;
-  color: var(--accent);
-  margin: 0 0 18px;
-}
-
-.club-text {
-  color: rgba(230, 225, 245, .72);
-  line-height: 1.75;
-  margin: 0;
-  font-size: .97rem;
-}
-
-/* Registration grid — 2 columns */
-.reg-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px 24px;
-  margin-bottom: 20px;
-}
-
-.reg-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: .82rem;
-  font-weight: 600;
+.portal-pitch {
+  font-size: 1.05rem;
   color: rgba(230, 225, 245, .6);
-  letter-spacing: .04em;
-  text-transform: uppercase;
+  margin: 0 0 30px;
+  text-align: center;
+  max-width: 440px;
 }
 
-.reg-grid input {
+/* ── Cartes login / inscription ── */
+.portal-gate { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+.portal-card {
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 16px;
+  padding: 30px 32px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, .6);
+}
+#registerSection .portal-card { max-width: 600px; }
+
+.portal-card h2 {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.6rem; font-weight: 600; color: var(--accent); margin: 0 0 18px;
+}
+.portal-card > label {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: rgba(230, 225, 245, .6); margin-bottom: 14px;
+}
+.portal-card input {
   background: rgba(255, 255, 255, .05);
   border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 8px;
-  padding: 10px 14px;
-  color: #f5f0ff;
-  font-family: inherit;
-  font-size: .95rem;
-  outline: none;
+  border-radius: 8px; padding: 11px 14px; color: #f5f0ff;
+  font-family: inherit; font-size: 1rem; outline: none; width: 100%; box-sizing: border-box;
   transition: border-color .15s, box-shadow .15s;
-  width: 100%;
-  box-sizing: border-box;
 }
-
-.reg-grid input:focus {
+.portal-card input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18));
 }
-
-/* Invite banner */
-.invite-banner {
-  background: rgba(201, 168, 76, .12);
-  border: 1px solid rgba(201, 168, 76, .3);
-  border-radius: 8px;
-  padding: 10px 16px;
-  color: var(--accent);
-  font-weight: 600;
-  font-size: .9rem;
-  margin: 0 0 20px;
+.portal-card .btn { width: 100%; margin-top: 6px; }
+.portal-note {
+  font-size: .82rem; color: rgba(230, 225, 245, .4); text-align: center; margin: 16px 0 0;
 }
 
-/* Form error */
-.form-err {
-  color: #e05050;
-  font-size: .88rem;
-  min-height: 1.2em;
-  margin-bottom: 12px;
+/* ── Hub (connecté) ── */
+.portal-hub {
+  width: 100%; max-width: 820px;
+  display: flex; flex-direction: column; align-items: center; gap: 24px;
+}
+.hub-top {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+}
+.hub-hello { font-size: 1.05rem; color: rgba(230, 225, 245, .7); margin: 0; }
+.hub-hello b { color: #f5f0ff; }
+
+.hub-wallet {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: rgba(201, 168, 76, .07);
+  border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
+  border-radius: 16px; padding: 22px 48px; min-width: 260px;
+}
+.hub-wallet-lbl {
+  font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(230, 225, 245, .55);
+}
+.hub-wallet-val {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 2.6rem; font-weight: 700; color: var(--accent);
 }
 
-/* ── Profile stats ── */
-.profil-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 4px;
+/* ── Cartes d'univers ── */
+.universe-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  width: 100%; margin-top: 6px;
 }
-
-.stat {
-  background: rgba(255, 255, 255, .04);
+.uni-casino { --c: #7c3aed; }
+.uni-fight  { --c: #e23b3b; }
+.uni-profil { --c: #c9a84c; }
+.universe-card {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-decoration: none; text-align: center;
+  background: rgba(255, 255, 255, .03);
   border: 1px solid rgba(255, 255, 255, .08);
-  border-radius: 10px;
-  padding: 14px 20px;
-  min-width: 110px;
-  flex: 1 1 110px;
+  border-radius: 16px; padding: 28px 18px;
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.universe-card:not(.disabled):hover {
+  transform: translateY(-3px);
+  border-color: var(--c);
+  box-shadow: 0 14px 36px -12px var(--c);
+}
+.universe-card.disabled { opacity: .45; cursor: not-allowed; }
+.uni-ic {
+  width: 40px; height: 40px; color: var(--c);
+  display: flex; align-items: center; justify-content: center;
+}
+.uni-ic svg { width: 30px; height: 30px; }
+.uni-name {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.4rem; font-weight: 600; color: #f5f0ff;
+}
+.uni-desc { font-size: .82rem; color: rgba(230, 225, 245, .5); }
+
+/* ══════════════════════════════════════════════════════════
+   Pages internes (profil) — conteneur + en-tête avec retour
+══════════════════════════════════════════════════════════ */
+.page { max-width: 760px; margin: 0 auto; padding: 24px 24px 80px; display: flex; flex-direction: column; gap: 24px; }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 6px 0 4px; }
+.page-head .logo, .page-head .bs-logo {
+  font-family: var(--display, 'Cormorant Garamond', serif); font-size: 1.5rem; font-weight: 700;
+  letter-spacing: .04em; color: #f5f0ff; text-decoration: none;
+}
+.page-head .bs-logo span { color: var(--accent); }
+
+.club-section {
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 16px; padding: 26px 30px;
+}
+.club-section h2 {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.5rem; font-weight: 600; color: var(--accent); margin: 0 0 16px;
+}
+.club-text { color: rgba(230, 225, 245, .55); line-height: 1.7; margin: 0; font-size: .95rem; }
+
+/* Registration grid — 2 columns */
+.reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 20px; }
+.reg-grid label {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: .82rem; font-weight: 600; color: rgba(230, 225, 245, .6);
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.reg-grid input {
+  background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px; padding: 10px 14px; color: #f5f0ff; font-family: inherit;
+  font-size: .95rem; outline: none; width: 100%; box-sizing: border-box;
+  transition: border-color .15s, box-shadow .15s;
+}
+.reg-grid input:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18));
 }
 
+.invite-banner {
+  background: var(--accent-soft, rgba(201, 168, 76, .12));
+  border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
+  border-radius: 8px; padding: 10px 16px; color: var(--accent);
+  font-weight: 600; font-size: .9rem; margin: 0 0 20px;
+}
+.form-err { color: #e05050; font-size: .88rem; min-height: 1.2em; margin-bottom: 12px; }
+
+/* ── Stats profil ── */
+.profil-stats { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 4px; }
+.stat {
+  background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px; padding: 14px 20px; min-width: 110px; flex: 1 1 110px;
+}
 .stat .lbl {
-  font-size: .75rem;
-  font-weight: 600;
-  color: rgba(230, 225, 245, .5);
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  margin-bottom: 6px;
+  font-size: .75rem; font-weight: 600; color: rgba(230, 225, 245, .5);
+  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
 }
-
 .stat .val {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--accent);
+  font-size: 1.25rem; font-weight: 700; color: var(--accent);
   font-family: var(--display, 'Cormorant Garamond', serif);
 }
 
 /* ── Fight coming soon ── */
 .fight-soon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px);
-  text-align: center;
-  padding: 40px 24px;
-  gap: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: calc(100vh - 64px); text-align: center; padding: 40px 24px; gap: 20px;
 }
-
 .fight-title {
   font-family: var(--display, 'Cormorant Garamond', serif);
-  font-size: clamp(4rem, 14vw, 10rem);
-  font-weight: 700;
-  letter-spacing: .06em;
-  color: var(--accent);
-  margin: 0;
-  line-height: 1;
+  font-size: clamp(4rem, 14vw, 10rem); font-weight: 700; letter-spacing: .06em;
+  color: var(--accent); margin: 0; line-height: 1;
   text-shadow: 0 0 60px var(--accent-glow, rgba(226, 59, 59, .4));
 }
+.fight-sub { font-size: 1.2rem; color: rgba(230, 225, 245, .75); margin: 0; }
+.fight-teaser { font-size: .95rem; color: rgba(230, 225, 245, .45); margin: 0; max-width: 400px; }
 
-.fight-sub {
-  font-size: 1.2rem;
-  color: rgba(230, 225, 245, .75);
-  margin: 0;
+/* En-tête léger (fight / pages) avec bouton retour */
+.page-head-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px; border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
-
-.fight-teaser {
-  font-size: .95rem;
-  color: rgba(230, 225, 245, .45);
-  margin: 0;
-  max-width: 400px;
+.page-head-bar .bs-logo {
+  font-family: var(--display, 'Cormorant Garamond', serif); font-size: 1.5rem; font-weight: 700;
+  letter-spacing: .04em; color: #f5f0ff; text-decoration: none;
 }
+.page-head-bar .bs-logo span { color: var(--accent); }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
-  .club {
-    padding: 24px 16px 60px;
-    gap: 24px;
-  }
-
-  .club-section {
-    padding: 22px 18px;
-  }
-
-  .reg-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 640px) {
+  .universe-cards { grid-template-columns: 1fr; }
+  .reg-grid { grid-template-columns: 1fr; }
+  .hub-wallet { padding: 18px 28px; }
+  .page { padding: 16px 16px 60px; }
+  .club-section { padding: 20px 18px; }
 }

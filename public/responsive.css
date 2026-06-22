@@ -22,17 +22,16 @@
   .sidebar::before{display:none}
   .sidebar-logo{display:none}
 
-  /* HEADER : le bloc user remonte en haut, en ligne */
-  .sidebar-user{
+  /* HEADER : le bloc bas remonte en haut, en ligne (solde + portail + déconnexion) */
+  .sidebar-foot{
     order:-1;flex-direction:row;align-items:center;gap:10px;
-    width:100%;padding:8px 12px;
-    border-top:none;border-bottom:1px solid rgba(91,33,182,.12);
+    width:100%;padding:8px 12px;border-top:none;
+    border-bottom:1px solid rgba(91,33,182,.12);
   }
-  .sidebar-user .balance{width:auto;flex:none}
-  .sidebar-user .who{display:none}
-  .sidebar-user .xp-sidebar{display:flex;align-items:center;gap:6px}
-  .sidebar-user .xp-track{display:none}              /* on garde juste "Nv.X" */
-  .sidebar-user .btn.ghost.sm{width:auto;flex:none;margin-left:auto;padding:.45rem .9rem}
+  .sidebar-foot .side-credit{flex-direction:row;align-items:center;gap:8px;padding:0}
+  .sidebar-foot .side-credit-lbl{display:none}
+  .sidebar-foot .btn{width:auto;flex:none;padding:.45rem .9rem}
+  .sidebar-foot .side-portal{margin-left:auto}
 
   /* NAV : barre horizontale scrollable */
   .sidebar-nav{

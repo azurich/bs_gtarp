@@ -550,7 +550,6 @@ async function diceRoll() {
   const u = await requireAuth();        // redirige vers / si non connecté
   if (!u) return;
   if (u.admin) { location.href = '/admin'; return; }
-  renderShell();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   refreshBal(); updateXP(u.xp || 0, u.level || 1);
   buildMinesGrid(); initSlots();
