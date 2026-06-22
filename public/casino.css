@@ -19,6 +19,14 @@
 /* Nav item active: icon picks up the active color */
 .nav-item.active .ni svg.lucide{color:var(--v-300)}
 
+/* ── ICÔNES DE JEUX (game-icons.net + custom, teintées currentColor) ── */
+.gi{display:block;fill:currentColor}
+.ni .gi{width:100%;height:100%}
+.nav-item.active .ni .gi{color:var(--v-300);filter:drop-shadow(0 0 4px rgba(167,139,250,.5))}
+.hg-icon .gi{width:42px;height:42px;color:var(--v-300)}
+.game-head .ic-game{display:inline-flex;align-items:center}
+.game-head .ic-game .gi{width:100%;height:100%}
+
 /* ── TYPOGRAPHY casino ──────────────────────────────────── */
 .logo{
   font-family:var(--display);font-size:1.6rem;letter-spacing:.05em;

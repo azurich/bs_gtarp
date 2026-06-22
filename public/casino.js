@@ -629,6 +629,7 @@ async function diceRoll() {
   if (!u) return;
   if (u.admin) { location.href = '/admin'; return; }
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  if (typeof applyGameIcons === 'function') applyGameIcons();
   refreshBal(); updateXP(u.xp || 0, u.level || 1);
   buildMinesGrid(); initSlots();
   try { const cfg = await api('/config'); GAME_RTP = cfg.rtp ?? 0.70;
