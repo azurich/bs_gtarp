@@ -121,9 +121,21 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
   background:var(--bg);border:1px solid var(--bdr);border-radius:var(--r2);padding:10px 14px;
 }
 .invite-link-url{flex:1;font-family:var(--body);font-size:.75rem;color:var(--tx-3);word-break:break-all}
-.invite-tag{font-size:.65rem;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:var(--r1);font-family:var(--body)}
-.inv-ok{background:var(--green-dim);color:var(--green)}
-.inv-used{background:rgba(255,255,255,.04);color:var(--tx-4)}
+.invite-tag{display:inline-flex;align-items:center;gap:5px;font-size:.66rem;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:999px;font-family:var(--body);border:1px solid transparent}
+.invite-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.inv-ok{background:rgba(16,185,129,.14);color:#3ddc97;border-color:rgba(16,185,129,.35)}
+.inv-used{background:rgba(244,63,94,.12);color:#f0858f;border-color:rgba(244,63,94,.32)}
+
+/* icônes des boutons d'action dans les tables */
+#inviteTable .btn svg.lucide,#userTable .btn svg.lucide{width:15px;height:15px}
+.adm-del-btn:hover{color:#f0858f;border-color:rgba(244,63,94,.4)}
+
+/* ── onglet Système ───────────────────────────────────────── */
+.sys-title{font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--tx);margin:0}
+.sys-warn{display:flex;align-items:center;gap:7px;font-size:.8rem;color:#f0a85a;background:rgba(240,168,90,.08);border:1px solid rgba(240,168,90,.25);border-radius:var(--r2);padding:8px 12px;margin:10px 0 0}
+.sys-warn svg.lucide{width:15px;height:15px;flex:none}
+.sys-import{cursor:pointer;margin-top:10px}
+.sys-import input{display:none}
 
 /* ── champs formulaire admin ─────────────────────────────── */
 .field label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3)}

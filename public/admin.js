@@ -9,14 +9,20 @@ const MODAL_INPUT_STYLE = 'width:100%;padding:10px 12px;border-radius:8px;border
 
 /* ── helpers ──────────────────────────────────────────────── */
 function _copyText(text) {
-  navigator.clipboard.writeText(text)
-    .then(() => toast('Lien copié !'))
-    .catch(() => {
-      const el = document.createElement('textarea');
-      el.value = text; document.body.appendChild(el); el.select();
-      document.execCommand('copy'); document.body.removeChild(el);
-      toast('Lien copié !');
-    });
+  // Fallback execCommand : marche aussi en HTTP/IP (où navigator.clipboard est absent)
+  const fallback = () => {
+    const el = document.createElement('textarea');
+    el.value = text; el.style.position = 'fixed'; el.style.opacity = '0';
+    document.body.appendChild(el); el.focus(); el.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(el);
+    toast(ok ? 'Lien copié !' : 'Copie impossible — sélectionne le lien manuellement', 4000);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast('Lien copié !')).catch(fallback);
+  } else {
+    fallback();
+  }
 }
 
 /* ── navigation onglets ───────────────────────────────────── */
@@ -52,8 +58,8 @@ async function renderAdminUsers() {
         + '<td><b>' + n + '</b></td>'
         + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + rpName + '</td>'
         + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + discord + '</td>'
-        + '<td>' + fmt(u.credit) + '</td>'
-        + '<td style="color:var(--a-tx-muted)">' + fmt(u.wagered) + '</td>'
+        + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700">' + fmt(u.credit) + '</td>'
+        + '<td style="color:var(--a-tx-muted);font-family:var(--num);font-variant-numeric:tabular-nums">' + fmt(u.wagered) + '</td>'
         + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
         + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
         + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
@@ -189,12 +195,12 @@ function copyInviteByToken(token) {
   _copyText(location.origin + '/?invite=' + token);
 }
 
-async function revokeInvite(token) {
+async function deleteInvite(token) {
   openModal(
-    'Révoquer ce lien ?',
-    '<p style="color:var(--dim);margin-top:6px">Le joueur ne pourra plus l\'utiliser pour créer un compte.</p>',
+    'Supprimer ce lien ?',
+    '<p style="color:var(--dim);margin-top:6px">Le lien sera retiré de la liste. S\'il n\'a pas été utilisé, il ne pourra plus servir à créer un compte.</p>',
     async () => {
-      try { await api('/admin/invite/' + token, 'DELETE'); toast('Invitation révoquée'); renderInvites(); }
+      try { await api('/admin/invite/' + token, 'DELETE'); toast('Invitation supprimée'); renderInvites(); }
       catch (e) { toast(e.message); }
     }
   );
@@ -209,19 +215,58 @@ async function renderInvites() {
       const dt  = new Date(inv.created).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const used = !!inv.used;
       rows += '<tr>'
-        + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-size:18px">' + fmt(inv.credits) + '</td>'
+        + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700">' + fmt(inv.credits) + '</td>'
         + '<td><span class="invite-tag ' + (used ? 'inv-used' : 'inv-ok') + '">' + (used ? 'Utilisé' : 'Disponible') + '</span></td>'
         + '<td>' + (inv.used_by ? esc(inv.used_by) : '—') + '</td>'
         + '<td class="log-time">' + dt + '</td>'
         + '<td style="color:var(--dim);font-size:13px">' + esc(inv.created_by) + '</td>'
-        + '<td>' + (!used
-          ? '<button class="btn sm ghost" onclick="copyInviteByToken(\'' + inv.token + '\')" title="Copier le lien">📋</button>'
-          + '<button class="btn sm ghost" onclick="revokeInvite(\'' + inv.token + '\')" title="Révoquer">✕</button>'
-          : '') + '</td>'
+        + '<td style="display:flex;gap:6px">'
+        + (!used ? '<button class="btn sm ghost" onclick="copyInviteByToken(\'' + inv.token + '\')" title="Copier le lien"><i data-lucide="copy"></i></button>' : '')
+        + '<button class="btn sm ghost adm-del-btn" onclick="deleteInvite(\'' + inv.token + '\')" title="Supprimer"><i data-lucide="trash-2"></i></button>'
+        + '</td>'
         + '</tr>';
     });
     $('inviteTable').innerHTML = rows;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   } catch (e) {}
+}
+
+/* ── système : export / import base ───────────────────────── */
+async function exportDb() {
+  try {
+    const res = await fetch('/api/admin/export-db', { headers: { Authorization: 'Bearer ' + TOKEN } });
+    if (!res.ok) throw new Error('refus');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'blackstate-backup-' + new Date().toISOString().slice(0, 10) + '.db';
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast('Base exportée');
+  } catch (e) { toast('Export impossible', 4000); }
+}
+
+function importDb(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  openModal('Importer cette base ?',
+    '<p style="color:var(--red);font-weight:700">⚠ Action risquée</p>'
+    + '<p style="color:var(--a-tx-muted);margin-top:8px;line-height:1.55">La base actuelle sera <b>remplacée</b> par « ' + esc(file.name) + ' » '
+    + '(une sauvegarde <code>.bak</code> est créée automatiquement). Le serveur va <b>redémarrer</b> — patiente quelques secondes puis reconnecte-toi.</p>',
+    async () => {
+      try {
+        const buf = await file.arrayBuffer();
+        const res = await fetch('/api/admin/import-db', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + TOKEN, 'Content-Type': 'application/octet-stream' },
+          body: buf,
+        });
+        const d = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(d.error || 'Import refusé');
+        toast('Base importée — redémarrage en cours…', 6000);
+        setTimeout(() => location.reload(), 4500);
+      } catch (e) { toast(e.message || 'Import impossible', 5000); }
+    });
 }
 
 /* ── bootstrap ────────────────────────────────────────────── */

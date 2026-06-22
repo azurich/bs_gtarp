@@ -6,7 +6,8 @@ import { Elysia } from 'elysia'
 import { cors } from '@elysiajs/cors'
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import db from './db.ts'
+import db, { DB_FILE } from './db.ts'
+import { unlinkSync } from 'node:fs'
 import * as G from './games.ts'
 import type { User, Session } from './db.ts'
 
@@ -623,8 +624,41 @@ const app = new Elysia()
 
     .delete('/api/admin/invite/:token', ({ headers, params, set }) => {
       if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
-      db.prepare('DELETE FROM invites WHERE token = ? AND used = 0').run(params.token)
+      db.prepare('DELETE FROM invites WHERE token = ?').run(params.token)   // utilisées comprises
       return { ok: true }
+    })
+
+    /* ── Système : export / import de la base ─────────────── */
+    .get('/api/admin/export-db', ({ headers, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
+      try { db.exec('PRAGMA wal_checkpoint(TRUNCATE);') } catch (_) {}   // .db à jour
+      set.headers['Content-Disposition'] = 'attachment; filename="blackstate-backup.db"'
+      set.headers['Content-Type'] = 'application/octet-stream'
+      return Bun.file(DB_FILE)
+    })
+
+    .post('/api/admin/import-db', async ({ headers, body, request, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      let ab: ArrayBuffer
+      if (body instanceof ArrayBuffer) ab = body
+      else if (body && typeof (body as any).arrayBuffer === 'function') ab = await (body as any).arrayBuffer()
+      else ab = await request.arrayBuffer()
+      const buf = Buffer.from(ab)
+      // valide l'entête SQLite ("SQLite format 3\0")
+      if (buf.length < 16 || buf.subarray(0, 15).toString('latin1') !== 'SQLite format 3') {
+        set.status = 400; return { error: 'Fichier invalide (ce n\'est pas une base SQLite).' }
+      }
+      try { db.exec('PRAGMA wal_checkpoint(TRUNCATE);') } catch (_) {}
+      // sauvegarde de la base actuelle avant écrasement
+      try { await Bun.write(DB_FILE + '.bak-' + Date.now(), Bun.file(DB_FILE)) } catch (_) {}
+      try { db.close() } catch (_) {}
+      for (const ext of ['-wal', '-shm']) { try { unlinkSync(DB_FILE + ext) } catch (_) {} }
+      await Bun.write(DB_FILE, buf)
+      console.log(`[import-db] base remplacée par ${adm.username} — redémarrage`)
+      // le process redémarre pour recharger la nouvelle base (requêtes préparées liées au démarrage)
+      setTimeout(() => process.exit(0), 400)
+      return { ok: true, restart: true }
     })
   )
 

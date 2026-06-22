@@ -4,7 +4,7 @@
 import { Database } from 'bun:sqlite'
 import { join } from 'node:path'
 
-const DB_FILE = process.env.DB_FILE ?? join(import.meta.dir, 'casino.db')
+export const DB_FILE = process.env.DB_FILE ?? join(import.meta.dir, 'casino.db')
 export const db = new Database(DB_FILE)
 /* ── PRAGMA (prod) ─────────────────────────────────────────────
    WAL        : lectures concurrentes pendant l'écriture

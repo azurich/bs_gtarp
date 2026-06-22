@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="/core/sidebar.css">
   <script defer src="/lucide.min.js"></script>
   <script defer src="/core/auth.js"></script>
+  <script defer src="/core/ui-select.js"></script>
   <script defer src="/admin.js"></script>
 </head>
 <body data-universe="club">
@@ -48,6 +49,9 @@
           </button>
           <button class="nav-item" data-v="logs" onclick="switchAdminTab('logs')">
             <span class="ni"><i data-lucide="file-text"></i></span><span>Logs</span>
+          </button>
+          <button class="nav-item" data-v="system" onclick="switchAdminTab('system')">
+            <span class="ni"><i data-lucide="database"></i></span><span>Système</span>
           </button>
         </div>
       </div>
@@ -122,6 +126,26 @@
             <button class="btn sm ghost" onclick="exportLogs()">Exporter CSV</button>
           </div>
           <div class="tablewrap"><table id="logTable"></table></div>
+        </div>
+      </div>
+
+      <div id="at-system" class="adm-view hidden">
+        <div class="adm-page-head">
+          <h1 class="adm-page-title">Système</h1>
+        </div>
+        <div class="adm-content-card">
+          <h2 class="sys-title">Sauvegarde de la base</h2>
+          <p class="hint" style="margin:6px 0 16px">Télécharge un instantané complet de la base (<code>.db</code>) pour le conserver. À faire régulièrement, et avant toute opération risquée.</p>
+          <button class="btn gold" onclick="exportDb()"><i data-lucide="download" class="ic-sm"></i> Exporter la base</button>
+        </div>
+        <div class="adm-content-card">
+          <h2 class="sys-title">Importer une base</h2>
+          <p class="hint" style="margin:6px 0 4px">Remplace la base actuelle par un fichier <code>.db</code>. Une sauvegarde de l'actuelle est créée automatiquement.</p>
+          <p class="sys-warn"><i data-lucide="alert-triangle" class="ic-sm"></i> Le serveur redémarre après l'import — les données actuelles seront écrasées.</p>
+          <label class="btn ghost sys-import">
+            <i data-lucide="upload" class="ic-sm"></i> Choisir un fichier .db…
+            <input type="file" accept=".db,.sqlite,application/octet-stream" onchange="importDb(this)">
+          </label>
         </div>
       </div>
 
