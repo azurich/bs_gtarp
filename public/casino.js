@@ -552,7 +552,6 @@ async function diceRoll() {
   if (u.admin) { location.href = '/admin'; return; }
   renderShell();
   if (typeof lucide !== 'undefined') lucide.createIcons();
-  const whoEl = $('whoName'); if (whoEl) whoEl.textContent = u.username;
   refreshBal(); updateXP(u.xp || 0, u.level || 1);
   buildMinesGrid(); initSlots();
   try { const cfg = await api('/config'); GAME_RTP = cfg.rtp ?? 0.70;

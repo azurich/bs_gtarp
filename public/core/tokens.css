@@ -96,8 +96,8 @@ body{
 /* Scrollbar */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(91,33,182,.4);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:rgba(91,33,182,.7)}
+::-webkit-scrollbar-thumb{background:var(--accent-dim);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 
 .hidden{display:none!important}
 
@@ -201,15 +201,15 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
   transition-duration:.1s;
 }
 .btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important;transition:none}
-.btn:focus-visible{outline:2px solid var(--v-300);outline-offset:2px}
+.btn:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 .btn.ghost{
   --lift:-1px;
   background:transparent;border:1px solid var(--bdr-med);
-  box-shadow:none;color:var(--v-300);
+  box-shadow:none;color:var(--accent-2);
 }
 .btn.ghost::after{display:none}
-.btn.ghost:hover{border-color:var(--v-500);background:var(--v-dim);box-shadow:0 0 0 1px rgba(124,58,237,.12)}
+.btn.ghost:hover{border-color:var(--accent);background:var(--v-dim);box-shadow:0 0 0 1px rgba(124,58,237,.12)}
 .btn.ghost:active{opacity:.8}
 
 .btn.sm{--lift:-1px;width:auto;padding:.4rem .85rem;font-size:.78rem;margin-top:0}
@@ -314,7 +314,7 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 ══════════════════════════════════════════════════════════ */
 .spinner{
   display:inline-block;width:18px;height:18px;border-radius:50%;
-  border:2px solid var(--bdr-med);border-top-color:var(--v-300);
+  border:2px solid var(--bdr-med);border-top-color:var(--accent);
   animation:spin .7s linear infinite;vertical-align:middle;
 }
 .loading-row{display:flex;justify-content:center;padding:20px}
@@ -326,7 +326,7 @@ h1,h2,h3,.bignum{font-family:var(--display);letter-spacing:-0.02em}
 table{width:100%;border-collapse:collapse;font-size:.82rem}
 th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--bdr)}
 th{color:var(--tx-4);font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;font-family:var(--body)}
-tbody tr:hover td{background:rgba(91,33,182,.04)}
+tbody tr:hover td{background:var(--accent-soft)}
 .tablewrap{max-height:400px;overflow:auto;border-radius:var(--r2)}
 
 /* ══════════════════════════════════════════════════════════

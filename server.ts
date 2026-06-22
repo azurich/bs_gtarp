@@ -254,6 +254,13 @@ function checkAdmin(headers: Record<string, string | undefined>): User | null {
   }
 }
 
+/* ── static helpers (module scope — créés une seule fois) ─── */
+const pub = (f: string) => Bun.file(join(import.meta.dir, 'public', f))
+const PAGES: Record<string, string> = {
+  '/': 'club.html', '/casino': 'casino.html', '/fight': 'fight.html',
+  '/profil': 'profil.html', '/admin': 'admin.html',
+}
+
 /* ══════════════════════════════════════════════════════════
    APPLICATION
 ══════════════════════════════════════════════════════════ */
@@ -593,11 +600,6 @@ const app = new Elysia()
 
   /* ── Routing multi-pages + fichiers statiques ─────────── */
   .get('/*', async ({ request, set }) => {
-    const pub  = (f: string) => Bun.file(join(import.meta.dir, 'public', f))
-    const PAGES: Record<string, string> = {
-      '/': 'club.html', '/casino': 'casino.html', '/fight': 'fight.html',
-      '/profil': 'profil.html', '/admin': 'admin.html',
-    }
     let pathname: string
     try { pathname = decodeURIComponent(new URL(request.url).pathname) }
     catch { return pub('club.html') }
@@ -606,10 +608,11 @@ const app = new Elysia()
     if (PAGES[clean]) { set.headers['Content-Type'] = 'text/html'; return pub(PAGES[clean]) }
     const ext = pathname.slice(pathname.lastIndexOf('.') + 1).toLowerCase()
     if (MIME[ext]) {
-      const file = pub(pathname)
+      const file = pub(clean)
       if (await file.exists()) { set.headers['Content-Type'] = MIME[ext]; return file }
+      set.status = 404; return 'Not found'   // asset connu introuvable → 404, pas de fallback HTML
     }
-    set.headers['Content-Type'] = 'text/html'; return pub('club.html')   // fallback
+    set.headers['Content-Type'] = 'text/html'; return pub('club.html')   // SPA fallback (pages)
   })
 
   /* ── Gestionnaire d'erreurs ───────────────────────────── */
