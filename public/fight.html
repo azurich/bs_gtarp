@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BlackState — Fight</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/core/tokens.css">
+  <link rel="stylesheet" href="/club.css">
+  <link rel="stylesheet" href="/core/shell.css">
+  <link rel="stylesheet" href="/responsive.css">
+  <script defer src="/lucide.min.js"></script>
+  <script defer src="/core/auth.js"></script>
+  <script defer src="/core/shell.js"></script>
+  <script defer src="/fight.js"></script>
+</head>
+<body data-universe="fight">
+  <div id="bs-shell"></div>
+  <div id="toast"></div>
+  <div id="modalOverlay" class="hidden">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
+        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="fight-soon">
+    <h1 class="fight-title">FIGHT</h1>
+    <p class="fight-sub">Combats clandestins — <b>Bientôt disponible</b></p>
+    <p class="fight-teaser">L'arène ouvrira ses portes prochainement. Restez connectés.</p>
+  </main>
+</body>
+</html>

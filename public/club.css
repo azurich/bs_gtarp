@@ -1,0 +1,204 @@
+/* ── Club & shared page primitives ── */
+
+/* Page container */
+.club {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Hero */
+.club-hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+}
+
+.club-title {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #f5f0ff;
+  margin: 0 0 16px;
+  line-height: 1.05;
+}
+
+.club-title span {
+  color: var(--accent);
+}
+
+.club-tagline {
+  font-size: 1.15rem;
+  color: rgba(230, 225, 245, .65);
+  margin: 0;
+  letter-spacing: .01em;
+}
+
+/* Card-like sections */
+.club-section {
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .07);
+  border-radius: 16px;
+  padding: 32px 36px;
+}
+
+.club-section h2 {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 18px;
+}
+
+.club-text {
+  color: rgba(230, 225, 245, .72);
+  line-height: 1.75;
+  margin: 0;
+  font-size: .97rem;
+}
+
+/* Registration grid — 2 columns */
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin-bottom: 20px;
+}
+
+.reg-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: rgba(230, 225, 245, .6);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.reg-grid input {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f5f0ff;
+  font-family: inherit;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.reg-grid input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18));
+}
+
+/* Invite banner */
+.invite-banner {
+  background: rgba(201, 168, 76, .12);
+  border: 1px solid rgba(201, 168, 76, .3);
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: .9rem;
+  margin: 0 0 20px;
+}
+
+/* Form error */
+.form-err {
+  color: #e05050;
+  font-size: .88rem;
+  min-height: 1.2em;
+  margin-bottom: 12px;
+}
+
+/* ── Profile stats ── */
+.profil-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.stat {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 10px;
+  padding: 14px 20px;
+  min-width: 110px;
+  flex: 1 1 110px;
+}
+
+.stat .lbl {
+  font-size: .75rem;
+  font-weight: 600;
+  color: rgba(230, 225, 245, .5);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 6px;
+}
+
+.stat .val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--display, 'Cormorant Garamond', serif);
+}
+
+/* ── Fight coming soon ── */
+.fight-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  text-align: center;
+  padding: 40px 24px;
+  gap: 20px;
+}
+
+.fight-title {
+  font-family: var(--display, 'Cormorant Garamond', serif);
+  font-size: clamp(4rem, 14vw, 10rem);
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 0 60px var(--accent-glow, rgba(226, 59, 59, .4));
+}
+
+.fight-sub {
+  font-size: 1.2rem;
+  color: rgba(230, 225, 245, .75);
+  margin: 0;
+}
+
+.fight-teaser {
+  font-size: .95rem;
+  color: rgba(230, 225, 245, .45);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .club {
+    padding: 24px 16px 60px;
+    gap: 24px;
+  }
+
+  .club-section {
+    padding: 22px 18px;
+  }
+
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+}

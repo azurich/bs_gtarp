@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BlackState — Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/core/tokens.css">
+  <link rel="stylesheet" href="/club.css">
+  <link rel="stylesheet" href="/core/shell.css">
+  <link rel="stylesheet" href="/responsive.css">
+  <script defer src="/lucide.min.js"></script>
+  <script defer src="/core/auth.js"></script>
+  <script defer src="/core/shell.js"></script>
+  <script defer src="/club.js"></script>
+</head>
+<body data-universe="club">
+  <div id="bs-shell"></div>
+  <div id="toast"></div>
+  <div id="modalOverlay" class="hidden">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
+        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="club">
+    <section class="club-hero">
+      <h1 class="club-title">Black<span>State</span></h1>
+      <p class="club-tagline">Le club privé. Casino, et bientôt l'arène Fight.</p>
+    </section>
+
+    <section id="registerSection" class="club-section hidden">
+      <h2>Créer mon compte</h2>
+      <p id="inviteBanner" class="invite-banner"></p>
+      <div class="reg-grid">
+        <label>Pseudo (login)<input id="regUser" autocomplete="username"></label>
+        <label>Mot de passe<input id="regPass" type="password" autocomplete="new-password"></label>
+        <label>NOM<input id="regNom"></label>
+        <label>Prénom<input id="regPrenom"></label>
+        <label>Numéro (tél RP)<input id="regPhone"></label>
+        <label>id Discord<input id="regDiscord"></label>
+      </div>
+      <div id="regErr" class="form-err"></div>
+      <button class="btn" onclick="submitRegister()">Créer mon compte</button>
+    </section>
+
+    <section class="club-section">
+      <h2>Le Club</h2>
+      <p class="club-text">BlackState est un cercle de jeu clandestin de Los Santos…
+        (texte de présentation à personnaliser).</p>
+    </section>
+
+    <section class="club-section">
+      <h2>Nous rejoindre</h2>
+      <p class="club-text">L'accès se fait uniquement sur invitation…
+        (démarche à personnaliser).</p>
+    </section>
+  </main>
+</body>
+</html>
