@@ -564,75 +564,90 @@ input[type=range]::-webkit-slider-thumb{
 /* ══════════════════════════════════════════════════════════
    HOME
 ══════════════════════════════════════════════════════════ */
+/* ── Hero (bienvenue + XP + solde) ── */
 .home-hero{
   display:flex;align-items:center;justify-content:space-between;
-  gap:16px;flex-wrap:wrap;margin-bottom:20px;
-  background:linear-gradient(135deg,var(--surface-1),var(--surface-2));
+  gap:20px;flex-wrap:wrap;margin-bottom:14px;padding:22px 26px;
+  background:
+    radial-gradient(ellipse 80% 130% at 86% 50%,rgba(124,58,237,.16),transparent 60%),
+    linear-gradient(135deg,var(--surface-1),var(--surface-2));
 }
-.home-hero-info{}
-.home-welcome{
-  font-family:var(--display);font-size:1.5rem;font-weight:500;
-  color:var(--tx-2);letter-spacing:.02em;
+.home-hero-left{flex:1;min-width:230px}
+.home-welcome{font-family:var(--display);font-size:1.35rem;font-weight:500;color:var(--tx-2);letter-spacing:.02em}
+.home-username{color:var(--tx);font-size:2rem;font-weight:600;display:block;line-height:1.1;margin-bottom:14px}
+.home-xp{max-width:380px}
+.home-xp-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.home-lvl-badge{font-size:.78rem;color:var(--tx-3);font-family:var(--body)}
+.home-lvl-badge b{color:var(--v-300);font-weight:700;font-variant-numeric:tabular-nums}
+.home-lvl-title{
+  font-family:var(--display);font-style:italic;font-size:.85rem;color:var(--v-300);
+  padding:1px 9px;border:1px solid rgba(124,58,237,.3);border-radius:999px;
 }
-.home-username{color:var(--tx);font-size:2.2rem;font-weight:600;display:block;line-height:1.1}
-.home-lvl-line{margin-top:.4rem}
-.home-lvl-badge{font-size:.75rem;color:var(--tx-3);font-family:var(--body)}
-.home-lvl-badge b{color:var(--v-300);font-weight:700}
+.xp-track{height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.xp-fill{height:100%;border-radius:99px;width:0;
+  background:linear-gradient(90deg,var(--v-700),var(--v-300));
+  box-shadow:0 0 10px var(--v-glow);transition:width .6s var(--ease-out)}
+.home-xp-meta{font-size:.72rem;color:var(--tx-4);margin-top:5px;font-family:var(--body)}
+.home-wallet{text-align:right;min-width:150px}
+.home-wallet-val{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--num);font-variant-numeric:tabular-nums;font-size:2.4rem;font-weight:700;
+  color:var(--gold);letter-spacing:-.01em;line-height:1;
+}
+.home-wallet-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;color:var(--tx-3);margin-top:6px;font-family:var(--body)}
 
-/* Stat cards */
-.home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 20px}
-.home-stat-card{
-  background:var(--surface-1);border:1px solid var(--bdr);border-radius:var(--r3);
-  padding:18px 16px;text-align:center;
-  transition:transform var(--dur-fast) var(--ease-back), border-color var(--dur-fast), box-shadow var(--dur-fast);
-}
-.home-stat-card:hover{
-  transform:translateY(-3px);border-color:var(--bdr-accent);
-  box-shadow:var(--shadow-v);
-}
-.hs-icon{display:flex;align-items:center;justify-content:center;margin-bottom:8px;height:38px;color:var(--v-300)}
-.hs-val{
-  font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.8rem;color:var(--gold);
-  letter-spacing:.01em;line-height:1;margin-bottom:4px;font-weight:700;
-}
-.hs-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--tx-3);font-family:var(--body)}
+/* ── Bandeau stats ── */
+.home-statbar{display:flex;align-items:stretch;margin:0 0 22px;padding:0;overflow:hidden}
+.hsb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 10px;border-left:1px solid var(--bdr)}
+.hsb:first-child{border-left:none}
+.hsb-v{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.35rem;font-weight:700;color:var(--tx)}
+.hsb-l{font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;color:var(--tx-3);font-family:var(--body)}
 
-/* Game cards */
-.home-games{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;
-  margin-bottom:8px;
-}
+/* ── Grille de jeux ── */
+.home-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:8px}
 .home-game-card{
-  border-radius:var(--r3);padding:20px 12px;text-align:center;
-  cursor:pointer;transition:transform var(--dur-fast) var(--ease-back), box-shadow var(--dur-fast);
-  border:1px solid var(--bdr);
-  background:var(--surface-1);
+  border-radius:var(--r3);padding:20px 12px 16px;text-align:center;cursor:pointer;position:relative;
+  transition:transform var(--dur-fast) var(--ease-back),box-shadow var(--dur-fast),border-color var(--dur-fast);
+  border:1px solid var(--bdr);background:var(--surface-1);
 }
-/* Couleurs signature par jeu */
 .home-game-card[data-game="slots"]    {background:linear-gradient(160deg,#1a0a3d,#0d0522)}
 .home-game-card[data-game="blackjack"]{background:linear-gradient(160deg,#0a1628,#060e1a)}
 .home-game-card[data-game="mines"]    {background:linear-gradient(160deg,#1f0a0a,#110404)}
 .home-game-card[data-game="plinko"]   {background:linear-gradient(160deg,#0a1a12,#050e08)}
 .home-game-card[data-game="wheel"]    {background:linear-gradient(160deg,#1a1200,#0d0a00)}
 .home-game-card[data-game="dice"]     {background:linear-gradient(160deg,#0f1016,#07080c)}
-
-.home-game-card:hover{
-  transform:translateY(-4px);
-  box-shadow:var(--shadow-v);
-  border-color:var(--bdr-accent);
-}
+.home-game-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-v);border-color:var(--accent)}
 .hg-icon{display:flex;align-items:center;justify-content:center;margin-bottom:10px;height:44px}
 .hg-icon svg.lucide{width:36px;height:36px;stroke-width:1.4;color:var(--v-300)}
-.hg-name{font-family:var(--display);font-size:1.05rem;letter-spacing:.03em;margin-bottom:3px;color:var(--tx)}
-.hg-desc{font-size:.7rem;color:var(--tx-3);font-family:var(--body)}
+.hg-name{font-family:var(--display);font-size:1.1rem;letter-spacing:.03em;margin-bottom:8px;color:var(--tx)}
+.hg-tag{
+  display:inline-block;font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--v-300);background:rgba(124,58,237,.14);border:1px solid rgba(124,58,237,.25);
+  padding:2px 8px;border-radius:999px;font-family:var(--body);
+}
 
-/* Responsive home */
+/* ── Derniers gros gains (fil) ── */
+.win-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r2)}
+.win-row:nth-child(odd){background:rgba(255,255,255,.022)}
+.win-game{
+  font-size:.64rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--v-300);
+  background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.22);padding:2px 8px;border-radius:6px;
+  font-family:var(--body);white-space:nowrap;
+}
+.win-name{color:var(--tx-2);font-weight:600;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.win-amt{display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:700;font-family:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.home-empty{color:var(--tx-3);padding:16px;text-align:center;font-size:.9rem}
+
+/* ── Responsive home ── */
 @media(max-width:600px){
-  .home-stats{grid-template-columns:1fr 1fr}
+  .home-hero{padding:18px}
+  .home-wallet{text-align:left;min-width:0}
   .home-games{grid-template-columns:repeat(3,1fr)}
+  .home-statbar{flex-wrap:wrap}
+  .hsb{flex:1 1 50%;border-left:none;border-top:1px solid var(--bdr)}
+  .hsb:first-child,.hsb:nth-child(2){border-top:none}
 }
 @media(max-width:380px){
-  .home-stats{grid-template-columns:1fr}
   .home-games{grid-template-columns:repeat(2,1fr)}
 }
 

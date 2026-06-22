@@ -58,6 +58,7 @@ const Q = {
   clearLogs   : db.prepare('DELETE FROM logs'),
   insHistory  : db.prepare('INSERT INTO game_history (user_id, game, bet, gain, result, ts) VALUES (?,?,?,?,?,?)'),
   getHistory  : db.prepare('SELECT * FROM game_history WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
+  bigWins     : db.prepare('SELECT u.username, h.game, h.gain, h.ts FROM game_history h JOIN users u ON u.id = h.user_id WHERE h.gain > 0 AND h.gain >= h.bet * 2 AND u.is_admin = 0 ORDER BY h.ts DESC LIMIT 12'),
   addXP       : db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?'),
   setLevel    : db.prepare('UPDATE users SET level = ? WHERE id = ?'),
   setProfile  : db.prepare('UPDATE users SET rp_nom = ?, rp_prenom = ?, rp_phone = ?, discord = ? WHERE id = ?'),
@@ -510,6 +511,12 @@ const app = new Elysia()
         won   : Math.floor(u.won),
         credit: Math.floor(u.credit),
         level : u.level || 1,
+      }))
+    }))
+
+    .get('/api/biggest-wins', () => ({
+      wins: (Q.bigWins.all() as any[]).map(w => ({
+        name: w.username, game: w.game, gain: Math.floor(w.gain), ts: w.ts,
       }))
     }))
 

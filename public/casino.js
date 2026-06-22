@@ -143,22 +143,52 @@ function _doTab(v) {
   if (v === 'history') loadHistory();
 }
 
+const GAME_LABEL = { slots:'Slots', blackjack:'Blackjack', mines:'Démineur', plinko:'Plinko', wheel:'Roue', dice:'Dice' };
+
 async function renderHome() {
   if (!USER) return;
-  $('homeUser').textContent   = USER.username;
-  $('homeLevel').textContent  = USER.level || 1;
+  $('homeUser').textContent = USER.username;
+  // Niveau / XP
+  const lvl = USER.level || 1, xp = USER.xp || 0;
+  updateXP(xp, lvl);                                   // remplit #xpLevel + #xpFill
+  const titleEl = $('homeTitle'); if (titleEl) titleEl.textContent = LEVEL_TITLES[lvl - 1] || '';
+  const metaEl = $('homeXpMeta');
+  if (metaEl) {
+    const next = LEVEL_XP[lvl];
+    metaEl.textContent = (next != null) ? (fmt(Math.max(0, next - xp)) + ' XP avant Niveau ' + (lvl + 1)) : 'Niveau maximum atteint';
+  }
   countUp($('homeBal'), Math.floor(USER.credit));
+  // Bandeau stats
   const st = USER.stats || {};
   countUp($('homePlayed'), st.played || 0, 400);
+  countUp($('homeWagered'), Math.floor(st.wagered || 0));
+  countUp($('homeBest'), Math.floor(st.biggest || 0));
   const net = (st.won || 0) - (st.wagered || 0);
   const netEl = $('homeNet');
   if (netEl) {
-    countUp(netEl, Math.floor(Math.abs(net)));
     netEl.style.color = net >= 0 ? 'var(--green)' : 'var(--red)';
-    setTimeout(() => {
-      if (netEl) netEl.textContent = (net >= 0 ? '+' : '-') + Math.abs(Math.floor(net)).toLocaleString('fr-FR');
-    }, 620);
+    netEl.textContent = (net >= 0 ? '+' : '-') + Math.abs(Math.floor(net)).toLocaleString('fr-FR');
   }
+  renderWinsFeed();
+  renderLeaderboard();
+}
+
+async function renderWinsFeed() {
+  const wrap = $('homeWinsFeed'); if (!wrap) return;
+  try {
+    const wins = (await api('/biggest-wins')).wins || [];
+    if (!wins.length) { wrap.innerHTML = '<p class="home-empty">Aucun gros gain récent — soyez le premier&nbsp;!</p>'; return; }
+    wrap.innerHTML = wins.map(w =>
+      '<div class="win-row">'
+      + '<span class="win-game">' + esc(GAME_LABEL[w.game] || w.game) + '</span>'
+      + '<span class="win-name">' + esc(w.name) + '</span>'
+      + '<span class="win-amt">+' + fmt(w.gain) + '<span class="bs-coin"></span></span>'
+      + '</div>'
+    ).join('');
+  } catch (e) { wrap.innerHTML = '<p class="home-empty">Impossible de charger les gains.</p>'; }
+}
+
+async function renderLeaderboard() {
   const wrap = $('homeLeaderWrap');
   if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
   try {
