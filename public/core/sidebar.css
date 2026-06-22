@@ -81,7 +81,8 @@
 .side-credit{display:flex;flex-direction:column;gap:3px;padding:2px 4px 6px}
 .side-credit-lbl{font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(230,225,245,.45)}
 .side-credit-val{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:1.05rem;color:#f5f0ff}
-.sidebar-foot .btn{width:100%;justify-content:center;border-color:var(--accent-dim)}
+.sidebar-foot .btn{width:100%;justify-content:center;color:var(--accent-2);border-color:var(--accent-dim);background:transparent}
+.sidebar-foot .btn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
 .side-portal{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .side-portal svg{width:15px;height:15px}
 

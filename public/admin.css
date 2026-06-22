@@ -26,17 +26,18 @@ body{
 }
 
 /* ── shell flex ──────────────────────────────────────────── */
-.adm-shell{display:flex;height:100vh;overflow:hidden}
+.adm-shell{display:flex;height:100vh;overflow:hidden;position:relative}
+.adm-shell>.sidebar{position:relative;z-index:1}
+/* halos dorés d'ambiance (ancrés au viewport, visibles sur chaque page) */
+.adm-shell::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 46% 40% at 72% 4%, rgba(201,168,76,.16), transparent 60%),
+    radial-gradient(ellipse 42% 34% at 102% 104%, rgba(201,168,76,.11), transparent 60%);
+}
 
 /* ── main admin ──────────────────────────────────────────── */
-.adm-main{
-  flex:1;padding:28px 32px;overflow-y:auto;min-width:0;
-  /* halos dorés d'ambiance pour contraster avec le noir */
-  background:
-    radial-gradient(ellipse 70% 55% at 96% -10%, rgba(201,168,76,.11), transparent 62%),
-    radial-gradient(ellipse 60% 45% at 0% 110%, rgba(201,168,76,.06), transparent 62%);
-  background-attachment:fixed;
-}
+.adm-main{flex:1;padding:28px 32px;overflow-y:auto;min-width:0;position:relative;z-index:1}
 .adm-view{display:block}
 .adm-view.hidden{display:none}
 .adm-page-head{margin-bottom:20px}
