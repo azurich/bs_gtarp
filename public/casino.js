@@ -37,8 +37,10 @@ function shakeEl(el) {
 }
 
 /* ── XP / Niveaux ─────────────────────────────────────────── */
-const LEVEL_XP     = [0, 500, 2000, 5000, 10000, 20000, 35000, 55000, 80000, 110000];
+const MAX_LEVEL = 100, XP_K = 100;
+const levelThreshold = n => XP_K * (n - 1) * (n - 1);   // doit matcher le serveur
 const LEVEL_TITLES = ['Débutant', 'Novice', 'Joueur', 'Habitué', 'Vétéran', 'Expert', 'Pro', 'Shark', 'Légende', 'VIP'];
+const levelTitle = lvl => LEVEL_TITLES[Math.min(LEVEL_TITLES.length - 1, Math.floor((lvl - 1) / 10))] || '';
 
 /* ── helpers UI ───────────────────────────────────────────── */
 function refreshBal() { if (USER) { const el = $('balVal'); if (el) el.textContent = fmt(USER.credit); } if (typeof refreshNavBal === 'function') refreshNavBal(); }
@@ -52,12 +54,19 @@ function flashBal(win) {
   setTimeout(() => b.classList.remove('flash-win','flash-lose'), 600);
 }
 function setBalance(b, win, xp, level) {
+  const prevLevel = (USER && USER.level) || 1;
   if (USER) USER.credit = b;
   const el = $('balVal');
   if (el) countUp(el, Math.floor(b), 500);
   if (win !== undefined) flashBal(win);
   if (xp != null) updateXP(xp, level || 1);
   if (typeof refreshNavBal === 'function') refreshNavBal();
+  // Bonus de palier (récompense tous les 10 niveaux)
+  if (level && level > prevLevel) {
+    for (let l = prevLevel + 1; l <= level; l++) {
+      if (l % 10 === 0) toast('Niveau ' + l + ' atteint — bonus +' + fmt((l / 10) * 1000) + ' Crédits Club !', 4500);
+    }
+  }
 }
 function int(id) { const n = Math.floor(+$(id).value); return Number.isFinite(n) && n > 0 ? n : 0; }
 function qbet(id, op) { const el = $(id); let v = Math.floor(+el.value) || 0; if (op === 'half') v = Math.max(1, Math.floor(v/2)); else if (op === 'double') v *= 2; else if (op === 'max') v = Math.floor(USER ? USER.credit : 0); el.value = Math.max(1, v); }
@@ -67,9 +76,9 @@ function updateXP(xp, level) {
   if (USER) { USER.xp = xp; USER.level = level; }
   const lvlEl = $('xpLevel');
   if (lvlEl) lvlEl.textContent = level;
-  const cur  = LEVEL_XP[level - 1] || 0;
-  const next = LEVEL_XP[level] != null ? LEVEL_XP[level] : LEVEL_XP[LEVEL_XP.length - 1];
-  const pct  = level >= LEVEL_XP.length ? 100 : Math.min(100, ((xp - cur) / (next - cur)) * 100);
+  const cur  = levelThreshold(level);
+  const next = level >= MAX_LEVEL ? cur : levelThreshold(level + 1);
+  const pct  = level >= MAX_LEVEL ? 100 : Math.min(100, Math.max(0, ((xp - cur) / (next - cur)) * 100));
   const fillEl = $('xpFill');
   if (fillEl) fillEl.style.width = pct + '%';
 }
@@ -151,11 +160,12 @@ async function renderHome() {
   // Niveau / XP
   const lvl = USER.level || 1, xp = USER.xp || 0;
   updateXP(xp, lvl);                                   // remplit #xpLevel + #xpFill
-  const titleEl = $('homeTitle'); if (titleEl) titleEl.textContent = LEVEL_TITLES[lvl - 1] || '';
+  const titleEl = $('homeTitle'); if (titleEl) titleEl.textContent = levelTitle(lvl);
   const metaEl = $('homeXpMeta');
   if (metaEl) {
-    const next = LEVEL_XP[lvl];
-    metaEl.textContent = (next != null) ? (fmt(Math.max(0, next - xp)) + ' XP avant Niveau ' + (lvl + 1)) : 'Niveau maximum atteint';
+    metaEl.textContent = (lvl >= MAX_LEVEL)
+      ? 'Niveau maximum atteint'
+      : (fmt(Math.max(0, levelThreshold(lvl + 1) - xp)) + ' XP avant Niveau ' + (lvl + 1));
   }
   countUp($('homeBal'), Math.floor(USER.credit));
   // Bandeau stats

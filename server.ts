@@ -81,12 +81,14 @@ const LABELS: Record<string, string> = {
   slots: 'Slots', blackjack: 'Blackjack', mines: 'Démineur',
   plinko: 'Plinko', wheel: 'Roue', dice: 'Dice',
 }
-const LEVEL_XP = [0, 500, 2000, 5000, 10_000, 20_000, 35_000, 55_000, 80_000, 110_000]
+// Niveaux 1→100. Palier du niveau n : XP_K*(n-1)^2 (niveau 100 ≈ 980 100 XP ≈ 9,8 M misés à bet/10).
+const MAX_LEVEL = 100
+const XP_K      = 100
+const levelThreshold = (n: number) => XP_K * (n - 1) * (n - 1)
 
 function computeLevel(xp: number): number {
-  let l = 1
-  for (let i = 1; i < LEVEL_XP.length; i++) if (xp >= LEVEL_XP[i]) l = i + 1
-  return l
+  const n = Math.floor(Math.sqrt(Math.max(0, xp) / XP_K)) + 1
+  return Math.max(1, Math.min(MAX_LEVEL, n))
 }
 function logEvent(username: string, type: string, msg: string, amount = 0) {
   Q.insLog.run(Date.now(), username, type, msg, amount)
@@ -107,10 +109,22 @@ function userSnapshot(id: number) {
   return { balance: Math.floor(u.credit), xp: u.xp ?? 0, level: u.level ?? 1 }
 }
 function awardXP(userId: number, bet: number) {
-  const gain = Math.max(1, Math.floor(bet / 10))
+  // XP proportionnelle à la mise dépensée
+  const gain     = Math.max(1, Math.floor(bet / 10))
+  const before   = Q.userById.get(userId) as User
+  const oldLevel = before.level ?? 1
   Q.addXP.run(gain, userId)
-  const row = Q.userById.get(userId) as User
-  Q.setLevel.run(computeLevel(row.xp ?? 0), userId)
+  const row      = Q.userById.get(userId) as User
+  const newLevel = computeLevel(row.xp ?? 0)
+  if (newLevel !== oldLevel) Q.setLevel.run(newLevel, userId)
+  // Récompense tous les 10 niveaux : (palier/10) × 1000 crédits — petit bonus, couvert par la marge maison
+  for (let lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+    if (lvl % 10 === 0) {
+      const reward = (lvl / 10) * 1000
+      Q.addCredit.run(reward, userId)
+      logEvent(before.username, 'level', `Niveau ${lvl} atteint — bonus ${reward} crédits`, reward)
+    }
+  }
 }
 function charge(user: User, bet: number, gameKey: string): boolean {
   // SECURITY: UPDATE atomique avec WHERE credit >= bet — élimine la race condition TOCTOU.
