@@ -46,6 +46,33 @@
     </section>
 
     <section class="club-section">
+      <h2>Mot de passe</h2>
+      <div class="reg-grid">
+        <label>Mot de passe actuel
+          <div class="pw-field">
+            <input id="pwCurrent" type="password" autocomplete="current-password">
+            <button type="button" class="pw-eye" onclick="togglePw('pwCurrent', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
+          </div>
+        </label>
+        <span></span>
+        <label>Nouveau mot de passe
+          <div class="pw-field">
+            <input id="pwNew" type="password" autocomplete="new-password">
+            <button type="button" class="pw-eye" onclick="togglePw('pwNew', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
+          </div>
+        </label>
+        <label>Confirmer le nouveau mot de passe
+          <div class="pw-field">
+            <input id="pwConfirm" type="password" autocomplete="new-password">
+            <button type="button" class="pw-eye" onclick="togglePw('pwConfirm', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
+          </div>
+        </label>
+      </div>
+      <div id="pwErr" class="form-err"></div>
+      <button class="btn" onclick="changePassword()">Enregistrer le mot de passe</button>
+    </section>
+
+    <section class="club-section">
       <h2>Casino</h2>
       <div id="pStats" class="profil-stats"></div>
     </section>

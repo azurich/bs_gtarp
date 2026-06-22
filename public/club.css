@@ -204,6 +204,19 @@
   border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18));
 }
 
+/* champ mot de passe avec œil afficher/masquer */
+.pw-field { position: relative; width: 100%; display: flex; align-items: center; }
+.pw-field input { padding-right: 42px; }
+.pw-eye {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border: none; background: none; cursor: pointer;
+  color: rgba(230, 225, 245, .5); border-radius: 6px; padding: 0;
+  transition: color .15s;
+}
+.pw-eye:hover { color: var(--accent); }
+.pw-eye svg { width: 17px; height: 17px; }
+
 .invite-banner {
   background: var(--accent-soft, rgba(201, 168, 76, .12));
   border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));

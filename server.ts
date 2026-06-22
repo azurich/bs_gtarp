@@ -375,6 +375,23 @@ const app = new Elysia()
       return { user: publicUser(Q.userById.get(u.id) as User) }
     })
 
+    .post('/api/password', async ({ body, user, set }) => {
+      const b = body as Record<string, unknown>
+      const u = user as User
+      const current = String(b.current ?? '')
+      const next    = String(b.password ?? '')
+      if (next.length < 8)   { set.status = 400; return { error: 'Nouveau mot de passe trop court (8 min).' } }
+      if (next.length > 128) { set.status = 400; return { error: 'Nouveau mot de passe trop long (128 max).' } }
+      const row = Q.userById.get(u.id) as User | null
+      if (!row || !(await Bun.password.verify(current, row.pass_hash))) {
+        set.status = 403; return { error: 'Mot de passe actuel incorrect.' }
+      }
+      const hash = await Bun.password.hash(next, { algorithm: 'bcrypt', cost: 10 })
+      db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').run(hash, u.id)
+      logEvent(row.username, 'auth', 'Mot de passe modifié')
+      return { ok: true }
+    })
+
     .get('/api/config', () => ({ rtp: G.RTP, plinko: G.PK_MULT, wheel: G.WHEEL }))
 
     /* ── Jeux one-shot (économie RTP fixe, voir games.ts) ── */

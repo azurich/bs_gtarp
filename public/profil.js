@@ -16,6 +16,27 @@ async function saveProfile() {
   try {
     await api('/profile', 'POST', { nom: $('pNom').value, prenom: $('pPrenom').value,
       phone: $('pPhone').value, discord: $('pDiscord').value });
-    toast('Profil enregistré');
+    toast('Profil enregistré ✓', 3500);
   } catch (e) { $('pErr').textContent = e.message; }
+}
+
+function togglePw(id, btn) {
+  const inp = $(id);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = '<i data-lucide="' + (show ? 'eye-off' : 'eye') + '"></i>';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function changePassword() {
+  const err = $('pwErr'); err.textContent = '';
+  const cur = $('pwCurrent').value, nw = $('pwNew').value, cf = $('pwConfirm').value;
+  if (!cur)            { err.textContent = 'Saisis ton mot de passe actuel.'; return; }
+  if (nw.length < 8)   { err.textContent = 'Le nouveau mot de passe doit faire au moins 8 caractères.'; return; }
+  if (nw !== cf)       { err.textContent = 'Les deux nouveaux mots de passe ne correspondent pas.'; return; }
+  try {
+    await api('/password', 'POST', { current: cur, password: nw });
+    $('pwCurrent').value = ''; $('pwNew').value = ''; $('pwConfirm').value = '';
+    toast('Mot de passe enregistré ✓', 3500);
+  } catch (e) { err.textContent = e.message; }
 }
