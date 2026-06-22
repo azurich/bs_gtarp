@@ -209,7 +209,7 @@ async function renderInvites() {
       const dt  = new Date(inv.created).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
       const used = !!inv.used;
       rows += '<tr>'
-        + '<td style="color:var(--gold);font-family:var(--display);font-size:18px">' + fmt(inv.credits) + '</td>'
+        + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-size:18px">' + fmt(inv.credits) + '</td>'
         + '<td><span class="invite-tag ' + (used ? 'inv-used' : 'inv-ok') + '">' + (used ? 'Utilisé' : 'Disponible') + '</span></td>'
         + '<td>' + (inv.used_by ? esc(inv.used_by) : '—') + '</td>'
         + '<td class="log-time">' + dt + '</td>'
