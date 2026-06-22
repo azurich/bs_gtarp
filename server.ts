@@ -81,7 +81,8 @@ const LABELS: Record<string, string> = {
   slots: 'Slots', blackjack: 'Blackjack', mines: 'Démineur',
   plinko: 'Plinko', wheel: 'Roue', dice: 'Dice',
 }
-// Niveaux 1→100. Palier du niveau n : XP_K*(n-1)^2 (niveau 100 ≈ 980 100 XP ≈ 9,8 M misés à bet/10).
+// Niveaux 1→100. Palier du niveau n : XP_K*(n-1)^2. XP = 1 par crédit misé →
+// niveau 10 ≈ 8 100 misés, niveau 100 ≈ 980 100 misés (maison toujours nette positive après bonus).
 const MAX_LEVEL = 100
 const XP_K      = 100
 const levelThreshold = (n: number) => XP_K * (n - 1) * (n - 1)
@@ -109,8 +110,8 @@ function userSnapshot(id: number) {
   return { balance: Math.floor(u.credit), xp: u.xp ?? 0, level: u.level ?? 1 }
 }
 function awardXP(userId: number, bet: number) {
-  // XP proportionnelle à la mise dépensée
-  const gain     = Math.max(1, Math.floor(bet / 10))
+  // XP proportionnelle à la mise dépensée : 1 XP par crédit misé
+  const gain     = Math.max(1, Math.floor(bet))
   const before   = Q.userById.get(userId) as User
   const oldLevel = before.level ?? 1
   Q.addXP.run(gain, userId)
