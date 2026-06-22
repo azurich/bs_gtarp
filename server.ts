@@ -195,7 +195,7 @@ const authRL = rateLimit(15 * 60_000, 15, { error: 'Trop de tentatives, réessai
 
 /* ── CSP ──────────────────────────────────────────────────── */
 // script-src 'self' (sans unsafe-inline) : bloque les blocs <script> injectés — XSS réduit.
-// script-src-attr 'unsafe-inline' : requis pour les onclick="…" dans index.html.
+// script-src-attr 'unsafe-inline' : requis pour les onclick="…" dans les pages HTML.
 // Ces deux directives sont indépendantes. Supprimer script-src-attr casserait toute l'UI.
 const CSP = [
   "default-src 'self'",
