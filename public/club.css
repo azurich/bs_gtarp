@@ -91,19 +91,19 @@
 }
 .join-modal.hidden { display: none; }
 .join-modal-card {
-  background: linear-gradient(160deg, #0d0b07, #080706);
+  background: #0a0a0b;
   border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
-  border-radius: 16px; padding: 28px 30px 24px; width: 100%; max-width: 440px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px var(--accent-soft, rgba(201, 168, 76, .14));
+  border-radius: 14px; padding: 28px 30px 24px; width: 100%; max-width: 440px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .65);
   animation: modalIn .22s var(--ease-back, ease);
 }
 .join-modal-card h3 {
   font-family: var(--display, 'Cormorant Garamond', serif);
   font-size: 1.6rem; font-weight: 600; color: var(--accent); margin: 0 0 14px;
 }
-.join-modal-card p { color: rgba(230, 225, 245, .7); line-height: 1.7; margin: 0 0 12px; font-size: .95rem; }
-.join-modal-card p b { color: #f5f0ff; }
-.join-modal-card .btn { width: 100%; margin-top: 10px; }
+.join-modal-card p { color: rgba(235, 230, 215, .72); line-height: 1.7; margin: 0 0 12px; font-size: .95rem; }
+.join-modal-card p b { color: var(--accent-2, #e0bd5a); font-weight: 600; }
+.join-modal-card .btn { width: 100%; margin-top: 12px; }
 
 /* ── Hub (connecté) ── */
 .portal-hub {
