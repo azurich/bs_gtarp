@@ -516,6 +516,7 @@ const app = new Elysia()
       return { users: (Q.allUsers.all() as any[]).map(u => ({
         name: u.username, credit: Math.floor(u.credit), wagered: Math.floor(u.wagered),
         admin: !!u.is_admin, level: u.level || 1, xp: Math.floor(u.xp || 0),
+        rp_nom: u.rp_nom ?? '', rp_prenom: u.rp_prenom ?? '', discord: u.discord ?? '',
       })) }
     })
 

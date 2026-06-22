@@ -170,11 +170,11 @@ tbody tr:hover td{background:rgba(91,33,182,.04)}
 
 /* ── champs formulaire admin ─────────────────────────────── */
 .field label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3)}
-.field input, select{
+.field input, .field select{
   background:var(--bg);border:1px solid var(--bdr-med);color:var(--tx);
   border-radius:var(--r2);padding:7px 10px;font-size:.82rem;font-family:var(--body);outline:none;
 }
-.field input:focus, select:focus{border-color:var(--v-500)}
+.field input:focus, .field select:focus{border-color:var(--v-500)}
 
 /* ── RTP lecture seule ───────────────────────────────────── */
 .rtp-banner{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
