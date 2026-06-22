@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BlackState — Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/core/tokens.css">
+  <link rel="stylesheet" href="/casino.css">
+  <link rel="stylesheet" href="/core/shell.css">
+  <link rel="stylesheet" href="/responsive.css">
+  <script defer src="/lucide.min.js"></script>
+  <script defer src="/core/auth.js"></script>
+  <script defer src="/core/shell.js"></script>
+  <script defer src="/casino.js"></script>
+</head>
+<body data-universe="casino">
+  <div id="bs-shell"></div>
+  <div id="toast"></div>
+  <div id="modalOverlay" class="hidden">
+    <div class="modal">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="btn ghost sm" onclick="closeModal()">Annuler</button>
+        <button class="btn sm" data-modal-confirm onclick="confirmModal()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scan"></div>
+
+  <div class="app" id="appWrap">
+
+    <!-- ═══════════ MAIN APP ═══════════ -->
+    <div id="mainView">
+
+      <!-- BODY -->
+      <div class="main-layout">
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+          <div class="sidebar-logo">
+            <div class="logo">Black<span>State</span></div>
+          </div>
+          <div class="sidebar-nav">
+          <div class="nav-section">
+            <button class="nav-item active" data-v="home" onclick="switchTab('home')">
+              <span class="ni"><i data-lucide="house"></i></span><span>Accueil</span>
+            </button>
+          </div>
+          <div class="nav-divider"></div>
+          <div class="nav-section">
+            <div class="nav-section-label">Jeux</div>
+            <button class="nav-item" data-v="slots" onclick="switchTab('slots')">
+              <span class="ni"><i data-lucide="cherry"></i></span><span>Slots</span>
+            </button>
+            <button class="nav-item" data-v="blackjack" onclick="switchTab('blackjack')">
+              <span class="ni"><i data-lucide="layers-2"></i></span><span>Blackjack</span>
+            </button>
+            <button class="nav-item" data-v="mines" onclick="switchTab('mines')">
+              <span class="ni"><i data-lucide="bomb"></i></span><span>Démineur</span>
+            </button>
+            <button class="nav-item" data-v="plinko" onclick="switchTab('plinko')">
+              <span class="ni"><i data-lucide="circle-dot"></i></span><span>Plinko</span>
+            </button>
+            <button class="nav-item" data-v="wheel" onclick="switchTab('wheel')">
+              <span class="ni"><i data-lucide="disc-3"></i></span><span>Roue</span>
+            </button>
+            <button class="nav-item" data-v="dice" onclick="switchTab('dice')">
+              <span class="ni"><i data-lucide="dice-5"></i></span><span>Dice</span>
+            </button>
+          </div>
+          <div class="nav-spacer"></div>
+          <div class="nav-section">
+            <button class="nav-item" data-v="history" onclick="switchTab('history')">
+              <span class="ni"><i data-lucide="history"></i></span><span>Historique</span>
+            </button>
+            <a class="nav-item" href="/profil">
+              <span class="ni"><i data-lucide="user"></i></span><span>Profil</span>
+            </a>
+          </div>
+          </div><!-- /sidebar-nav -->
+        </nav>
+
+        <!-- CONTENT -->
+        <div class="content-wrap">
+
+          <!-- HOME -->
+          <div id="view-home" class="view active">
+            <div class="view-inner">
+              <div class="home-hero card anim-up" data-delay="0">
+                <div class="home-hero-info">
+                  <div class="home-welcome">Bienvenue, <span id="homeUser" class="home-username">—</span></div>
+                  <div class="home-lvl-line"><span class="home-lvl-badge">Niveau <b id="homeLevel">1</b></span></div>
+                </div>
+                <a class="btn sm gold" href="/profil">Mon Profil</a>
+              </div>
+
+              <div class="home-stats">
+                <div class="home-stat-card anim-up" data-delay="0">
+                  <div class="hs-icon"><i data-lucide="coins"></i></div>
+                  <div class="hs-val" id="homeBal">0</div>
+                  <div class="hs-lbl">Crédits</div>
+                </div>
+                <div class="home-stat-card anim-up" data-delay="1">
+                  <div class="hs-icon"><i data-lucide="gamepad-2"></i></div>
+                  <div class="hs-val" id="homePlayed">0</div>
+                  <div class="hs-lbl">Parties jouées</div>
+                </div>
+                <div class="home-stat-card anim-up" data-delay="2">
+                  <div class="hs-icon"><i data-lucide="trending-up"></i></div>
+                  <div class="hs-val" id="homeNet">0</div>
+                  <div class="hs-lbl">Net (gains − mises)</div>
+                </div>
+              </div>
+
+              <h3 class="section-title"><i data-lucide="layout-grid" class="ic-title"></i> Nos Jeux</h3>
+              <div class="home-games">
+                <div class="home-game-card anim-up" onclick="switchTab('slots')" data-game="slots" data-delay="0">
+                  <div class="hg-icon"><i data-lucide="cherry"></i></div><div class="hg-name">Slots</div><div class="hg-desc">3 rouleaux</div>
+                </div>
+                <div class="home-game-card anim-up" onclick="switchTab('blackjack')" data-game="blackjack" data-delay="1">
+                  <div class="hg-icon"><i data-lucide="layers-2"></i></div><div class="hg-name">Blackjack</div><div class="hg-desc">Battez 21</div>
+                </div>
+                <div class="home-game-card anim-up" onclick="switchTab('mines')" data-game="mines" data-delay="2">
+                  <div class="hg-icon"><i data-lucide="bomb"></i></div><div class="hg-name">Mines</div><div class="hg-desc">Démineur</div>
+                </div>
+                <div class="home-game-card anim-up" onclick="switchTab('plinko')" data-game="plinko" data-delay="3">
+                  <div class="hg-icon"><i data-lucide="circle-dot"></i></div><div class="hg-name">Plinko</div><div class="hg-desc">Laissez tomber</div>
+                </div>
+                <div class="home-game-card anim-up" onclick="switchTab('wheel')" data-game="wheel" data-delay="4">
+                  <div class="hg-icon"><i data-lucide="disc-3"></i></div><div class="hg-name">Roue</div><div class="hg-desc">Jackpot 10×</div>
+                </div>
+                <div class="home-game-card anim-up" onclick="switchTab('dice')" data-game="dice" data-delay="5">
+                  <div class="hg-icon"><i data-lucide="dice-5"></i></div><div class="hg-name">Dice</div><div class="hg-desc">Personnalisé</div>
+                </div>
+              </div>
+
+              <h3 class="section-title" style="margin-top:28px"><i data-lucide="trophy" class="ic-title"></i> Classement — Meilleurs gains</h3>
+              <div class="card anim-up" data-delay="6" style="padding:16px">
+                <div id="homeLeaderWrap"><div class="loading-row"><span class="spinner"></span></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SLOTS -->
+          <div id="view-slots" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="cherry" class="ic-game"></i> Slots</h2>
+                  <span class="sub">3 rouleaux — alignez les symboles</span>
+                </div>
+                <div class="game-board">
+                  <div class="reels">
+                    <div class="reel" id="r0">🍒</div>
+                    <div class="reel" id="r1">🔔</div>
+                    <div class="reel" id="r2">💎</div>
+                  </div>
+                </div>
+                <div class="bet-row">
+                  <div class="field">
+                    <label>Mise</label>
+                    <input id="slotBet" type="number" min="1" value="100">
+                    <div class="qbet">
+                      <button onclick="qbet('slotBet','half')">½</button>
+                      <button onclick="qbet('slotBet','double')">×2</button>
+                      <button onclick="qbet('slotBet','max')">MAX</button>
+                    </div>
+                  </div>
+                  <button id="slotBtn" class="btn" onclick="spin()">TOURNER</button>
+                </div>
+                <div id="slotMsg" class="msg"></div>
+                <div class="paytable">
+                  <span>7️⃣7️⃣7️⃣ = 20×</span><span>💎💎💎 = 8×</span><span>🔔🔔🔔 = 3×</span>
+                  <span>🍒🍒🍒 = 2×</span><span>⭐/🍋 ×3 = 1.5×</span><span>Paire = 1.5×</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BLACKJACK -->
+          <div id="view-blackjack" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="layers-2" class="ic-game"></i> Blackjack</h2>
+                  <span class="sub">Battez le croupier sans dépasser 21</span>
+                </div>
+                <div class="game-board">
+                  <div class="bj-table">
+                    <div class="hand">
+                      <h3>Croupier <b id="dealerScore">—</b></h3>
+                      <div class="cards" id="dealerCards"></div>
+                    </div>
+                    <div class="hand">
+                      <h3>Vous <b id="playerScore">—</b></h3>
+                      <div class="cards" id="playerCards"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="bjBetRow" class="bet-row">
+                  <div class="field">
+                    <label>Mise</label>
+                    <input id="bjBet" type="number" min="1" value="100">
+                    <div class="qbet">
+                      <button onclick="qbet('bjBet','half')">½</button>
+                      <button onclick="qbet('bjBet','double')">×2</button>
+                      <button onclick="qbet('bjBet','max')">MAX</button>
+                    </div>
+                  </div>
+                  <button id="bjDealBtn" class="btn" onclick="bjDeal()">DISTRIBUER</button>
+                </div>
+                <div id="bjActions" class="bj-actions hidden">
+                  <button class="btn" onclick="bjHit()">TIRER</button>
+                  <button class="btn ghost" onclick="bjStand()">RESTER</button>
+                </div>
+                <div id="bjMsg" class="msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MINES -->
+          <div id="view-mines" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="bomb" class="ic-game"></i> Démineur</h2>
+                  <span class="sub">Évitez les bombes, encaissez vos gains</span>
+                </div>
+                <div class="mines-cfg">
+                  <div class="field" style="flex:1;min-width:130px">
+                    <label>Mise</label>
+                    <input id="minesBet" type="number" min="1" value="100">
+                  </div>
+                  <div class="field">
+                    <label>Bombes</label>
+                    <select id="minesCount">
+                      <option value="1">1</option>
+                      <option value="3" selected>3</option>
+                      <option value="5">5</option>
+                      <option value="10">10</option>
+                      <option value="20">20</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="minesStart"><button class="btn" onclick="minesStartGame()">JOUER</button></div>
+                <div id="minesCash" class="hidden"><button class="btn gold" onclick="minesCashout()">ENCAISSER</button></div>
+                <div class="game-board"><div class="mines-grid" id="minesGrid"></div></div>
+                <div class="mines-info">
+                  <div><div class="lbl">Multiplicateur</div><div class="val" id="minesMult">1.00×</div></div>
+                  <div><div class="lbl">Gains potentiels</div><div class="val" id="minesPot">0</div></div>
+                  <div><div class="lbl">Gemmes</div><div class="val" id="minesGems">0</div></div>
+                </div>
+                <div id="minesMsg" class="msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PLINKO -->
+          <div id="view-plinko" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="circle-dot" class="ic-game"></i> Plinko</h2>
+                  <span class="sub">Laissez tomber la balle</span>
+                </div>
+                <div class="game-board">
+                  <div class="plinko-screen">
+                    <canvas id="plinkoCanvas" width="500" height="460"></canvas>
+                  </div>
+                </div>
+                <div class="bet-row">
+                  <div class="field plinko-risk">
+                    <label>Risque</label>
+                    <select id="plinkoRisk">
+                      <option value="low">Faible</option>
+                      <option value="med" selected>Moyen</option>
+                      <option value="high">Élevé</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>Mise</label>
+                    <input id="plinkoBet" type="number" min="1" value="100">
+                    <div class="qbet">
+                      <button onclick="qbet('plinkoBet','half')">½</button>
+                      <button onclick="qbet('plinkoBet','double')">×2</button>
+                      <button onclick="qbet('plinkoBet','max')">MAX</button>
+                    </div>
+                  </div>
+                  <button id="plinkoBtn" class="btn" onclick="plinkoDrop()">LÂCHER</button>
+                </div>
+                <div id="plinkoMsg" class="msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- WHEEL -->
+          <div id="view-wheel" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="disc-3" class="ic-game"></i> Roue</h2>
+                  <span class="sub">Tentez le jackpot 15×</span>
+                </div>
+                <div class="game-board">
+                  <div class="wheel-wrap">
+                    <div class="wheel-pointer"></div>
+                    <svg class="wheel-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
+                      <g id="wheelG"></g>
+                    </svg>
+                    <div class="wheel-hub">BS</div>
+                  </div>
+                </div>
+                <div class="bet-row">
+                  <div class="field">
+                    <label>Mise</label>
+                    <input id="wBet" type="number" min="1" value="100">
+                    <div class="qbet">
+                      <button onclick="qbet('wBet','half')">½</button>
+                      <button onclick="qbet('wBet','double')">×2</button>
+                      <button onclick="qbet('wBet','max')">MAX</button>
+                    </div>
+                  </div>
+                  <button id="wBtn" class="btn" onclick="wheelSpin()">TOURNER</button>
+                </div>
+                <div id="wMsg" class="msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DICE -->
+          <div id="view-dice" class="view game-view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="dice-5" class="ic-game"></i> Dice</h2>
+                  <span class="sub">Choisissez votre chance de gagner</span>
+                </div>
+                <div class="game-board game-board-stack">
+                  <div class="dice-stage">
+                    <div class="dice-result" id="diceResult">—</div>
+                    <div class="dice-result-cap">Dernier lancer</div>
+                  </div>
+                  <div class="dice-track">
+                    <span class="dice-zone dice-zone-win">GAGNANT</span>
+                    <span class="dice-zone dice-zone-lose">PERDANT</span>
+                    <div class="dice-marker" id="diceMarker"></div>
+                    <div class="dice-dot" id="diceDot"></div>
+                  </div>
+                  <div class="dice-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+                </div>
+                <div class="slider-row">
+                  <label>Chance de gagner <b id="diceChanceLbl">50%</b></label>
+                  <input id="diceSlider" type="range" min="2" max="95" value="50" oninput="diceUpdate()">
+                </div>
+                <div class="dice-stats">
+                  <div class="stat"><div class="lbl">Cible (en dessous de)</div><div class="val" id="diceTargetLbl">50.00</div></div>
+                  <div class="stat"><div class="lbl">Multiplicateur</div><div class="val" id="diceMult">—</div></div>
+                  <div class="stat"><div class="lbl">Gains potentiels</div><div class="val" id="dicePot">—</div></div>
+                </div>
+                <div class="bet-row">
+                  <div class="field">
+                    <label>Mise</label>
+                    <input id="diceBet" type="number" min="1" value="100" oninput="diceUpdate()">
+                    <div class="qbet">
+                      <button onclick="qbet('diceBet','half');diceUpdate()">½</button>
+                      <button onclick="qbet('diceBet','double');diceUpdate()">×2</button>
+                      <button onclick="qbet('diceBet','max');diceUpdate()">MAX</button>
+                    </div>
+                  </div>
+                  <button id="diceBtn" class="btn" onclick="diceRoll()">LANCER</button>
+                </div>
+                <div id="diceMsg" class="msg"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- HISTORIQUE -->
+          <div id="view-history" class="view">
+            <div class="view-inner">
+              <div class="card">
+                <div class="game-head">
+                  <h2><i data-lucide="history" class="ic-game"></i> Historique</h2>
+                  <span class="sub">Vos 100 dernières parties</span>
+                </div>
+                <div class="tablewrap"><table id="historyTable"></table></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /content-wrap -->
+      </div><!-- /main-layout -->
+
+    </div><!-- /mainView -->
+  </div><!-- /app #appWrap -->
+
+  <!-- WIN OVERLAY -->
+  <div id="winOverlay" class="win-overlay hidden" onclick="this.classList.add('hidden')">
+    <canvas id="confettiCanvas" class="confetti-cvs"></canvas>
+    <div id="winLabel" class="win-label"></div>
+  </div>
+
+</body>
+</html>
