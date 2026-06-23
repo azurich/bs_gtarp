@@ -37,7 +37,7 @@ async function getMe() {
 }
 async function doLogin(user, pass, code) {
   const d = await api('/login', 'POST', code ? { user, pass, code } : { user, pass });
-  if (d.totp && !d.token) return { totp: true };   // mot de passe OK → code 2FA requis
+  if (d.totp && !d.token) return { need2fa: true };   // mot de passe OK → code 2FA requis
   TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
   return USER;
 }

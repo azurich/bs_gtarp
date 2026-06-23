@@ -40,7 +40,7 @@ async function doPortalLogin() {
   const code = _login2faMode ? $('loginCode').value.trim() : '';
   try {
     const r = await doLogin(user, pass, code);
-    if (r && r.totp) {                          // 2FA requise → afficher le champ code
+    if (r && r.need2fa) {                        // 2FA requise → afficher le champ code
       _login2faMode = true;
       $('login2fa').classList.remove('hidden');
       const c = $('loginCode'); if (c) c.focus();

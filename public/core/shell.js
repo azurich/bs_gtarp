@@ -50,6 +50,7 @@ async function submitLogin() {
   try {
     const u = await doLogin($('mLoginUser').value.trim(), $('mLoginPass').value);
     closeModal();
+    if (u && u.need2fa) { location.href = '/'; return; }   // 2FA → login en 2 temps sur le portail
     location.href = u.admin ? '/admin' : (location.pathname === '/' ? '/casino' : location.pathname);
   } catch (e) { if (err) err.textContent = e.message; }
 }
