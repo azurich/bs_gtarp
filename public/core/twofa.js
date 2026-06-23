@@ -31,7 +31,7 @@ async function mount2FASetup(box, onDone) {
     $('twofaErr').textContent = '';
     try {
       await api('/2fa/enable', 'POST', { code: $('twofaCode').value.trim() });
-      toast('Double authentification activée ✓', 3500);
+      toast('Double authentification activée', 3500);
       if (onDone) onDone();
     } catch (e) { $('twofaErr').textContent = e.message; }
   };

@@ -59,7 +59,7 @@ async function saveProfile() {
   try {
     await api('/profile', 'POST', { nom: $('pNom').value, prenom: $('pPrenom').value,
       phone: $('pPhone').value, discord: $('pDiscord').value });
-    toast('Profil enregistré ✓', 3500);
+    toast('Profil enregistré', 3500);
   } catch (e) { $('pErr').textContent = e.message; }
 }
 
@@ -80,6 +80,6 @@ async function changePassword() {
   try {
     await api('/password', 'POST', { current: cur, password: nw });
     $('pwCurrent').value = ''; $('pwNew').value = ''; $('pwConfirm').value = '';
-    toast('Mot de passe enregistré ✓', 3500);
+    toast('Mot de passe enregistré', 3500);
   } catch (e) { err.textContent = e.message; }
 }
