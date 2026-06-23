@@ -222,22 +222,32 @@ function adminDisable2FA(u) {
 async function renderGameInfo() {
   const box = $('settingsBox'); if (!box) return;
   box.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
-  let d; try { d = await api('/admin/gameinfo'); } catch (e) { box.innerHTML = '<p class="hint">Erreur de chargement.</p>'; return; }
-  const houseEdge = Math.round((1 - d.rtp) * 100);
-  let h = '<div class="rtp-banner">'
-    + '<div><div class="rtp-banner-lbl">RTP global (reversé aux joueurs)</div><div class="rtp-banner-val">' + Math.round(d.rtp*100) + '%</div></div>'
-    + '<div><div class="rtp-banner-lbl">Marge maison</div><div class="rtp-banner-val gold">' + houseEdge + '%</div></div>'
-    + '</div>';
-  h += '<table class="rtp-table"><thead><tr><th>Machine</th><th>RTP</th><th>Marge</th><th>Détail</th></tr></thead><tbody>';
-  d.games.forEach(g => {
-    const icon = GAME_ICON[g.key] || '🎮';
-    h += '<tr><td><b>' + icon + ' ' + esc(g.label) + '</b></td>'
-      + '<td>' + Math.round(g.rtp*100) + '%</td>'
-      + '<td style="color:var(--gold);font-weight:700">' + Math.round((1-g.rtp)*100) + '%</td>'
-      + '<td style="color:var(--tx-3)">' + esc(g.note) + '</td></tr>';
-  });
-  h += '</tbody></table>';
-  box.innerHTML = h;
+  let d; try { d = await api('/admin/casino'); } catch (e) { box.innerHTML = '<p class="hint">Erreur de chargement.</p>'; return; }
+  const f = n => fmt(Math.round(n));
+  box.innerHTML =
+      '<div class="rtp-banner">'
+    +   '<div><div class="rtp-banner-lbl">Cagnotte actuelle</div><div class="rtp-banner-val gold">' + f(d.pool) + '</div></div>'
+    +   '<div><div class="rtp-banner-lbl">Budget dispo (' + Math.round(d.reserve * 100) + '%)</div><div class="rtp-banner-val">' + f(d.budget) + '</div></div>'
+    +   '<div><div class="rtp-banner-lbl">Marge maison réelle</div><div class="rtp-banner-val">' + Math.round(d.margin * 100) + '%</div></div>'
+    + '</div>'
+    + '<div class="cg-stats">'
+    +   '<div class="cg-stat"><span class="cg-lbl">Total misé</span><span class="cg-val">' + f(d.wagered) + '</span></div>'
+    +   '<div class="cg-stat"><span class="cg-lbl">Total payé aux joueurs</span><span class="cg-val">' + f(d.paid) + '</span></div>'
+    +   '<div class="cg-stat"><span class="cg-lbl">RTP réel observé</span><span class="cg-val">' + Math.round(d.rtp * 100) + '%</span></div>'
+    +   '<div class="cg-stat"><span class="cg-lbl">Réserve gardée</span><span class="cg-val">' + Math.round((1 - d.reserve) * 100) + '%</span></div>'
+    + '</div>'
+    + '<button class="btn ghost sm" onclick="resetCasino()" style="margin-top:18px">Réinitialiser la cagnotte</button>';
+}
+
+function resetCasino() {
+  openModal(
+    'Réinitialiser la cagnotte ?',
+    '<p style="color:var(--dim);margin-top:6px;line-height:1.5">Remet le total misé, le total payé et la cagnotte à <b>0</b>. Les jeux repartent comme au premier jour : les gains seront impossibles le temps que la cagnotte se reconstitue.</p>',
+    async () => {
+      try { await api('/admin/casino/reset', 'POST'); toast('Cagnotte réinitialisée'); renderGameInfo(); }
+      catch (e) { toast(e.message, 4000, 'error'); }
+    }
+  );
 }
 
 /* ── logs ─────────────────────────────────────────────────── */

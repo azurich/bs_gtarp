@@ -128,6 +128,7 @@ function checkBigWin(bet, gain) {
 
 /* ── Navigation ──────────────────────────────────────────── */
 function switchTab(v) {
+  if (v === 'blackjack' || v === 'mines') { toast('Bientôt disponible', 2600, 'info'); return; }
   if (v !== 'mines' && minesActive) {
     openModal(
       'Partie en cours',
@@ -451,9 +452,9 @@ async function minesCashout() {
 const PK = $('plinkoCanvas'), PCX = PK ? PK.getContext('2d') : null, PK_ROWS = 12;
 /* valeurs par défaut, écrasées par /api/config (source de vérité = games.ts) */
 let PK_MULT = {
-  low:  [3.44,1.84,1.38,1.15,0.80,0.57,0.46,0.57,0.80,1.15,1.38,1.84,3.44],
-  med:  [14.21,5.33,2.66,1.42,0.71,0.44,0.36,0.44,0.71,1.42,2.66,5.33,14.21],
-  high: [66.34,15.92,5.31,1.33,0.53,0.27,0.13,0.27,0.53,1.33,5.31,15.92,66.34],
+  low:  [4.26,2.13,1.38,1.06,0.75,0.59,0.53,0.59,0.75,1.06,1.38,2.13,4.26],
+  med:  [21.32,7.46,3.41,1.92,0.85,0.32,0,0.32,0.85,1.92,3.41,7.46,21.32],
+  high: [70.4,25.6,9.6,1.92,0,0,0,0,0,1.92,9.6,25.6,70.4],
 };
 let pkBall = null, pkAnim = null, pkHighlight = -1, PK_DPR = 1, pkTrail = [];
 let PK_W = 440, PK_H = 360;
