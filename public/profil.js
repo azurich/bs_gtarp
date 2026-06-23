@@ -16,7 +16,7 @@ function render2FA(enabled) {
   const box = $('twofaBox');
   if (enabled) {
     box.innerHTML =
-      '<p class="twofa-on"><i data-lucide="shield-check"></i> La double authentification est <b>activée</b>.</p>'
+      '<p class="twofa-on"><i data-lucide="shield-check"></i><span>La double authentification est <b>activée</b></span></p>'
       + '<button class="btn ghost" onclick="disable2FA()">Désactiver</button>';
   } else {
     box.innerHTML =
