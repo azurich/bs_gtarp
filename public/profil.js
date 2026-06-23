@@ -20,8 +20,8 @@ function render2FA(enabled) {
       + '<button class="btn ghost" onclick="disable2FA()">Désactiver</button>';
   } else {
     box.innerHTML =
-      '<p class="club-text" style="margin-top:0">Ajoute une couche de sécurité : un code à 6 chiffres généré par ton téléphone sera demandé à chaque connexion.</p>'
-      + '<button class="btn" onclick="start2FA()">Activer la 2FA</button>';
+      '<p class="club-text" style="margin:0 0 16px">Ajoute une couche de sécurité : un code à 6 chiffres généré par ton téléphone sera demandé à chaque connexion.</p>'
+      + '<button class="btn" onclick="start2FA()">Activer</button>';
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
