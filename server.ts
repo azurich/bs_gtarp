@@ -8,6 +8,7 @@ import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
 import db, { DB_FILE } from './db.ts'
 import { unlinkSync } from 'node:fs'
+import { generateSecret, verifyTOTP, otpauthURI } from './totp.ts'
 import * as G from './games.ts'
 import type { User, Session } from './db.ts'
 
@@ -24,7 +25,8 @@ interface MinesState {
 
 /* ── constantes ───────────────────────────────────────────── */
 const PORT         = parseInt(process.env.PORT ?? '3000')
-const SESSION_TTL  = 30 * 24 * 60 * 60 * 1_000
+const SESSION_TTL  = 30 * 60 * 1_000          // 30 min d'inactivité (expiration glissante)
+const SESSION_TOUCH = 60 * 1_000              // refresh au plus 1×/min pour limiter les écritures
 const GAME_TTL     =  2 * 60 * 60 * 1_000
 const LOG_MAX_AGE  = 30 * 24 * 60 * 60 * 1_000
 // SECURITY: mise maximale absolue par tour (évite les gros paris instantanés déstabilisants)
@@ -55,6 +57,11 @@ const Q = {
   insSession  : db.prepare('INSERT INTO sessions (token, user_id, created) VALUES (?,?,?)'),
   getSession  : db.prepare('SELECT * FROM sessions WHERE token = ?'),
   delSession  : db.prepare('DELETE FROM sessions WHERE token = ?'),
+  touchSession: db.prepare('UPDATE sessions SET created = ? WHERE token = ?'),
+  setTotpSecret    : db.prepare('UPDATE users SET totp_secret = ?, totp_enabled = 0 WHERE id = ?'),
+  enableTotp       : db.prepare('UPDATE users SET totp_enabled = 1 WHERE id = ?'),
+  disableTotp      : db.prepare("UPDATE users SET totp_secret = '', totp_enabled = 0 WHERE id = ?"),
+  disableTotpByName: db.prepare("UPDATE users SET totp_secret = '', totp_enabled = 0 WHERE username = ?"),
   insLog      : db.prepare('INSERT INTO logs (ts, username, type, msg, amount) VALUES (?,?,?,?,?)'),
   logsAll     : db.prepare('SELECT * FROM logs ORDER BY id DESC LIMIT 300'),
   logsByType  : db.prepare('SELECT * FROM logs WHERE type = ? ORDER BY id DESC LIMIT 300'),
@@ -106,6 +113,7 @@ function publicUser(u: User) {
     level    : u.level ?? 1,
     stats    : { wagered: Math.floor(u.wagered), won: Math.floor(u.won), played: u.played, biggest: Math.floor(u.biggest) },
     rp       : { nom: u.rp_nom ?? '', prenom: u.rp_prenom ?? '', phone: u.rp_phone ?? '', discord: u.discord ?? '' },
+    totp     : !!u.totp_enabled,
   }
 }
 function userSnapshot(id: number) {
@@ -238,12 +246,14 @@ const withAuth = new Elysia({ name: 'auth' })
     if (!token) return status(401, { error: 'Non connecté' })
     const session = Q.getSession.get(token) as Session | null
     if (!session) return status(401, { error: 'Session invalide' })
-    if (Date.now() - session.created > SESSION_TTL) {
+    const now = Date.now()
+    if (now - session.created > SESSION_TTL) {
       Q.delSession.run(token)
       return status(401, { error: 'Session expirée, reconnecte-toi.' })
     }
     const user = Q.userById.get(session.user_id) as User | null
     if (!user) return status(401, { error: 'Compte introuvable' })
+    if (now - session.created > SESSION_TOUCH) Q.touchSession.run(now, token)   // expiration glissante
     return { user, authToken: token }
   })
 
@@ -253,9 +263,12 @@ function checkAdmin(headers: Record<string, string | undefined>): User | null {
   if (!token) return null
   const session = Q.getSession.get(token) as Session | null
   if (!session) return null
-  if (Date.now() - session.created > SESSION_TTL) { Q.delSession.run(token); return null }
+  const now = Date.now()
+  if (now - session.created > SESSION_TTL) { Q.delSession.run(token); return null }
   const user = Q.userById.get(session.user_id) as User | null
-  return user?.is_admin ? user : null
+  if (!user) return null
+  if (now - session.created > SESSION_TOUCH) Q.touchSession.run(now, token)
+  return user.is_admin ? user : null
 }
 
 /* ── seed admin (top-level await, s'exécute avant le démarrage) */
@@ -343,11 +356,19 @@ const app = new Elysia()
       const b = body as Record<string, unknown>
       const u = String(b.user ?? '').trim()
       const p = String(b.pass ?? '')
+      const code = String(b.code ?? '').trim()
       // SECURITY: rejeter les mots de passe trop longs avant d'appeler bcrypt (DoS)
       if (p.length > 128) { set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' } }
       const row = Q.userByName.get(u) as User | null
       if (!row || !(await Bun.password.verify(p, row.pass_hash))) {
         set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' }
+      }
+      // 2FA : si activée, exiger un code TOTP valide
+      if (row.totp_enabled) {
+        if (!code) return { totp: true }                       // mot de passe OK → demande le code (pas de token)
+        if (!verifyTOTP(row.totp_secret, code)) {
+          set.status = 401; return { totp: true, error: 'Code de double authentification incorrect.' }
+        }
       }
       const token = randomBytes(32).toString('hex')
       Q.insSession.run(token, row.id, Date.now())
@@ -389,6 +410,38 @@ const app = new Elysia()
       const hash = await Bun.password.hash(next, { algorithm: 'bcrypt', cost: 10 })
       db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').run(hash, u.id)
       logEvent(row.username, 'auth', 'Mot de passe modifié')
+      return { ok: true }
+    })
+
+    /* ── Double authentification (TOTP) ───────────────────── */
+    .post('/api/2fa/setup', ({ user, set }) => {
+      const u = user as User
+      if (u.totp_enabled) { set.status = 400; return { error: 'La double authentification est déjà activée.' } }
+      const secret = generateSecret()
+      Q.setTotpSecret.run(secret, u.id)                      // secret en attente (enabled = 0)
+      return { secret, uri: otpauthURI(secret, u.username) }
+    })
+
+    .post('/api/2fa/enable', ({ body, user, set }) => {
+      const u = user as User
+      const code = String((body as Record<string, unknown>).code ?? '').trim()
+      const row = Q.userById.get(u.id) as User
+      if (!row.totp_secret) { set.status = 400; return { error: 'Lance d\'abord la configuration.' } }
+      if (row.totp_enabled) { set.status = 400; return { error: 'Déjà activée.' } }
+      if (!verifyTOTP(row.totp_secret, code)) { set.status = 400; return { error: 'Code incorrect, réessaie.' } }
+      Q.enableTotp.run(u.id)
+      logEvent(row.username, 'auth', 'Double authentification activée')
+      return { ok: true }
+    })
+
+    .post('/api/2fa/disable', async ({ body, user, set }) => {
+      const u = user as User
+      const pass = String((body as Record<string, unknown>).password ?? '')
+      const row = Q.userById.get(u.id) as User
+      if (!row.totp_enabled) { set.status = 400; return { error: 'La double authentification n\'est pas activée.' } }
+      if (!(await Bun.password.verify(pass, row.pass_hash))) { set.status = 403; return { error: 'Mot de passe incorrect.' } }
+      Q.disableTotp.run(u.id)
+      logEvent(row.username, 'auth', 'Double authentification désactivée')
       return { ok: true }
     })
 
@@ -573,6 +626,7 @@ const app = new Elysia()
         name: u.username, credit: Math.floor(u.credit), wagered: Math.floor(u.wagered),
         admin: !!u.is_admin, level: u.level || 1, xp: Math.floor(u.xp || 0),
         rp_nom: u.rp_nom ?? '', rp_prenom: u.rp_prenom ?? '', discord: u.discord ?? '',
+        totp: !!u.totp_enabled,
       })) }
     })
 
@@ -642,6 +696,16 @@ const app = new Elysia()
     .delete('/api/admin/invite/:token', ({ headers, params, set }) => {
       if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
       db.prepare('DELETE FROM invites WHERE token = ?').run(params.token)   // utilisées comprises
+      return { ok: true }
+    })
+
+    /* ── Désactiver la 2FA d'un joueur (récupération) ─────── */
+    .post('/api/admin/2fa-disable', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const name = String((body as Record<string, unknown>).user ?? '').trim()
+      Q.disableTotpByName.run(name)
+      logEvent(adm.username, 'admin', `2FA désactivée pour ${name}`)
       return { ok: true }
     })
 

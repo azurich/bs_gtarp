@@ -76,6 +76,8 @@ addCol('users', 'rp_nom',    "TEXT NOT NULL DEFAULT ''")
 addCol('users', 'rp_prenom', "TEXT NOT NULL DEFAULT ''")
 addCol('users', 'rp_phone',  "TEXT NOT NULL DEFAULT ''")
 addCol('users', 'discord',   "TEXT NOT NULL DEFAULT ''")
+addCol('users', 'totp_secret',  "TEXT NOT NULL DEFAULT ''")   // secret base32 (2FA)
+addCol('users', 'totp_enabled', 'INTEGER NOT NULL DEFAULT 0')  // 1 quand la 2FA est confirmée
 
 /* L'économie (RTP) est codée en dur dans games.ts — plus de table settings. */
 
@@ -97,6 +99,8 @@ export interface User {
   rp_prenom : string
   rp_phone  : string
   discord   : string
+  totp_secret  : string
+  totp_enabled : number
 }
 
 export interface Session {
