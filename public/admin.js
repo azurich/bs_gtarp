@@ -92,8 +92,9 @@ function paintUsers() {
       ? esc((u.rp_nom || '').toUpperCase()) + ' ' + esc(u.rp_prenom || '')
       : '<span style="color:var(--a-tx-dim)">—</span>';
     const discord = u.discord ? esc(u.discord) : '<span style="color:var(--a-tx-dim)">—</span>';
-    rows += '<tr>'
-      + '<td><b>' + n + '</b></td>'
+    const self = (u.name || u.username) === (USER && USER.username);
+    rows += '<tr' + (u.blocked ? ' class="row-blocked"' : '') + '>'
+      + '<td><b>' + n + '</b>' + (u.blocked ? ' <span class="up-status blocked">Bloqué</span>' : '') + '</td>'
       + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + rpName + '</td>'
       + '<td style="color:var(--a-tx-muted);font-size:.8rem">' + discord + '</td>'
       + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700">' + fmt(u.credit) + '</td>'
@@ -101,15 +102,22 @@ function paintUsers() {
       + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
       + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
       + '<td>' + (u.totp ? '<span class="twofa-badge on">ON</span>' : '<span class="twofa-badge off">—</span>') + '</td>'
-      + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
-      + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name || u.username) + '\')">+ Crédits</button>'
-      + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name || u.username) + '\')">Retirer</button>'
-      + '<button class="btn sm ghost" onclick="adminResetPw(\'' + esc(u.name || u.username) + '\')" title="Réinitialiser le mot de passe">Reset MDP</button>'
-      + (u.totp ? '<button class="btn sm ghost" onclick="adminDisable2FA(\'' + esc(u.name || u.username) + '\')" title="Désactiver la 2FA">Couper 2FA</button>' : '')
-      + ((u.name || u.username) !== (USER && USER.username) ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name || u.username) + '\')">Supprimer</button>' : '')
-      + '</td></tr>';
+      + '<td><div class="adm-actions">'
+      +   '<button class="btn sm" onclick="adminCredit(\'' + n + '\')">+ Crédits</button>'
+      +   '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + n + '\')">Retirer</button>'
+      +   '<button class="btn-ic" onclick="adminResetPw(\'' + n + '\')" title="Réinitialiser le mot de passe"><i data-lucide="key-round"></i></button>'
+      +   (u.totp
+            ? '<button class="btn-ic" onclick="adminDisable2FA(\'' + n + '\')" title="Désactiver la 2FA"><i data-lucide="shield-off"></i></button>'
+            : '<button class="btn-ic" disabled title="Aucune 2FA active"><i data-lucide="shield"></i></button>')
+      +   (u.admin ? ''
+            : (u.blocked
+                ? '<button class="btn-ic ic-ok" onclick="adminBlock(\'' + n + '\',false)" title="Débloquer le compte"><i data-lucide="lock-open"></i></button>'
+                : '<button class="btn-ic ic-warn" onclick="adminBlock(\'' + n + '\',true)" title="Bloquer le compte"><i data-lucide="ban"></i></button>'))
+      +   (self ? '' : '<button class="btn-ic ic-danger" onclick="adminDelete(\'' + n + '\')" title="Supprimer le compte"><i data-lucide="trash-2"></i></button>')
+      + '</div></td></tr>';
   });
   $('userTable').innerHTML = rows;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
   const c = $('userCount');
   if (c) c.textContent = list.length + (list.length !== ADMIN_USERS.length ? ' / ' + ADMIN_USERS.length : '') + (list.length > 1 ? ' joueurs' : ' joueur');
 }
@@ -180,6 +188,23 @@ function adminResetPw(u) {
     }
   );
   setTimeout(() => { const i = $('rpwInput'); if (i) i.select(); }, 60);
+}
+
+function adminBlock(u, blocked) {
+  if (blocked) {
+    openModal(
+      'Bloquer « ' + esc(u) + ' » ?',
+      '<p style="color:var(--dim);margin-top:6px;line-height:1.5">Le joueur sera <b>déconnecté immédiatement</b> et ne pourra plus se connecter jusqu\'au déblocage.</p>',
+      async () => {
+        try { await api('/admin/block', 'POST', { user: u, blocked: true }); toast('Compte bloqué'); renderAdminUsers(); }
+        catch (e) { toast(e.message, 4000, 'error'); }
+      }
+    );
+  } else {
+    api('/admin/block', 'POST', { user: u, blocked: false })
+      .then(() => { toast('Compte débloqué'); renderAdminUsers(); })
+      .catch(e => toast(e.message, 4000, 'error'));
+  }
 }
 
 function adminDisable2FA(u) {

@@ -146,6 +146,23 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 #inviteTable .btn svg.lucide,#userTable .btn svg.lucide{width:15px;height:15px}
 .adm-del-btn:hover{color:#f0858f;border-color:rgba(244,63,94,.4)}
 
+/* groupe d'actions joueurs : boutons texte + boutons-icônes compacts */
+.adm-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn-ic{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--bdr-med);color:var(--a-tx-muted);cursor:pointer;transition:color var(--dur-fast),background var(--dur-fast),border-color var(--dur-fast);flex:none;padding:0}
+.btn-ic:hover{background:rgba(255,255,255,.1);color:var(--tx);border-color:var(--accent-dim)}
+.btn-ic:disabled{opacity:.35;cursor:not-allowed}
+.btn-ic svg.lucide{width:15px;height:15px}
+.btn-ic.ic-warn:hover{color:#f0a85a;border-color:rgba(240,168,90,.45)}
+.btn-ic.ic-ok:hover{color:#3ddc97;border-color:rgba(16,185,129,.45)}
+.btn-ic.ic-danger:hover{color:#f0858f;border-color:rgba(244,63,94,.45)}
+
+/* statut de compte + ligne bloquée */
+.up-status{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.05em;padding:2px 7px;border-radius:999px;font-family:var(--body);text-transform:uppercase;vertical-align:middle}
+.up-status.blocked{background:rgba(244,63,94,.14);color:#f0858f;border:1px solid rgba(244,63,94,.32)}
+.up-status.active{background:rgba(16,185,129,.12);color:#3ddc97;border:1px solid rgba(16,185,129,.3)}
+.row-blocked{background:rgba(244,63,94,.06)}
+.row-blocked td:first-child{box-shadow:inset 3px 0 0 #e0533d}
+
 /* ── onglet Système ───────────────────────────────────────── */
 .sys-title{font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--tx);margin:0}
 .sys-warn{display:flex;align-items:center;gap:7px;font-size:.8rem;color:#f0a85a;background:rgba(240,168,90,.08);border:1px solid rgba(240,168,90,.25);border-radius:var(--r2);padding:8px 12px;margin:10px 0 0}

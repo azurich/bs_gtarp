@@ -50,7 +50,7 @@ const Q = {
   bumpWin     : db.prepare('UPDATE users SET credit = credit + ?, won = won + ?, biggest = MAX(biggest, ?) WHERE id = ?'),
   addCredit   : db.prepare('UPDATE users SET credit = credit + ? WHERE id = ?'),
   delUser     : db.prepare('DELETE FROM users WHERE username = ? AND is_admin = 0'),
-  allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level, rp_nom, rp_prenom, discord FROM users ORDER BY credit DESC'),
+  allUsers    : db.prepare('SELECT username, credit, wagered, is_admin, xp, level, rp_nom, rp_prenom, discord, totp_enabled, blocked FROM users ORDER BY credit DESC'),
   topUsers    : db.prepare('SELECT username, won, credit, level FROM users WHERE is_admin = 0 ORDER BY won DESC LIMIT 10'),
   lbLevel     : db.prepare('SELECT username, won, credit, level, xp FROM users WHERE is_admin = 0 ORDER BY level DESC, xp DESC LIMIT 10'),
   lbLost      : db.prepare('SELECT username, won, credit, level, (wagered - won) AS lost FROM users WHERE is_admin = 0 ORDER BY (wagered - won) DESC LIMIT 10'),
@@ -253,6 +253,7 @@ const withAuth = new Elysia({ name: 'auth' })
     }
     const user = Q.userById.get(session.user_id) as User | null
     if (!user) return status(401, { error: 'Compte introuvable' })
+    if (user.blocked) { Q.delSession.run(token); return status(403, { error: 'Compte suspendu.' }) }
     if (now - session.created > SESSION_TOUCH) Q.touchSession.run(now, token)   // expiration glissante
     return { user, authToken: token }
   })
@@ -363,6 +364,7 @@ const app = new Elysia()
       if (!row || !(await Bun.password.verify(p, row.pass_hash))) {
         set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' }
       }
+      if (row.blocked) { set.status = 403; return { error: 'Compte suspendu. Contacte un administrateur.' } }
       // 2FA : si activée, exiger un code TOTP valide
       if (row.totp_enabled) {
         if (!code) return { totp: true }                       // mot de passe OK → demande le code (pas de token)
@@ -626,7 +628,7 @@ const app = new Elysia()
         name: u.username, credit: Math.floor(u.credit), wagered: Math.floor(u.wagered),
         admin: !!u.is_admin, level: u.level || 1, xp: Math.floor(u.xp || 0),
         rp_nom: u.rp_nom ?? '', rp_prenom: u.rp_prenom ?? '', discord: u.discord ?? '',
-        totp: !!u.totp_enabled,
+        totp: !!u.totp_enabled, blocked: !!u.blocked,
       })) }
     })
 
@@ -723,6 +725,21 @@ const app = new Elysia()
       db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').run(hash, target.id)
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(target.id)   // force la reconnexion
       logEvent(adm.username, 'admin', `Mot de passe réinitialisé pour ${name}`)
+      return { ok: true }
+    })
+
+    /* ── Bloquer / débloquer un compte ────────────────────── */
+    .post('/api/admin/block', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const name = String((body as Record<string, unknown>).user ?? '').trim()
+      const blocked = (body as Record<string, unknown>).blocked ? 1 : 0
+      const target = Q.userByName.get(name) as User | null
+      if (!target) { set.status = 404; return { error: 'Joueur introuvable.' } }
+      if (target.is_admin) { set.status = 400; return { error: 'Impossible de bloquer un administrateur.' } }
+      db.prepare('UPDATE users SET blocked = ? WHERE id = ?').run(blocked, target.id)
+      if (blocked) db.prepare('DELETE FROM sessions WHERE user_id = ?').run(target.id)   // déconnecte
+      logEvent(adm.username, 'admin', (blocked ? 'Compte bloqué : ' : 'Compte débloqué : ') + name)
       return { ok: true }
     })
 
