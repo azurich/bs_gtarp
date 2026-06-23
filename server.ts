@@ -69,6 +69,9 @@ const Q = {
   insHistory  : db.prepare('INSERT INTO game_history (user_id, game, bet, gain, result, ts) VALUES (?,?,?,?,?,?)'),
   getHistory  : db.prepare('SELECT * FROM game_history WHERE user_id = ? ORDER BY ts DESC LIMIT 100'),
   bigWins     : db.prepare('SELECT u.username, h.game, h.gain, h.ts FROM game_history h JOIN users u ON u.id = h.user_id WHERE h.gain > 0 AND h.gain >= h.bet * 2 AND u.is_admin = 0 ORDER BY h.ts DESC LIMIT 12'),
+  getCasino   : db.prepare('SELECT wagered, paid FROM casino WHERE id = 1'),
+  bookCasino  : db.prepare('UPDATE casino SET wagered = wagered + ?, paid = paid + ? WHERE id = 1'),
+  resetCasino : db.prepare('UPDATE casino SET wagered = 0, paid = 0 WHERE id = 1'),
   addXP       : db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?'),
   setLevel    : db.prepare('UPDATE users SET level = ? WHERE id = ?'),
   setProfile  : db.prepare('UPDATE users SET rp_nom = ?, rp_prenom = ?, rp_phone = ?, discord = ? WHERE id = ?'),
@@ -150,6 +153,17 @@ function payout(user: User, gain: number, gameKey: string) {
   if (gain <= 0) return
   Q.bumpWin.run(gain, gain, gain, user.id)
   logEvent(user.username, 'win', 'Gain ' + LABELS[gameKey], gain)
+}
+/* ── Cagnotte (pool global redistributif) ─────────────────────
+   budget = 30% de la cagnotte (= total misé − total payé), 70% en réserve.
+   À passer aux jeux pour brider le tirage. bookCasino() met à jour W et P. */
+const CASINO_RESERVE = 0.30
+function casinoBudget(): number {
+  const c = Q.getCasino.get() as { wagered: number; paid: number }
+  return CASINO_RESERVE * Math.max(0, c.wagered - c.paid)
+}
+function bookCasino(bet: number, gain: number) {
+  Q.bookCasino.run(bet, gain)
 }
 function recordHistory(userId: number, game: string, bet: number, gain: number, result: string | null) {
   Q.insHistory.run(userId, game, bet, gain, result ?? null, Date.now())
@@ -455,8 +469,8 @@ const app = new Elysia()
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
-      const r = G.playSlots(bet)
-      payout(u, r.gain, 'slots'); awardXP(u.id, bet)
+      const r = G.playSlots(bet, casinoBudget())
+      payout(u, r.gain, 'slots'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'slots', bet, r.gain, r.reels.join('|'))
       return { reels: r.reels, gain: r.gain, ...userSnapshot(u.id) }
     })
@@ -468,8 +482,8 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
-      const r = G.playPlinko(bet, risk)
-      payout(u, r.gain, 'plinko'); awardXP(u.id, bet)
+      const r = G.playPlinko(bet, risk, casinoBudget())
+      payout(u, r.gain, 'plinko'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'plinko', bet, r.gain, `x${r.mult}`)
       return { bin: r.bin, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
     })
@@ -479,8 +493,8 @@ const app = new Elysia()
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
-      const r = G.playWheel(bet)
-      payout(u, r.gain, 'wheel'); awardXP(u.id, bet)
+      const r = G.playWheel(bet, casinoBudget())
+      payout(u, r.gain, 'wheel'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'wheel', bet, r.gain, `x${r.mult}`)
       return { index: r.index, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
     })
@@ -492,14 +506,15 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
-      const r = G.playDice(bet, chance)
-      payout(u, r.gain, 'dice'); awardXP(u.id, bet)
+      const r = G.playDice(bet, chance, casinoBudget())
+      payout(u, r.gain, 'dice'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'dice', bet, r.gain, r.roll + (r.win ? '✓' : '✗'))
       return { roll: r.roll, win: r.win, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
     })
 
     /* ── Blackjack ──────────────────────────────────────── */
     .post('/api/bj/deal', ({ body, user, set }) => {
+      set.status = 503; return { error: 'Le Blackjack est temporairement indisponible.' }
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
@@ -536,6 +551,7 @@ const app = new Elysia()
 
     /* ── Mines ──────────────────────────────────────────── */
     .post('/api/mines/start', ({ body, user, set }) => {
+      set.status = 503; return { error: 'Le Démineur est temporairement indisponible.' }
       const u     = user as User
       const b     = body as any
       const bet   = intBet(b.bet)
@@ -663,6 +679,27 @@ const app = new Elysia()
     .get('/api/admin/gameinfo', ({ headers, set }) => {
       if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
       return { rtp: G.RTP, games: G.GAME_INFO }
+    })
+
+    .get('/api/admin/casino', ({ headers, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
+      const c = Q.getCasino.get() as { wagered: number; paid: number }
+      const pool = Math.max(0, c.wagered - c.paid)
+      return {
+        wagered: c.wagered, paid: c.paid, pool,
+        budget: CASINO_RESERVE * pool,
+        rtp:    c.wagered > 0 ? c.paid / c.wagered : 0,
+        margin: c.wagered > 0 ? 1 - c.paid / c.wagered : 0,
+        reserve: CASINO_RESERVE,
+      }
+    })
+
+    .post('/api/admin/casino/reset', ({ headers, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      Q.resetCasino.run()
+      logEvent(adm.username, 'admin', 'Cagnotte réinitialisée')
+      return { ok: true }
     })
 
     .get('/api/admin/logs', ({ headers, query, set }) => {

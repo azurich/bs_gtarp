@@ -62,9 +62,15 @@ CREATE TABLE IF NOT EXISTS invites (
   created    INTEGER NOT NULL,
   created_by TEXT    NOT NULL
 );
+CREATE TABLE IF NOT EXISTS casino (
+  id      INTEGER PRIMARY KEY CHECK (id = 1),
+  wagered REAL NOT NULL DEFAULT 0,
+  paid    REAL NOT NULL DEFAULT 0
+);
 CREATE INDEX IF NOT EXISTS idx_logs_ts   ON logs(ts);
 CREATE INDEX IF NOT EXISTS idx_hist_user ON game_history(user_id, ts);
 `)
+db.exec(`INSERT OR IGNORE INTO casino (id, wagered, paid) VALUES (1, 0, 0)`)
 
 /* ── migrations (colonnes ajoutées après v1) ──────────────── */
 const addCol = (tbl: string, col: string, def: string) => {

@@ -2,12 +2,14 @@
    BlackState Casino — logique de jeu (côté serveur)
    Le client n'envoie que sa mise ; le serveur décide l'issue.
 
-   MODÈLE ÉCONOMIQUE — RTP fixe (Return To Player)
+   MODÈLE ÉCONOMIQUE — Cagnotte / redistribution
    ────────────────────────────────────────────────
-   RTP = part de l'argent misé reversée aux joueurs sur le long terme.
-   La maison garde (1 - RTP). Ici RTP = 0.70 → marge maison ~30%.
-   Chaque jeu est calibré pour que l'espérance d'un pari = mise × RTP.
-   Plus aucun réglage admin : l'économie est codée en dur ci-dessous.
+   1) Marge de base : les paytables ont une EV = mise × RTP (RTP=0.70).
+   2) Cagnotte : un `budget` (= 30% de la cagnotte globale) est passé à chaque
+      jeu. Le tirage est BRIDÉ EN AMONT : seuls les multiplicateurs dont le gain
+      ≤ budget sont tirables. À cagnotte vide (budget 0) → que des x0.
+   Les gros multiplicateurs restent affichés mais injouables tant que la
+   cagnotte ne peut pas les payer. La comptabilité globale est dans server.ts.
 ============================================================ */
 
 export const RTP = 0.70                 // 70% reversé, 30% de marge maison
@@ -58,7 +60,7 @@ function loseCombo(): string[] {
   do { a = randItem(SYM); b = randItem(SYM); c = randItem(SYM) } while (a === b || b === c || a === c)
   return [a, b, c]
 }
-export function playSlots(bet: number) {
+export function playSlots(bet: number, budget: number) {
   const r = rnd()
   let reels: string[], mult: number
   if      (r < 0.003) { reels = fill3('7️⃣');                 mult = 20  }
@@ -68,6 +70,8 @@ export function playSlots(bet: number) {
   else if (r < 0.071) { reels = fill3(randItem(['⭐', '🍋'])); mult = 1.5 }
   else if (r < 0.371) { reels = twoOfKind();                 mult = 1.5 }
   else                { reels = loseCombo();                 mult = 0   }
+  // bridage cagnotte : un gain non payable devient une perte (rouleaux perdants)
+  if (mult > 0 && bet * mult > budget) { reels = loseCombo(); mult = 0 }
   return { reels, mult, gain: Math.round(bet * mult) }
 }
 
@@ -82,24 +86,25 @@ function normMults(shape: number[]): number[] {
   const k  = RTP / ev
   return shape.map(m => +(m * k).toFixed(2))
 }
+// Profils refondus avec des x0 : faible = régulier (jamais de perte totale),
+// moyen = équilibré (perte au centre), élevé = haute variance (perte le plus
+// souvent, gros bords rares). Les niveaux veulent enfin dire quelque chose.
 const PK_SHAPE: Record<string, number[]> = {
-  low:  [3, 1.6, 1.2, 1.0, 0.7, 0.5, 0.4, 0.5, 0.7, 1.0, 1.2, 1.6, 3],
-  med:  [8, 3, 1.5, 0.8, 0.4, 0.25, 0.2, 0.25, 0.4, 0.8, 1.5, 3, 8],
-  high: [25, 6, 2, 0.5, 0.2, 0.1, 0.05, 0.1, 0.2, 0.5, 2, 6, 25],
+  low:  [4, 2, 1.3, 1.0, 0.7, 0.55, 0.5, 0.55, 0.7, 1.0, 1.3, 2, 4],
+  med:  [10, 3.5, 1.6, 0.9, 0.4, 0.15, 0, 0.15, 0.4, 0.9, 1.6, 3.5, 10],
+  high: [22, 8, 3, 0.6, 0, 0, 0, 0, 0, 0.6, 3, 8, 22],
 }
 export const PK_MULT: Record<string, number[]> = {
   low:  normMults(PK_SHAPE.low),
   med:  normMults(PK_SHAPE.med),
   high: normMults(PK_SHAPE.high),
 }
-function plinkoBin(): number {
-  let rights = 0
-  for (let i = 0; i < 12; i++) if (rnd() < 0.5) rights++
-  return rights
-}
-export function playPlinko(bet: number, risk: string) {
+// Tirage bridé par la cagnotte : seules les cases payables (gain ≤ budget) sont
+// tirables ; les cases à 0 passent toujours. La bille tombe donc sur une case payable.
+export function playPlinko(bet: number, risk: string, budget: number) {
   const mult = PK_MULT[risk] ?? PK_MULT.med
-  const bin  = plinkoBin()
+  const w    = PK_BINOM.map((p, i) => (mult[i] * bet <= budget ? p : 0))
+  const bin  = pickWeighted(w)
   const m    = mult[bin]
   return { bin, mult: m, gain: Math.round(bet * m) }
 }
@@ -112,8 +117,10 @@ export function playPlinko(bet: number, risk: string) {
 export const WHEEL   = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15]
 const WHEEL_W = [0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.02,
                  0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.005]
-export function playWheel(bet: number) {
-  const idx = pickWeighted(WHEEL_W)
+export function playWheel(bet: number, budget: number) {
+  // bridage : poids à 0 pour les segments non payables (les 0× passent toujours)
+  const w   = WHEEL_W.map((wt, i) => (WHEEL[i] * bet <= budget ? wt : 0))
+  const idx = pickWeighted(w)
   const m   = WHEEL[idx]
   return { index: idx, mult: m, gain: Math.round(bet * m) }
 }
@@ -122,11 +129,15 @@ export function playWheel(bet: number) {
    Tir uniforme. Gagne si roll < chance. Multiplicateur équitable × RTP.
    EV = (chance/100) · mise · (100/chance · RTP) = mise · RTP, exact pour tout seuil.
 */
-export function playDice(bet: number, chance: number) {
+export function playDice(bet: number, chance: number, budget: number) {
   chance = Math.max(2, Math.min(95, chance))
   const mult = (100 / chance) * RTP
-  const roll = +(rnd() * 100).toFixed(2)
-  const win  = roll < chance
+  // bridage : si le gain n'est pas payable, le tir est forcé perdant (roll ≥ chance)
+  const affordable = bet * mult <= budget
+  const roll = affordable
+    ? +(rnd() * 100).toFixed(2)
+    : +(chance + rnd() * (100 - chance)).toFixed(2)
+  const win = roll < chance
   return {
     roll, win,
     mult: +mult.toFixed(2),
