@@ -709,6 +709,23 @@ const app = new Elysia()
       return { ok: true }
     })
 
+    /* ── Réinitialiser le mot de passe d'un joueur ────────── */
+    .post('/api/admin/reset-password', async ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const name = String((body as Record<string, unknown>).user ?? '').trim()
+      const pw   = String((body as Record<string, unknown>).password ?? '')
+      if (pw.length < 8)   { set.status = 400; return { error: 'Mot de passe trop court (8 min).' } }
+      if (pw.length > 128) { set.status = 400; return { error: 'Mot de passe trop long (128 max).' } }
+      const target = Q.userByName.get(name) as User | null
+      if (!target) { set.status = 404; return { error: 'Joueur introuvable.' } }
+      const hash = await Bun.password.hash(pw, { algorithm: 'bcrypt', cost: 10 })
+      db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').run(hash, target.id)
+      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(target.id)   // force la reconnexion
+      logEvent(adm.username, 'admin', `Mot de passe réinitialisé pour ${name}`)
+      return { ok: true }
+    })
+
     /* ── Système : export / import de la base ─────────────── */
     .get('/api/admin/export-db', ({ headers, set }) => {
       if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }

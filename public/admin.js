@@ -104,6 +104,7 @@ function paintUsers() {
       + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
       + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name || u.username) + '\')">+ Crédits</button>'
       + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name || u.username) + '\')">Retirer</button>'
+      + '<button class="btn sm ghost" onclick="adminResetPw(\'' + esc(u.name || u.username) + '\')" title="Réinitialiser le mot de passe">Reset MDP</button>'
       + (u.totp ? '<button class="btn sm ghost" onclick="adminDisable2FA(\'' + esc(u.name || u.username) + '\')" title="Désactiver la 2FA">Couper 2FA</button>' : '')
       + ((u.name || u.username) !== (USER && USER.username) ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name || u.username) + '\')">Supprimer</button>' : '')
       + '</td></tr>';
@@ -155,6 +156,30 @@ function adminDelete(u) {
       catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
+}
+
+function genPw() {
+  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  let s = ''; for (let i = 0; i < 10; i++) s += c[Math.floor(Math.random() * c.length)];
+  return s;
+}
+
+function adminResetPw(u) {
+  openModal(
+    'Réinitialiser le mot de passe — ' + esc(u),
+    '<div class="field"><label>Nouveau mot de passe</label>'
+    + '<input id="rpwInput" type="text" value="' + genPw() + '" style="' + MODAL_INPUT_STYLE + '"></div>'
+    + '<p style="margin-top:8px;font-size:12px;color:var(--a-tx-muted);line-height:1.5">8 caractères minimum. Communique-le au joueur — ses sessions actives seront déconnectées.</p>',
+    async () => {
+      const pw = $('rpwInput').value;
+      if (!pw || pw.length < 8) return toast('Mot de passe trop court (8 min)', 3500, 'error');
+      try {
+        await api('/admin/reset-password', 'POST', { user: u, password: pw });
+        toast('Mot de passe réinitialisé pour ' + u);
+      } catch (e) { toast(e.message, 4000, 'error'); }
+    }
+  );
+  setTimeout(() => { const i = $('rpwInput'); if (i) i.select(); }, 60);
 }
 
 function adminDisable2FA(u) {
