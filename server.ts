@@ -783,6 +783,8 @@ const app = new Elysia()
     try { pathname = decodeURIComponent(new URL(request.url).pathname) }
     catch { return pub('club.html') }
     if (pathname.includes('..') || pathname.includes('\0')) return pub('club.html')
+    // Pas de cache agressif : le navigateur revalide → les CSS/JS modifiés sont toujours frais
+    set.headers['Cache-Control'] = 'no-cache, must-revalidate'
     const clean = pathname.replace(/\/+$/, '') || '/'
     if (PAGES[clean]) { set.headers['Content-Type'] = 'text/html'; return pub(PAGES[clean]) }
     const ext = pathname.slice(pathname.lastIndexOf('.') + 1).toLowerCase()
