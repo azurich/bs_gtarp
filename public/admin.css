@@ -167,8 +167,9 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 .sys-title{font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--tx);margin:0}
 .sys-warn{display:flex;align-items:center;gap:7px;font-size:.8rem;color:#f0a85a;background:rgba(240,168,90,.08);border:1px solid rgba(240,168,90,.25);border-radius:var(--r2);padding:8px 12px;margin:10px 0 0}
 .sys-warn svg.lucide{width:15px;height:15px;flex:none}
-.sys-import{cursor:pointer;margin-top:10px}
+.sys-import{display:inline-flex;align-items:center;gap:7px;cursor:pointer;margin-top:12px}
 .sys-import input{display:none}
+.sys-import svg.lucide{width:15px;height:15px;flex:none}
 
 /* ── champs formulaire admin ─────────────────────────────── */
 .field label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--tx-3)}
