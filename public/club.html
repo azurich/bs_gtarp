@@ -54,7 +54,12 @@
       </div>
       <div class="portal-card">
         <label>Pseudo<input id="loginUser" autocomplete="username"></label>
-        <label>Mot de passe<input id="loginPass" type="password" autocomplete="current-password"></label>
+        <label>Mot de passe
+          <div class="pw-field">
+            <input id="loginPass" type="password" autocomplete="current-password">
+            <button type="button" class="pw-eye" onclick="togglePw('loginPass', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
+          </div>
+        </label>
         <div id="loginErr" class="form-err"></div>
         <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
         <button type="button" class="portal-note portal-note-link" onclick="showJoinInfo()">L'accès se fait uniquement sur invitation.</button>

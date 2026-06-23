@@ -29,6 +29,14 @@ function toast(t, ms = 2800, type = 'success') {
   clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms);
 }
 
+function togglePw(id, btn) {
+  const inp = $(id); if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = '<i data-lucide="' + (show ? 'eye-off' : 'eye') + '"></i>';
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
 let _modalCb = null;
 function openModal(title, bodyHtml, onConfirm) {
   $('modalTitle').textContent = title; $('modalBody').innerHTML = bodyHtml;

@@ -63,14 +63,6 @@ async function saveProfile() {
   } catch (e) { $('pErr').textContent = e.message; }
 }
 
-function togglePw(id, btn) {
-  const inp = $(id);
-  const show = inp.type === 'password';
-  inp.type = show ? 'text' : 'password';
-  btn.innerHTML = '<i data-lucide="' + (show ? 'eye-off' : 'eye') + '"></i>';
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-}
-
 async function changePassword() {
   const err = $('pwErr'); err.textContent = '';
   const cur = $('pwCurrent').value, nw = $('pwNew').value, cf = $('pwConfirm').value;
