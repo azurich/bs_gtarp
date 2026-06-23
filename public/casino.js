@@ -213,7 +213,8 @@ async function renderLeaderboard() {
   const meta = LB_META[leaderType] || LB_META.won;
   document.querySelectorAll('.lb-chip').forEach(c => c.classList.toggle('active', c.dataset.lb === leaderType));
   const wrap = $('homeLeaderWrap');
-  if (wrap) wrap.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
+  // pas de spinner au changement de classement : on garde l'affichage courant
+  // jusqu'à l'arrivée des nouvelles données (le spinner initial est dans le HTML)
   try {
     const top = (await api('/leaderboard?type=' + leaderType)).top || [];
     if (!top.length) { if (wrap) wrap.innerHTML = '<p class="home-empty">Aucun joueur pour l\'instant.</p>'; return; }
