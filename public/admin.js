@@ -84,8 +84,8 @@ function paintUsers() {
   let rows = '<tr>'
     + th('name', 'Pseudo') + '<th>Joueur RP</th><th>Discord</th>'
     + th('credit', 'Crédits Club') + th('wagered', 'Misé') + th('level', 'Nv.')
-    + '<th>Rôle</th><th>Actions</th></tr>';
-  if (!list.length) rows += '<tr><td colspan="8" style="color:var(--dim);padding:18px">Aucun joueur trouvé.</td></tr>';
+    + '<th>Rôle</th><th>2FA</th><th>Actions</th></tr>';
+  if (!list.length) rows += '<tr><td colspan="9" style="color:var(--dim);padding:18px">Aucun joueur trouvé.</td></tr>';
   list.forEach(u => {
     const n   = esc(u.name || u.username);
     const rpName = (u.rp_nom || u.rp_prenom)
@@ -100,9 +100,11 @@ function paintUsers() {
       + '<td style="color:var(--a-tx-muted);font-family:var(--num);font-variant-numeric:tabular-nums">' + fmt(u.wagered) + '</td>'
       + '<td class="adm-lvl">' + (u.level || 1) + '</td>'
       + '<td>' + (u.admin ? '<span class="adminbadge">Admin</span>' : '<span style="color:var(--a-tx-dim)">Joueur</span>') + '</td>'
+      + '<td>' + (u.totp ? '<span class="twofa-badge on">ON</span>' : '<span class="twofa-badge off">—</span>') + '</td>'
       + '<td style="display:flex;gap:6px;flex-wrap:wrap">'
       + '<button class="btn sm" onclick="adminCredit(\'' + esc(u.name || u.username) + '\')">+ Crédits</button>'
       + '<button class="btn sm adm-debit-btn" onclick="adminDebit(\'' + esc(u.name || u.username) + '\')">Retirer</button>'
+      + (u.totp ? '<button class="btn sm ghost" onclick="adminDisable2FA(\'' + esc(u.name || u.username) + '\')" title="Désactiver la 2FA">Couper 2FA</button>' : '')
       + ((u.name || u.username) !== (USER && USER.username) ? '<button class="btn sm ghost" onclick="adminDelete(\'' + esc(u.name || u.username) + '\')">Supprimer</button>' : '')
       + '</td></tr>';
   });
@@ -150,6 +152,17 @@ function adminDelete(u) {
     '<p style="color:var(--dim);margin-top:6px;line-height:1.5">Cette action est irréversible. Le compte et toutes ses données seront supprimés.</p>',
     async () => {
       try { await api('/admin/delete', 'POST', { user: u }); toast('Compte supprimé'); renderAdminUsers(); }
+      catch (e) { toast(e.message); }
+    }
+  );
+}
+
+function adminDisable2FA(u) {
+  openModal(
+    'Désactiver la 2FA de « ' + esc(u) + ' » ?',
+    '<p style="color:var(--dim);margin-top:6px;line-height:1.5">À utiliser si le joueur a perdu l\'accès à son application d\'authentification. Il pourra se reconnecter sans code, puis réactiver la 2FA depuis son profil.</p>',
+    async () => {
+      try { await api('/admin/2fa-disable', 'POST', { user: u }); toast('2FA désactivée pour ' + u); renderAdminUsers(); }
       catch (e) { toast(e.message); }
     }
   );

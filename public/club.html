@@ -12,7 +12,9 @@
   <link rel="stylesheet" href="/core/shell.css">
   <link rel="stylesheet" href="/responsive.css">
   <script defer src="/lucide.min.js"></script>
+  <script defer src="/qrcode.min.js"></script>
   <script defer src="/core/auth.js"></script>
+  <script defer src="/core/twofa.js"></script>
   <script defer src="/core/shell.js"></script>
   <script defer src="/club.js"></script>
 </head>
@@ -40,6 +42,9 @@
       <div class="portal-card">
         <label>Pseudo<input id="loginUser" autocomplete="username"></label>
         <label>Mot de passe<input id="loginPass" type="password" autocomplete="current-password"></label>
+        <label id="login2fa" class="hidden">Code de double authentification
+          <input id="loginCode" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+        </label>
         <div id="loginErr" class="form-err"></div>
         <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
         <button type="button" class="portal-note portal-note-link" onclick="showJoinInfo()">L'accès se fait uniquement sur invitation.</button>
@@ -65,6 +70,23 @@
         </div>
         <div id="regErr" class="form-err"></div>
         <button class="btn" onclick="submitRegister()">Créer mon compte</button>
+      </div>
+    </section>
+
+    <!-- ÉTAPE 2FA (optionnelle, après création de compte) -->
+    <section id="regTwofa" class="portal-gate hidden">
+      <div class="portal-brand">
+        <h1 class="portal-logo">Black<span>State</span></h1>
+        <div class="portal-logo-club">Club</div>
+      </div>
+      <div class="portal-card">
+        <h2>Sécurise ton compte</h2>
+        <p class="club-text" style="margin-top:0">Active la double authentification (2FA) — optionnel mais recommandé.</p>
+        <div id="regTwofaChoice" class="twofa-choice">
+          <button class="btn" onclick="startRegTwofa()">Activer la 2FA</button>
+          <button class="btn ghost" onclick="location.href='/'">Plus tard</button>
+        </div>
+        <div id="regTwofaBox"></div>
       </div>
     </section>
 

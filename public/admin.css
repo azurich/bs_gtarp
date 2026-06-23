@@ -137,6 +137,11 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 .inv-ok{background:rgba(16,185,129,.14);color:#3ddc97;border-color:rgba(16,185,129,.35)}
 .inv-used{background:rgba(244,63,94,.12);color:#f0858f;border-color:rgba(244,63,94,.32)}
 
+/* badge 2FA (table joueurs) */
+.twofa-badge{display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.05em;padding:2px 8px;border-radius:999px;font-family:var(--body)}
+.twofa-badge.on{background:rgba(16,185,129,.14);color:#3ddc97;border:1px solid rgba(16,185,129,.35)}
+.twofa-badge.off{color:var(--a-tx-dim)}
+
 /* icônes des boutons d'action dans les tables */
 #inviteTable .btn svg.lucide,#userTable .btn svg.lucide{width:15px;height:15px}
 .adm-del-btn:hover{color:#f0858f;border-color:rgba(244,63,94,.4)}

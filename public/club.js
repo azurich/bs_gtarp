@@ -23,6 +23,8 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
     $('portalLogin').classList.remove('hidden');
     const pass = $('loginPass');
     if (pass) pass.addEventListener('keydown', e => { if (e.key === 'Enter') doPortalLogin(); });
+    const code = $('loginCode');
+    if (code) code.addEventListener('keydown', e => { if (e.key === 'Enter') doPortalLogin(); });
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
@@ -30,11 +32,21 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
 function showJoinInfo() { $('joinModal').classList.remove('hidden'); }
 function closeJoinModal() { $('joinModal').classList.add('hidden'); }
 
+let _login2faMode = false;
 async function doPortalLogin() {
   $('loginErr').textContent = '';
+  const user = $('loginUser').value.trim();
+  const pass = $('loginPass').value;
+  const code = _login2faMode ? $('loginCode').value.trim() : '';
   try {
-    const u = await doLogin($('loginUser').value.trim(), $('loginPass').value);
-    location.href = u.admin ? '/admin' : '/';   // recharge sur le hub
+    const r = await doLogin(user, pass, code);
+    if (r && r.totp) {                          // 2FA requise → afficher le champ code
+      _login2faMode = true;
+      $('login2fa').classList.remove('hidden');
+      const c = $('loginCode'); if (c) c.focus();
+      return;
+    }
+    location.href = r.admin ? '/admin' : '/';   // recharge sur le hub
   } catch (e) { $('loginErr').textContent = e.message; }
 }
 
@@ -47,6 +59,13 @@ async function submitRegister() {
       phone: $('regPhone').value, discord: $('regDiscord').value,
     });
     TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
-    location.href = '/';   // arrive sur le hub
+    // Étape 2FA optionnelle avant d'arriver au hub
+    $('registerSection').classList.add('hidden');
+    $('regTwofa').classList.remove('hidden');
   } catch (e) { $('regErr').textContent = e.message; }
+}
+
+function startRegTwofa() {
+  $('regTwofaChoice').classList.add('hidden');
+  mount2FASetup($('regTwofaBox'), () => location.href = '/');
 }

@@ -12,7 +12,9 @@
   <link rel="stylesheet" href="/core/shell.css">
   <link rel="stylesheet" href="/responsive.css">
   <script defer src="/lucide.min.js"></script>
+  <script defer src="/qrcode.min.js"></script>
   <script defer src="/core/auth.js"></script>
+  <script defer src="/core/twofa.js"></script>
   <script defer src="/core/shell.js"></script>
   <script defer src="/profil.js"></script>
 </head>
@@ -70,6 +72,11 @@
       </div>
       <div id="pwErr" class="form-err"></div>
       <button class="btn" onclick="changePassword()">Enregistrer le mot de passe</button>
+    </section>
+
+    <section class="club-section">
+      <h2>Double authentification (2FA)</h2>
+      <div id="twofaBox"></div>
     </section>
 
     <section class="club-section">

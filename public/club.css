@@ -217,6 +217,22 @@
 .pw-eye:hover { color: var(--accent); }
 .pw-eye svg { width: 17px; height: 17px; }
 
+/* ── Double authentification (2FA) ── */
+.twofa-steps { margin: 0 0 14px; padding-left: 20px; color: rgba(230, 225, 245, .8); font-size: .92rem; line-height: 1.6; }
+.twofa-steps li { margin-bottom: 4px; }
+.twofa-secret { font-family: var(--num); letter-spacing: .1em; background: rgba(255, 255, 255, .06); border: 1px solid var(--accent-dim); border-radius: 6px; padding: 2px 8px; color: var(--accent-2); font-size: .88rem; word-break: break-all; }
+.twofa-qrwrap { display: flex; justify-content: center; margin: 4px 0 16px; }
+.twofa-qr { width: 190px; height: 190px; image-rendering: pixelated; background: #fff; padding: 8px; border-radius: 10px; border: 1px solid var(--accent-dim); box-sizing: border-box; }
+.twofa-confirm { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.twofa-confirm input { flex: 1; min-width: 130px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); border-radius: 8px; padding: 10px 14px; color: #f5f0ff; font-family: var(--num); font-size: 1.05rem; letter-spacing: .18em; text-align: center; outline: none; box-sizing: border-box; }
+.twofa-confirm input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18)); }
+.twofa-confirm .btn { flex: none; }
+.twofa-on { display: inline-flex; align-items: center; gap: 8px; color: #3ddc97; font-weight: 600; margin: 0 0 14px; }
+.twofa-on svg { width: 18px; height: 18px; }
+.twofa-choice { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.twofa-loading { color: rgba(230, 225, 245, .6); }
+#loginCode { text-align: center; letter-spacing: .18em; font-family: var(--num); }
+
 .invite-banner {
   background: var(--accent-soft, rgba(201, 168, 76, .12));
   border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
