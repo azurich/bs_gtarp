@@ -333,7 +333,7 @@ function initSlots() {
 let slotSpinning = false;
 async function spin() {
   if (slotSpinning) return;
-  const bet = int('slotBet'); if (!bet) return toast('Mise invalide');
+  const bet = int('slotBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   slotSpinning = true;
   $('slotBtn').disabled = true;
   const reels = [0,1,2].map(i => $('r'+i));
@@ -342,7 +342,7 @@ async function spin() {
   const tick = setInterval(() => reels.forEach(r => { if (r.classList.contains('spin')) r.innerHTML = slotSymbolHTML(SYM[Math.random()*SYM.length|0]); }), 70);
   let d;
   try { d = await api('/play/slots', 'POST', { bet }); }
-  catch (e) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; return toast(e.message); }
+  catch (e) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; return toast(e.message, 4000, 'error'); }
   /* arrêt en cascade des 3 rouleaux pour le suspense */
   const stops = [600, 850, 1100];
   stops.forEach((delay, i) => setTimeout(() => {
@@ -384,16 +384,16 @@ function bjFinish(d) {
   else { m.className = 'msg lose'; m.textContent = (d.playerScore > 21 ? 'Buste ! ' : 'Perdu. ') + d.playerScore + ' vs ' + d.dealerScore; }
 }
 async function bjDeal() {
-  const bet = int('bjBet'); if (!bet) return toast('Mise invalide');
+  const bet = int('bjBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   $('bjDealBtn').disabled = true;
   bjCurrentBet = bet;
-  let d; try { d = await api('/bj/deal', 'POST', { bet }); } catch (e) { $('bjDealBtn').disabled = false; return toast(e.message); }
+  let d; try { d = await api('/bj/deal', 'POST', { bet }); } catch (e) { $('bjDealBtn').disabled = false; return toast(e.message, 4000, 'error'); }
   $('bjBetRow').classList.add('hidden'); $('bjActions').classList.remove('hidden'); $('bjMsg').textContent = '';
   setBalance(d.balance, undefined, d.xp, d.level); bjRender(d); $('bjDealBtn').disabled = false;
   if (d.outcome) bjFinish(d);
 }
-async function bjHit()   { let d; try { d = await api('/bj/hit',   'POST'); } catch (e) { return toast(e.message); } bjRender(d); if (d.outcome) bjFinish(d); }
-async function bjStand() { let d; try { d = await api('/bj/stand', 'POST'); } catch (e) { return toast(e.message); } bjRender(d); bjFinish(d); }
+async function bjHit()   { let d; try { d = await api('/bj/hit',   'POST'); } catch (e) { return toast(e.message, 4000, 'error'); } bjRender(d); if (d.outcome) bjFinish(d); }
+async function bjStand() { let d; try { d = await api('/bj/stand', 'POST'); } catch (e) { return toast(e.message, 4000, 'error'); } bjRender(d); bjFinish(d); }
 
 /* ══════════════════ MINES ══════════════════════════════ */
 let minesActive = false, minesCurrentBet = 0;
@@ -404,9 +404,9 @@ function minesCell(i) { return document.querySelector('.cell[data-i="' + i + '"]
 function revealBombs(bombs) { bombs.forEach(j => { const c = minesCell(j); if (c && !c.classList.contains('gem')) { c.classList.add('bomb','done'); c.innerHTML = MINE_BOMB; } }); }
 
 async function minesStartGame() {
-  const bet = int('minesBet'); if (!bet) return toast('Mise invalide');
+  const bet = int('minesBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const bombs = +$('minesCount').value;
-  let d; try { d = await api('/mines/start', 'POST', { bet, bombs }); } catch (e) { return toast(e.message); }
+  let d; try { d = await api('/mines/start', 'POST', { bet, bombs }); } catch (e) { return toast(e.message, 4000, 'error'); }
   buildMinesGrid(); minesActive = true; minesCurrentBet = bet;
   $('minesStart').classList.add('hidden'); $('minesCash').classList.remove('hidden'); $('minesMsg').textContent = '';
   $('minesMult').textContent = '1.00×'; $('minesPot').textContent = '0'; $('minesGems').textContent = '0';
@@ -415,7 +415,7 @@ async function minesStartGame() {
 async function minesPick(i) {
   if (!minesActive) return;
   const cell = minesCell(i); if (cell.classList.contains('done')) return;
-  let d; try { d = await api('/mines/pick', 'POST', { i }); } catch (e) { return toast(e.message); }
+  let d; try { d = await api('/mines/pick', 'POST', { i }); } catch (e) { return toast(e.message, 4000, 'error'); }
   cell.classList.add('done');
   if (d.result === 'bomb') {
     cell.classList.add('bomb'); cell.innerHTML = MINE_BOMB; revealBombs(d.bombs); shakeEl($('minesGrid')); minesActive = false;
@@ -438,7 +438,7 @@ async function minesPick(i) {
 }
 async function minesCashout() {
   if (!minesActive) return;
-  let d; try { d = await api('/mines/cashout', 'POST'); } catch (e) { return toast(e.message); }
+  let d; try { d = await api('/mines/cashout', 'POST'); } catch (e) { return toast(e.message, 4000, 'error'); }
   revealBombs(d.bombs); minesActive = false;
   $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
   setBalance(d.balance, true, d.xp, d.level);
@@ -529,9 +529,9 @@ function drawPlinko() {
 function shuffleArr(a) { for (let i = a.length-1; i > 0; i--) { const j = Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
 async function plinkoDrop() {
   if (pkAnim) return;
-  const bet = int('plinkoBet'); if (!bet) return toast('Mise invalide');
+  const bet = int('plinkoBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const risk = $('plinkoRisk').value;
-  let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message); }
+  let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message, 4000, 'error'); }
   $('plinkoMsg').textContent = ''; pkHighlight = -1;
   const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
   const g = pkGeom(); const span = g.binY - g.topY - g.spacing*0.4;
@@ -577,8 +577,8 @@ function buildWheel() {
 }
 async function wheelSpin() {
   if (wheelSpinning) return; buildWheel();
-  const bet = int('wBet'); if (!bet) return toast('Mise invalide');
-  let d; try { d = await api('/play/wheel', 'POST', { bet }); } catch (e) { return toast(e.message); }
+  const bet = int('wBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
+  let d; try { d = await api('/play/wheel', 'POST', { bet }); } catch (e) { return toast(e.message, 4000, 'error'); }
   wheelSpinning = true; $('wBtn').disabled = true; $('wMsg').textContent = '';
   const seg = 360/WHEEL.length, mid = d.index*seg+seg/2, jitter = (Math.random()-.5)*(seg*.6);
   const base = Math.ceil(wheelRot/360)*360; wheelRot = base+360*6-mid+jitter;
@@ -608,9 +608,9 @@ function diceUpdate() {
 }
 async function diceRoll() {
   if (diceRolling) return;
-  const bet = int('diceBet'); if (!bet) return toast('Mise invalide');
+  const bet = int('diceBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const chance = Math.max(2, Math.min(95, +$('diceSlider').value));
-  let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message); }
+  let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message, 4000, 'error'); }
   diceRolling = true; $('diceBtn').disabled = true; $('diceMsg').textContent = '';
   const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%';
   setTimeout(() => {

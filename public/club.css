@@ -233,8 +233,8 @@
 .twofa-loading { color: rgba(230, 225, 245, .6); }
 .twofa-modal-input { width: 100%; box-sizing: border-box; text-align: center; letter-spacing: .3em; font-family: var(--num); font-size: 1.5rem; padding: 12px; margin: 6px 0 2px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .15); border-radius: 8px; color: #f5f0ff; outline: none; }
 .twofa-modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18)); }
-.twofa-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
-.twofa-modal-actions .btn { flex: 0 0 auto; }
+.twofa-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+.join-modal-card .twofa-modal-actions .btn { width: auto; flex: 0 0 auto; margin-top: 0; }
 
 .invite-banner {
   background: var(--accent-soft, rgba(201, 168, 76, .12));

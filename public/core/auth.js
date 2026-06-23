@@ -20,7 +20,14 @@ async function api(path, method = 'GET', body) {
 
 function fmt(n) { return Math.floor(n).toLocaleString('fr-FR'); }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-function toast(t, ms = 2800) { const el = $('toast'); if (!el) { console.log(t); return; } el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms); }
+function toast(t, ms = 2800, type = 'success') {
+  const el = $('toast'); if (!el) { console.log(t); return; }
+  el.dataset.type = type;
+  el.innerHTML = '<span class="toast-ic"></span><span class="toast-msg"></span>';
+  el.querySelector('.toast-msg').textContent = t;
+  el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
 
 let _modalCb = null;
 function openModal(title, bodyHtml, onConfirm) {

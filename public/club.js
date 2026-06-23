@@ -15,7 +15,7 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
       $('inviteBanner').textContent = `Invitation valide · ${fmt(inv.credits)} Crédits Club offerts`;
       $('registerSection').classList.remove('hidden');
     } catch (e) {
-      toast(e.message, 4000);
+      toast(e.message, 4000, 'error');
       $('portalLogin').classList.remove('hidden');
     }
   } else {

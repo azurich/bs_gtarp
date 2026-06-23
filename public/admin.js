@@ -16,7 +16,7 @@ function _copyText(text) {
     document.body.appendChild(el); el.focus(); el.select();
     let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(el);
-    toast(ok ? 'Lien copié !' : 'Copie impossible — sélectionne le lien manuellement', 4000);
+    ok ? toast('Lien copié !') : toast('Copie impossible — sélectionne le lien manuellement', 4000, 'error');
   };
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => toast('Lien copié !')).catch(fallback);
@@ -119,11 +119,11 @@ function adminCredit(u) {
     '<div class="field"><label>Montant à ajouter</label><input id="modalInput" type="number" min="1" value="1000" style="' + MODAL_INPUT_STYLE + '"></div>',
     async () => {
       const n = Math.floor(+$('modalInput').value);
-      if (!n || n <= 0) return toast('Montant invalide', 3500);
+      if (!n || n <= 0) return toast('Montant invalide', 3500, 'error');
       try {
         await api('/admin/credit', 'POST', { user: u, amount: n });
         toast('+ ' + fmt(n) + ' crédits ajoutés'); renderAdminUsers();
-      } catch (e) { toast(e.message, 4000); }
+      } catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
   setTimeout(() => { const i = $('modalInput'); if (i) i.focus(); }, 60);
@@ -136,11 +136,11 @@ function adminDebit(u) {
     + '<p style="margin-top:8px;font-size:12px;color:var(--a-tx-muted)">Le solde ne descend pas en dessous de 0.</p>',
     async () => {
       const n = Math.floor(+$('modalInput').value);
-      if (!n || n <= 0) return toast('Montant invalide', 3500);
+      if (!n || n <= 0) return toast('Montant invalide', 3500, 'error');
       try {
         await api('/admin/credit', 'POST', { user: u, amount: -n });
         toast('− ' + fmt(n) + ' crédits retirés'); renderAdminUsers();
-      } catch (e) { toast(e.message, 4000); }
+      } catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
   setTimeout(() => { const i = $('modalInput'); if (i) i.focus(); }, 60);
@@ -152,7 +152,7 @@ function adminDelete(u) {
     '<p style="color:var(--dim);margin-top:6px;line-height:1.5">Cette action est irréversible. Le compte et toutes ses données seront supprimés.</p>',
     async () => {
       try { await api('/admin/delete', 'POST', { user: u }); toast('Compte supprimé'); renderAdminUsers(); }
-      catch (e) { toast(e.message); }
+      catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
 }
@@ -163,7 +163,7 @@ function adminDisable2FA(u) {
     '<p style="color:var(--dim);margin-top:6px;line-height:1.5">À utiliser si le joueur a perdu l\'accès à son application d\'authentification. Il pourra se reconnecter sans code, puis réactiver la 2FA depuis son profil.</p>',
     async () => {
       try { await api('/admin/2fa-disable', 'POST', { user: u }); toast('2FA désactivée pour ' + u); renderAdminUsers(); }
-      catch (e) { toast(e.message); }
+      catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
 }
@@ -213,7 +213,7 @@ function clearLogs() {
   openModal(
     'Vider le journal ?',
     '<p style="color:var(--dim);margin-top:6px">Toutes les entrées seront supprimées définitivement.</p>',
-    async () => { try { await api('/admin/logs','DELETE'); renderLogs(); toast('Journal vidé'); } catch(e){ toast(e.message); } }
+    async () => { try { await api('/admin/logs','DELETE'); renderLogs(); toast('Journal vidé'); } catch(e){ toast(e.message, 4000, 'error'); } }
   );
 }
 
@@ -236,7 +236,7 @@ async function adminGenInvite() {
     $('inviteResult').classList.remove('hidden');
     renderInvites();
     toast('Lien généré !');
-  } catch (e) { toast(e.message); }
+  } catch (e) { toast(e.message, 4000, 'error'); }
 }
 
 function copyInviteLink() {
@@ -253,7 +253,7 @@ async function deleteInvite(token) {
     '<p style="color:var(--dim);margin-top:6px">Le lien sera retiré de la liste. S\'il n\'a pas été utilisé, il ne pourra plus servir à créer un compte.</p>',
     async () => {
       try { await api('/admin/invite/' + token, 'DELETE'); toast('Invitation supprimée'); renderInvites(); }
-      catch (e) { toast(e.message); }
+      catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
 }
@@ -294,7 +294,7 @@ async function exportDb() {
     a.download = 'blackstate-backup-' + new Date().toISOString().slice(0, 10) + '.db';
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     toast('Base exportée');
-  } catch (e) { toast('Export impossible', 4000); }
+  } catch (e) { toast('Export impossible', 4000, 'error'); }
 }
 
 function importDb(input) {
@@ -317,7 +317,7 @@ function importDb(input) {
         if (!res.ok) throw new Error(d.error || 'Import refusé');
         toast('Base importée — redémarrage en cours…', 6000);
         setTimeout(() => location.reload(), 4500);
-      } catch (e) { toast(e.message || 'Import impossible', 5000); }
+      } catch (e) { toast(e.message || 'Import impossible', 5000, 'error'); }
     });
 }
 
