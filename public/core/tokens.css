@@ -175,6 +175,7 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-0.02em}
 .btn{
   --lift:-2px;
   cursor:pointer;text-decoration:none;border-radius:var(--r2);
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
   padding:.75rem 1.2rem;font-size:1rem;width:100%;
   font-family:var(--display);letter-spacing:.12em;font-weight:600;text-transform:uppercase;
   background:var(--accent);
