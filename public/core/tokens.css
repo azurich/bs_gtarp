@@ -333,17 +333,20 @@ h1,h2,h3{font-family:var(--display);letter-spacing:-0.02em}
 /* ══════════════════════════════════════════════════════════
    TOAST
 ══════════════════════════════════════════════════════════ */
-.toast{
-  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);z-index:99;
-  background:var(--surface-1);border:1px solid var(--bdr-med);color:var(--tx);
-  padding:10px 20px;border-radius:var(--r4);font-weight:600;font-family:var(--body);
-  box-shadow:var(--shadow-lg);opacity:0;font-size:.82rem;
-  transition:opacity .4s ease, transform .4s ease;
-  white-space:nowrap;
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:300;
+  max-width:min(360px,82vw);
+  background:rgba(16,15,20,.97);
+  border:1px solid var(--accent-dim);border-left:3px solid var(--accent);
+  color:var(--tx);padding:13px 18px;border-radius:12px;
+  font-weight:600;font-family:var(--body);font-size:.88rem;line-height:1.35;
+  box-shadow:0 14px 44px rgba(0,0,0,.55);
+  opacity:0;transform:translateX(24px);pointer-events:none;
+  transition:opacity .3s ease, transform .3s ease;
 }
-.toast.show{
-  transform:translateX(-50%) translateY(0);opacity:1;
-  transition:opacity .12s ease, transform .22s var(--ease-back);
+#toast.show{
+  opacity:1;transform:translateX(0);
+  transition:opacity .14s ease, transform .26s var(--ease-back);
 }
 
 /* ══════════════════════════════════════════════════════════

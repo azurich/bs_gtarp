@@ -199,19 +199,7 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 .modal-actions{display:flex;gap:10px;flex-direction:row-reverse}
 .modal-actions .btn{flex:1;margin-top:0}
 
-/* ── toast ───────────────────────────────────────────────── */
-#toast{
-  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);z-index:99;
-  background:var(--surface-1);border:1px solid var(--bdr-med);color:var(--tx);
-  padding:10px 20px;border-radius:var(--r4);font-weight:600;font-family:var(--body);
-  box-shadow:var(--shadow-lg);opacity:0;font-size:.82rem;
-  transition:opacity .4s ease, transform .4s ease;
-  white-space:nowrap;
-}
-#toast.show{
-  transform:translateX(-50%) translateY(0);opacity:1;
-  transition:opacity .12s ease, transform .22s var(--ease-back);
-}
+/* toast : style partagé dans core/tokens.css (#toast, bas-droite) */
 
 /* ── mobile admin ────────────────────────────────────────── */
 @media(max-width:680px){

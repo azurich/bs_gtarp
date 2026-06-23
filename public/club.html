@@ -31,6 +31,19 @@
     </div>
   </div>
 
+  <div id="login2faModal" class="join-modal hidden" onclick="if(event.target===this)close2faModal()">
+    <div class="join-modal-card">
+      <h3>Double authentification</h3>
+      <p>Entre le code à 6 chiffres affiché par ton application d'authentification.</p>
+      <input id="loginCode" class="twofa-modal-input" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      <div id="login2faErr" class="form-err"></div>
+      <div class="twofa-modal-actions">
+        <button class="btn ghost" onclick="close2faModal()">Annuler</button>
+        <button class="btn" onclick="submitLoginCode()">Valider</button>
+      </div>
+    </div>
+  </div>
+
   <main class="portal">
 
     <!-- CONNEXION (déconnecté) -->
@@ -42,9 +55,6 @@
       <div class="portal-card">
         <label>Pseudo<input id="loginUser" autocomplete="username"></label>
         <label>Mot de passe<input id="loginPass" type="password" autocomplete="current-password"></label>
-        <label id="login2fa" class="hidden">Code de double authentification
-          <input id="loginCode" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code">
-        </label>
         <div id="loginErr" class="form-err"></div>
         <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
         <button type="button" class="portal-note portal-note-link" onclick="showJoinInfo()">L'accès se fait uniquement sur invitation.</button>

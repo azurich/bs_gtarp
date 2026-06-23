@@ -24,7 +24,7 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
     const pass = $('loginPass');
     if (pass) pass.addEventListener('keydown', e => { if (e.key === 'Enter') doPortalLogin(); });
     const code = $('loginCode');
-    if (code) code.addEventListener('keydown', e => { if (e.key === 'Enter') doPortalLogin(); });
+    if (code) code.addEventListener('keydown', e => { if (e.key === 'Enter') submitLoginCode(); });
   }
   if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
@@ -32,22 +32,30 @@ const INVITE_TOKEN = new URLSearchParams(location.search).get('invite') || '';
 function showJoinInfo() { $('joinModal').classList.remove('hidden'); }
 function closeJoinModal() { $('joinModal').classList.add('hidden'); }
 
-let _login2faMode = false;
 async function doPortalLogin() {
   $('loginErr').textContent = '';
-  const user = $('loginUser').value.trim();
-  const pass = $('loginPass').value;
-  const code = _login2faMode ? $('loginCode').value.trim() : '';
   try {
-    const r = await doLogin(user, pass, code);
-    if (r && r.need2fa) {                        // 2FA requise → afficher le champ code
-      _login2faMode = true;
-      $('login2fa').classList.remove('hidden');
-      const c = $('loginCode'); if (c) c.focus();
-      return;
-    }
-    location.href = r.admin ? '/admin' : '/';   // recharge sur le hub
+    const r = await doLogin($('loginUser').value.trim(), $('loginPass').value);
+    if (r && r.need2fa) { open2faModal(); return; }     // 2FA requise → pop-up code
+    location.href = r.admin ? '/admin' : '/';           // recharge sur le hub
   } catch (e) { $('loginErr').textContent = e.message; }
+}
+
+function open2faModal() {
+  $('login2faErr').textContent = '';
+  $('loginCode').value = '';
+  $('login2faModal').classList.remove('hidden');
+  setTimeout(() => { const c = $('loginCode'); if (c) c.focus(); }, 50);
+}
+function close2faModal() { $('login2faModal').classList.add('hidden'); }
+
+async function submitLoginCode() {
+  $('login2faErr').textContent = '';
+  try {
+    const r = await doLogin($('loginUser').value.trim(), $('loginPass').value, $('loginCode').value.trim());
+    if (r && r.need2fa) { $('login2faErr').textContent = 'Entre le code à 6 chiffres.'; return; }
+    location.href = r.admin ? '/admin' : '/';
+  } catch (e) { $('login2faErr').textContent = e.message; }
 }
 
 async function submitRegister() {
