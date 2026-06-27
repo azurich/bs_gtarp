@@ -1,5 +1,5 @@
-/* Génère public/core/game-icons.js à partir des SVG game-icons.net téléchargés (/tmp/gi)
-   + 2 icônes custom (plinko, wheel). One-shot. */
+/* Génère public/core/game-icons.js à partir des SVG game-icons.net téléchargés.
+   One-shot. */
 import { readFileSync, writeFileSync } from 'node:fs'
 
 function innerIcon(file: string): string {
@@ -15,29 +15,20 @@ const GI: Record<string, string> = {
   blackjack: innerIcon('scripts/gi-src/blackjack.svg'),
   mines:     innerIcon('scripts/gi-src/mines.svg'),
   dice:      innerIcon('scripts/gi-src/dice.svg'),
-  // Plinko (custom) : bille en haut + triangle de plots
-  plinko:
-    '<circle cx="256" cy="58" r="36"/>' +
-    '<circle cx="256" cy="168" r="17"/>' +
-    '<circle cx="200" cy="238" r="17"/><circle cx="312" cy="238" r="17"/>' +
-    '<circle cx="144" cy="308" r="17"/><circle cx="256" cy="308" r="17"/><circle cx="368" cy="308" r="17"/>' +
-    '<circle cx="88" cy="378" r="17"/><circle cx="200" cy="378" r="17"/><circle cx="312" cy="378" r="17"/><circle cx="424" cy="378" r="17"/>' +
-    '<rect x="78" y="430" width="356" height="20" rx="6"/>',
-  // Roue de la fortune (custom) : pointeur + anneau + croisillon + moyeu
-  wheel:
-    '<path d="M256 30 L294 96 L218 96 Z"/>' +
-    '<path fill-rule="evenodd" d="M256 96a190 190 0 1 0 0 380 190 190 0 0 0 0-380zm0 54a136 136 0 1 1 0 272 136 136 0 0 1 0-272z"/>' +
-    '<rect x="244" y="120" width="24" height="332" rx="6"/>' +
-    '<rect x="90" y="274" width="332" height="24" rx="6"/>' +
-    '<circle cx="256" cy="286" r="40"/>',
+  plinko:    innerIcon('scripts/gi-src/plinko.svg'),
+  wheel:     innerIcon('scripts/gi-src/wheel.svg'),
 }
 
 const header =
 `/* BlackState — icônes des jeux du casino.
    Sources game-icons.net (CC BY 3.0) :
-     slots = caro-asercion/slot-machine · blackjack = lorc/poker-hand
-     mines = lorc/land-mine · dice = delapouite/perspective-dice-six-faces-six
-   plinko & wheel : icônes maison. SVG teintés à la couleur courante (currentColor). */
+     slots     = caro-asercion/slot-machine
+     blackjack = lorc/poker-hand
+     mines     = lorc/land-mine
+     dice      = delapouite/perspective-dice-six-faces-six
+     plinko    = delapouite/ball-pyramid
+     wheel     = caro-asercion/spinning-wheel
+   SVG teintés à la couleur courante (currentColor). */
 `
 
 const body =
@@ -53,7 +44,7 @@ function applyGameIcons() {
     var g = el.dataset.game, ic = el.querySelector('.hg-icon'); if (GI[g] && ic) ic.innerHTML = giSvg(g);
   });
   document.querySelectorAll('.game-view[id^="view-"]').forEach(function (v) {
-    var g = v.id.slice(5), ic = v.querySelector('.game-head .ic-game');
+    var g = v.id.slice(5), ic = v.querySelector('.machine-head .ic-game');
     if (GI[g] && ic) { var s = document.createElement('span'); s.className = 'ic-game'; s.innerHTML = giSvg(g); ic.replaceWith(s); }
   });
 }

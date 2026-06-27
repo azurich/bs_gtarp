@@ -352,8 +352,16 @@ function slotSymbolHTML(emoji) {
   if (!m) return '<span class="slot-sym">' + emoji + '</span>';
   return '<span class="slot-sym ' + m[1] + '">' + SLOT_SVG[m[0]] + '</span>';
 }
+function renderPaytable() {
+  const p = $('slotPaytable'); if (!p) return;
+  const rows = [['7️⃣','20×'],['💎','8×'],['🔔','3×'],['🍒','2×']];
+  p.innerHTML = rows.map(r =>
+    '<span class="pt">' + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + ' = ' + r[1] + '</span>'
+  ).join('');
+}
 function initSlots() {
   ['🍒','🔔','💎'].forEach((s, i) => { const r = $('r'+i); if (r) r.innerHTML = slotSymbolHTML(s); });
+  renderPaytable();
 }
 let slotSpinning = false;
 async function spin() {
