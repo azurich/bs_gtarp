@@ -603,20 +603,15 @@ async function wheelSpin() {
   if (wheelSpinning) return; buildWheel();
   const bet = int('wBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   let d; try { d = await api('/play/wheel', 'POST', { bet }); } catch (e) { return toast(e.message, 4000, 'error'); }
-  wheelSpinning = true; $('wBtn').disabled = true; $('wMsg').textContent = '';
+  wheelSpinning = true; $('wBtn').disabled = true;
+  { const res = $('wResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const seg = 360/WHEEL.length, mid = d.index*seg+seg/2, jitter = (Math.random()-.5)*(seg*.6);
   const base = Math.ceil(wheelRot/360)*360; wheelRot = base+360*6-mid+jitter;
   $('wheelG').style.transform = 'rotate('+wheelRot+'deg)';
   setTimeout(() => {
     wheelSpinning = false; $('wBtn').disabled = false;
-    setBalance(d.balance, d.gain > 0, d.xp, d.level);
-    const m = d.mult, msg = $('wMsg'), wrap = document.querySelector('.wheel-wrap');
-    if (m >= 15) {
-      msg.className = 'msg win'; msg.textContent = '💰 JACKPOT '+m+'× → +'+fmt(d.gain)+' 🪙 !';
-      if (wrap) { wrap.classList.add('jackpot-flash'); setTimeout(() => wrap.classList.remove('jackpot-flash'), 2400); }
-      checkBigWin(bet, d.gain);
-    } else if (m > 0) { msg.className = 'msg win'; msg.textContent = m+'× → +'+fmt(d.gain)+' 🪙'; checkBigWin(bet, d.gain); }
-    else              { msg.className = 'msg lose'; msg.textContent = '0× → mise perdue'; }
+    const machine = $('view-wheel').querySelector('.machine');
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
   }, 4700);
 }
 

@@ -336,12 +336,12 @@
           <!-- WHEEL -->
           <div id="view-wheel" class="view game-view">
             <div class="view-inner">
-              <div class="card">
-                <div class="game-head">
-                  <h2><i data-lucide="disc-3" class="ic-game"></i> Roue</h2>
-                  <span class="sub">Tentez le jackpot 15×</span>
+              <div class="machine" data-game="wheel">
+                <div class="machine-head">
+                  <span class="ic-game"></span>
+                  <div class="machine-head-txt"><h2>Roue</h2><span class="sub">Tentez le jackpot 15×</span></div>
                 </div>
-                <div class="game-board">
+                <div class="machine-board">
                   <div class="wheel-wrap">
                     <div class="wheel-pointer"></div>
                     <svg class="wheel-svg" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg">
@@ -350,19 +350,21 @@
                     <div class="wheel-hub">BS</div>
                   </div>
                 </div>
-                <div class="bet-row">
-                  <div class="field">
-                    <label>Mise</label>
-                    <input id="wBet" type="number" min="1" value="100">
-                    <div class="qbet">
-                      <button onclick="qbet('wBet','half')">½</button>
-                      <button onclick="qbet('wBet','double')">×2</button>
-                      <button onclick="qbet('wBet','max')">MAX</button>
+                <div class="machine-result" id="wResult" data-state="idle"></div>
+                <div class="machine-controls">
+                  <div class="bet-row">
+                    <div class="field">
+                      <label>Mise</label>
+                      <input id="wBet" type="number" min="1" value="100">
+                      <div class="qbet">
+                        <button onclick="qbet('wBet','half')">½</button>
+                        <button onclick="qbet('wBet','double')">×2</button>
+                        <button onclick="qbet('wBet','max')">MAX</button>
+                      </div>
                     </div>
+                    <button id="wBtn" class="btn" onclick="wheelSpin()">TOURNER</button>
                   </div>
-                  <button id="wBtn" class="btn" onclick="wheelSpin()">TOURNER</button>
                 </div>
-                <div id="wMsg" class="msg"></div>
               </div>
             </div>
           </div>
