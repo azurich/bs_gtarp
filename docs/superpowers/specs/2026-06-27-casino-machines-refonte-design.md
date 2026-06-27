@@ -80,20 +80,30 @@ gameResult({
 })
 ```
 
-Calcule `mult = bet > 0 ? gain / bet : 0`, choisit le palier, applique l'effet
-machine, met à jour le solde (`setBalance`), écrit l'indicateur `.machine-result`,
-et déclenche le toast.
+Calcule `mult = bet > 0 ? gain / bet : 0`, choisit le palier (selon le résultat
+**net**, `gain` vs `bet`), applique l'effet machine, met à jour le solde
+(`setBalance`), écrit l'indicateur `.machine-result`, et déclenche un toast
+**uniquement sur un vrai gain net**.
 
-| Palier | Condition | Effet machine | Notif |
+**Règle des toasts (choix produit) :** un toast n'apparaît **que lorsque le joueur
+gagne réellement** (`gain > bet`). Perte, récupération partielle et mise rendue ne
+produisent **pas** de toast — seul l'indicateur machine (discret, persistant) les
+signale. Évite le déluge de rouge quand la cagnotte démarre à 0 (beaucoup de
+pertes au début).
+
+| Palier | Condition (net) | Effet machine | Notif |
 |---|---|---|---|
-| **Perte** | `gain <= 0` | tapis assombri bref + micro-shake | toast rouge `Perdu −{mise}` |
-| **Petit gain** | `0 < mult ≤ 2` | glow violet du board + count-up solde | toast vert `+{gain}` |
-| **Gain moyen** | `2 < mult ≤ 5` | burst de particules + pulse du cadre néon | toast vert `+{gain}` |
-| **Gros gain** | `5 < mult ≤ 20` | overlay **BIG WIN** + confettis | toast vert `+{gain}` |
-| **Jackpot** | `mult > 20` | **MEGA WIN** plein écran, halo renforcé | toast vert `+{gain}` |
-| *(Égalité)* | `push === true` | effet neutre (léger pulse) | toast neutre `Mise rendue` |
+| **Perte** | `gain == 0` | tapis assombri + micro-shake | indicateur `Perdu` — pas de toast |
+| **Récup. partielle** | `0 < gain < bet` | assombri léger | indicateur `−{mise−gain}` — pas de toast |
+| **Mise rendue** | `gain == bet` *(ou `push`)* | neutre (léger pulse) | indicateur `Mise rendue` — pas de toast |
+| **Petit gain** | `bet < gain ≤ 2×bet` | glow violet du board + count-up solde | toast vert `+{gain}` |
+| **Gain moyen** | `2×bet < gain ≤ 5×bet` | burst de particules + pulse du cadre néon | toast vert `+{gain}` |
+| **Gros gain** | `5×bet < gain ≤ 20×bet` | overlay **BIG WIN** + confettis | toast vert `+{gain}` |
+| **Jackpot** | `gain > 20×bet` | **MEGA WIN** plein écran, halo renforcé | toast vert `+{gain}` |
 
 - Seuils ×5 / ×20 conservés (continuité avec `checkBigWin` actuel).
+- L'égalité blackjack (`push`) coïncide avec `gain == bet` → palier « Mise rendue »
+  (le paramètre `push` ne sert qu'à fiabiliser le libellé de l'indicateur).
 - Effets machine = classes CSS posées/retirées sur `.machine` (`fx-lose`,
   `fx-win-s`, `fx-win-m`) + overlay pour `fx-win-big` / `fx-win-mega`.
 - Remplace `flashBal`, `shakeEl` ad hoc, `checkBigWin`, et les `.msg` par jeu.
@@ -107,15 +117,18 @@ cliquable pour fermer, auto-fermeture conservée.
 
 ### 4. Notifications (toasts résultat)
 
-- Réutilise le système de toast existant (`toast(msg, ms, type)` dans
-  `core/auth.js`, `#toast` stylé dans `tokens.css`) : `type='success'` (vert,
-  gain) / `type='error'` (rouge, perte) / `type='info'` (neutre, égalité).
-- **Anti-spam** : le toast de résultat **se remplace** (un seul nœud `#toast`,
-  déjà le cas) et s'auto-efface vite (~1,8 s) pour le joueur qui enchaîne.
+- **Toast uniquement sur gain net** (`gain > bet`) : `type='success'` (vert) via
+  le système existant (`toast(msg, ms, type)` dans `core/auth.js`, `#toast` stylé
+  dans `tokens.css`). **Aucun toast** sur perte, récupération partielle ou mise
+  rendue — ces cas ne sont signalés que par l'indicateur machine.
+- **Anti-spam** : le toast de gain **se remplace** (un seul nœud `#toast`, déjà le
+  cas) et s'auto-efface vite (~1,8 s) pour le joueur qui enchaîne.
 - Les **erreurs** (mise invalide, solde insuffisant, réseau) gardent leurs toasts
-  rouges actuels — même canal, durée plus longue.
-- L'indicateur `.machine-result` reste, lui, **persistant** jusqu'au coup suivant
-  (le joueur qui a manqué le toast voit toujours son dernier résultat).
+  rouges (`type='error'`) actuels — même canal, durée plus longue. À distinguer
+  des pertes de jeu, qui elles ne toastent pas.
+- L'indicateur `.machine-result` reste **persistant** jusqu'au coup suivant et
+  couvre **tous** les résultats (gain, perte, récup. partielle, mise rendue), avec
+  un code couleur (vert/violet sur gain, atténué sur perte).
 
 ### 5. Logos / icônes
 
@@ -182,9 +195,10 @@ Chaque résolution de jeu appelle `gameResult()` au lieu de sa logique
 
 - Erreurs réseau / mise invalide / solde insuffisant : toasts rouges existants,
   durée longue ; **pas** d'effet machine de perte (ce n'est pas une partie jouée).
-- `gameResult()` tolère `machine` absent (no-op sur les effets DOM, toast quand
-  même) pour ne jamais casser le flux de jeu.
-- Égalité blackjack (`push`) : pas de palier perte/gain, toast neutre.
+- `gameResult()` tolère `machine` absent (no-op sur les effets DOM, le toast de
+  gain part quand même) pour ne jamais casser le flux de jeu.
+- Égalité blackjack (`push`) : palier « Mise rendue », indicateur neutre, pas de
+  toast.
 
 ## Tests / vérification
 
@@ -192,9 +206,10 @@ Refonte essentiellement visuelle → vérification manuelle + garde-fous :
 
 1. **Non-régression du jeu** : les 6 résolutions fonctionnent (Slots/Plinko/Roue/
    Dice jouables ; BJ/Démineur renvoient bien 503), solde/XP corrects.
-2. **Paliers** : forcer (mise/gain simulés) chaque palier et vérifier l'effet +
-   le toast attendus (perte, petit, moyen, BIG, MEGA, égalité).
-3. **Anti-spam toast** : enchaîner des spins → un seul toast à la fois.
+2. **Paliers** : forcer (mise/gain simulés) chaque palier — perte, récup.
+   partielle, mise rendue, petit, moyen, BIG, MEGA — et vérifier l'effet machine,
+   l'indicateur, et que **le toast ne part QUE sur gain net** (`gain > bet`).
+3. **Anti-spam toast** : enchaîner des gains → un seul toast à la fois.
 4. **Responsive fluide** : vérifier chaque machine de ~320px à grand écran
    (container queries), aucun débordement, boutons tactiles ≥ 44px.
 5. **Charte** : aucune couleur or/violet hors `--accent*`, plus d'emoji dans l'UI
