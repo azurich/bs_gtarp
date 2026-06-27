@@ -298,37 +298,39 @@
           <!-- PLINKO -->
           <div id="view-plinko" class="view game-view">
             <div class="view-inner">
-              <div class="card">
-                <div class="game-head">
-                  <h2><i data-lucide="circle-dot" class="ic-game"></i> Plinko</h2>
-                  <span class="sub">Laissez tomber la balle</span>
+              <div class="machine" data-game="plinko">
+                <div class="machine-head">
+                  <span class="ic-game"></span>
+                  <div class="machine-head-txt"><h2>Plinko</h2><span class="sub">Laissez tomber la balle</span></div>
                 </div>
-                <div class="game-board">
+                <div class="machine-board">
                   <div class="plinko-screen">
                     <canvas id="plinkoCanvas" width="500" height="460"></canvas>
                   </div>
                 </div>
-                <div class="bet-row">
-                  <div class="field plinko-risk">
-                    <label>Risque</label>
-                    <select id="plinkoRisk">
-                      <option value="low">Faible</option>
-                      <option value="med" selected>Moyen</option>
-                      <option value="high">Élevé</option>
-                    </select>
-                  </div>
-                  <div class="field">
-                    <label>Mise</label>
-                    <input id="plinkoBet" type="number" min="1" value="100">
-                    <div class="qbet">
-                      <button onclick="qbet('plinkoBet','half')">½</button>
-                      <button onclick="qbet('plinkoBet','double')">×2</button>
-                      <button onclick="qbet('plinkoBet','max')">MAX</button>
+                <div class="machine-result" id="plinkoResult" data-state="idle"></div>
+                <div class="machine-controls">
+                  <div class="bet-row">
+                    <div class="field plinko-risk">
+                      <label>Risque</label>
+                      <select id="plinkoRisk">
+                        <option value="low">Faible</option>
+                        <option value="med" selected>Moyen</option>
+                        <option value="high">Élevé</option>
+                      </select>
                     </div>
+                    <div class="field">
+                      <label>Mise</label>
+                      <input id="plinkoBet" type="number" min="1" value="100">
+                      <div class="qbet">
+                        <button onclick="qbet('plinkoBet','half')">½</button>
+                        <button onclick="qbet('plinkoBet','double')">×2</button>
+                        <button onclick="qbet('plinkoBet','max')">MAX</button>
+                      </div>
+                    </div>
+                    <button id="plinkoBtn" class="btn" onclick="plinkoDrop()">LÂCHER</button>
                   </div>
-                  <button id="plinkoBtn" class="btn" onclick="plinkoDrop()">LÂCHER</button>
                 </div>
-                <div id="plinkoMsg" class="msg"></div>
               </div>
             </div>
           </div>

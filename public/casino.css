@@ -270,7 +270,7 @@ input[type=range]::-webkit-slider-thumb{
   .game-board .reel{flex:0 0 auto;height:min(88cqh,30cqw);max-width:none;width:auto;font-size:min(50cqh,18cqw)}
 
   /* plinko */
-  .game-board .plinko-screen{margin:0;max-width:100%;max-height:100%}
+  .machine-board .plinko-screen{margin:0;max-width:100%;max-height:100%}
 
   /* blackjack */
   .game-board .bj-table{width:100%;margin:0}
@@ -465,10 +465,10 @@ input[type=range]::-webkit-slider-thumb{
 ══════════════════════════════════════════════════════════ */
 .plinko-screen{
   position:relative;border-radius:var(--r3);overflow:hidden;
-  margin:14px auto;max-width:680px;
-  background:radial-gradient(ellipse at 50% -10%,rgba(91,33,182,.28),#0a0617 72%);
-  border:1px solid rgba(201,168,76,.22);
-  box-shadow:inset 0 0 50px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45),inset 0 0 0 1px rgba(201,168,76,.06);
+  margin:0 auto;max-width:680px;
+  background:radial-gradient(ellipse at 50% -10%,var(--v-glow),#0a0617 72%);
+  border:1px solid var(--accent-dim);
+  box-shadow:inset 0 0 50px rgba(0,0,0,.5),0 12px 34px rgba(0,0,0,.45);
 }
 #plinkoCanvas{display:block;margin:0 auto;max-width:100%}
 .plinko-risk{display:flex;gap:8px;align-items:center}

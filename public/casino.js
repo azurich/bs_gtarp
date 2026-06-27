@@ -497,7 +497,6 @@ function initPlinkoCanvas() {
   PK.height = Math.round(PK_H * PK_DPR);
   PCX.setTransform(PK_DPR, 0, 0, PK_DPR, 0, 0);
 }
-function pkColors() { const c = getComputedStyle(document.documentElement); return { gold: c.getPropertyValue('--gold').trim(), dim: c.getPropertyValue('--dim').trim() }; }
 function pkGeom() {
   const w = PK_W, h = PK_H;
   const padX = Math.max(22, w * 0.075), topY = Math.max(22, h * 0.08);
@@ -509,19 +508,19 @@ function pkX(level, rights) { const g = pkGeom(); return g.cx + (2*rights - leve
 function roundRect(x, y, w, h, r) { PCX.beginPath(); PCX.moveTo(x+r,y); PCX.arcTo(x+w,y,x+w,y+h,r); PCX.arcTo(x+w,y+h,x,y+h,r); PCX.arcTo(x,y+h,x,y,r); PCX.arcTo(x,y,x+w,y,r); PCX.closePath(); }
 function pkBinColor(m) {
   if (m >= 5)   return ['rgba(255,60,120,.85)', 'rgba(180,20,70,.85)'];
-  if (m >= 1.5) return ['rgba(201,168,76,.85)', 'rgba(140,110,30,.8)'];
+  if (m >= 1.5) return ['rgba(168,85,247,.85)', 'rgba(109,40,217,.8)'];
   if (m >= 0.9) return ['rgba(124,58,237,.7)',  'rgba(70,30,150,.7)'];
   return ['rgba(60,55,90,.7)', 'rgba(35,30,55,.7)'];
 }
 function drawPlinko() {
   if (!PK || !PCX) return;
-  const g = pkGeom(), c = pkColors(), mult = PK_MULT[$('plinkoRisk').value || 'med'];
+  const g = pkGeom(), mult = PK_MULT[$('plinkoRisk').value || 'med'];
   const pegR  = Math.max(1.8, g.spacing * 0.085);
   const ballR = Math.max(4.5, g.spacing * 0.22);
   PCX.clearRect(0, 0, g.w, g.h);
   for (let l = 1; l <= PK_ROWS; l++) for (let s = 0; s <= l; s++) {
     const x = g.cx + (2*s-l)*g.spacing/2, y = g.topY + (l/PK_ROWS)*(g.binY - g.topY - g.spacing*0.4);
-    PCX.beginPath(); PCX.fillStyle = 'rgba(212,180,90,.85)'; PCX.shadowColor = 'rgba(201,168,76,.5)'; PCX.shadowBlur = 3;
+    PCX.beginPath(); PCX.fillStyle = 'rgba(124,58,237,.85)'; PCX.shadowColor = 'rgba(168,85,247,.5)'; PCX.shadowBlur = 3;
     PCX.arc(x, y, pegR, 0, 7); PCX.fill(); PCX.shadowBlur = 0;
   }
   const bw = g.spacing, fs = Math.min(13, Math.max(8, g.spacing * 0.34));
@@ -529,24 +528,24 @@ function drawPlinko() {
     const x = g.cx + (2*b-PK_ROWS)*g.spacing/2, m = mult[b], on = b === pkHighlight;
     const [c1, c2] = pkBinColor(m);
     const grad = PCX.createLinearGradient(0, g.binY, 0, g.binY + g.binH);
-    if (on) { grad.addColorStop(0, '#ffe9a8'); grad.addColorStop(1, c.gold); }
+    if (on) { grad.addColorStop(0, '#c4b5fd'); grad.addColorStop(1, '#7c3aed'); }
     else    { grad.addColorStop(0, c1); grad.addColorStop(1, c2); }
     PCX.fillStyle = grad;
     PCX.strokeStyle = 'rgba(0,0,0,.25)'; PCX.lineWidth = 1;
     roundRect(x - bw/2 + 1.5, g.binY, bw - 3, g.binH, Math.min(7, bw*0.18)); PCX.fill(); PCX.stroke();
-    PCX.fillStyle = on ? '#1a1206' : '#fff'; PCX.font = '700 ' + fs + 'px Inter, system-ui, sans-serif';
+    PCX.fillStyle = '#fff'; PCX.font = '700 ' + fs + 'px Inter, system-ui, sans-serif';
     PCX.textAlign = 'center'; PCX.textBaseline = 'middle';
     PCX.fillText(m + '×', x, g.binY + g.binH/2);
   }
   for (let i = 0; i < pkTrail.length; i++) {
     const t = pkTrail[i], a = (i + 1) / pkTrail.length;
-    PCX.beginPath(); PCX.fillStyle = 'rgba(245,224,138,' + (a * 0.35) + ')';
+    PCX.beginPath(); PCX.fillStyle = 'rgba(168,85,247,' + (a * 0.35) + ')';
     PCX.arc(t.x, t.y, ballR * a * 0.8, 0, 7); PCX.fill();
   }
   if (pkBall) {
-    PCX.beginPath(); PCX.fillStyle = '#fff6d8'; PCX.shadowColor = c.gold; PCX.shadowBlur = 20;
+    PCX.beginPath(); PCX.fillStyle = '#ede9fe'; PCX.shadowColor = '#a855f7'; PCX.shadowBlur = 20;
     PCX.arc(pkBall.x, pkBall.y, ballR, 0, 7); PCX.fill();
-    PCX.fillStyle = c.gold; PCX.beginPath(); PCX.arc(pkBall.x, pkBall.y, ballR*0.6, 0, 7); PCX.fill();
+    PCX.fillStyle = '#7c3aed'; PCX.beginPath(); PCX.arc(pkBall.x, pkBall.y, ballR*0.6, 0, 7); PCX.fill();
     PCX.shadowBlur = 0;
   }
 }
@@ -556,7 +555,7 @@ async function plinkoDrop() {
   const bet = int('plinkoBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const risk = $('plinkoRisk').value;
   let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message, 4000, 'error'); }
-  $('plinkoMsg').textContent = ''; pkHighlight = -1;
+  { const res = $('plinkoResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } } pkHighlight = -1;
   const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
   const g = pkGeom(); const span = g.binY - g.topY - g.spacing*0.4;
   let t0 = performance.now(), dur = 1300; pkBall = { x: g.cx, y: g.topY }; pkTrail = []; $('plinkoBtn').disabled = true;
@@ -572,10 +571,8 @@ async function plinkoDrop() {
     if (p < 1) pkAnim = requestAnimationFrame(frame);
     else {
       pkBall.x = pkX(PK_ROWS, target); pkBall.y = g.binY-4; pkHighlight = target; pkTrail = []; drawPlinko(); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false;
-      setBalance(d.balance, d.gain >= bet, d.xp, d.level);
-      const m = $('plinkoMsg');
-      if (d.gain >= bet) { m.className = 'msg win'; m.textContent = d.mult + '× → +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
-      else { m.className = 'msg lose'; m.textContent = d.mult + '× → ' + fmt(d.gain) + ' 🪙 (perte)'; }
+      const machine = $('view-plinko').querySelector('.machine');
+      gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
     }
   }
   pkAnim = requestAnimationFrame(frame);
