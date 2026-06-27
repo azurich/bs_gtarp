@@ -630,15 +630,14 @@ async function diceRoll() {
   const bet = int('diceBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const chance = Math.max(2, Math.min(95, +$('diceSlider').value));
   let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message, 4000, 'error'); }
-  diceRolling = true; $('diceBtn').disabled = true; $('diceMsg').textContent = '';
+  diceRolling = true; $('diceBtn').disabled = true;
+  { const res = $('diceResultMsg'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%';
   setTimeout(() => {
     diceRolling = false; $('diceBtn').disabled = false;
     res.textContent = d.roll.toFixed(2); res.className = 'dice-result '+(d.win?'win':'lose');
-    setBalance(d.balance, d.win, d.xp, d.level);
-    const msg = $('diceMsg');
-    if (d.win) { msg.className = 'msg win'; msg.textContent = '🎲 '+d.roll.toFixed(2)+' < '+chance+' · GAGNÉ +'+fmt(d.gain)+' 🪙'; checkBigWin(bet, d.gain); }
-    else       { msg.className = 'msg lose'; msg.textContent = '🎲 '+d.roll.toFixed(2)+' ≥ '+chance+' · Perdu'; }
+    const machine = $('view-dice').querySelector('.machine');
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
   }, 850);
 }
 
