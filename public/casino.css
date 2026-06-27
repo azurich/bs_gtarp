@@ -361,8 +361,8 @@ input[type=range]::-webkit-slider-thumb{
   background:
     radial-gradient(ellipse 90% 70% at 50% 30%,#136b3f,#0c4a2c 70%,#08321d),
     #0c4a2c;
-  border:1px solid rgba(201,168,76,.25);
-  box-shadow:0 16px 44px rgba(0,0,0,.55),inset 0 0 60px rgba(0,0,0,.4),inset 0 0 0 2px rgba(201,168,76,.08);
+  border:1px solid var(--accent-dim);
+  box-shadow:0 16px 44px rgba(0,0,0,.55),inset 0 0 60px rgba(0,0,0,.4),inset 0 0 0 2px var(--accent-soft);
 }
 .hand h3{
   font-family:var(--body);font-weight:600;letter-spacing:.08em;
@@ -394,13 +394,13 @@ input[type=range]::-webkit-slider-thumb{
 .pcard.back{
   background:
     repeating-linear-gradient(45deg,#241a52 0 7px,#1a1240 7px 14px);
-  border:2px solid rgba(201,168,76,.35);
-  box-shadow:0 10px 22px rgba(0,0,0,.45),inset 0 0 0 4px rgba(91,33,182,.25);
+  border:2px solid var(--accent-dim);
+  box-shadow:0 10px 22px rgba(0,0,0,.45),inset 0 0 0 4px var(--accent-soft);
 }
 .pcard.back::before{
   content:'';position:absolute;inset:8px;border-radius:4px;
-  border:1px solid rgba(201,168,76,.3);
-  background:radial-gradient(circle at 50% 50%,rgba(201,168,76,.12),transparent 60%);
+  border:1px solid var(--accent-dim);
+  background:radial-gradient(circle at 50% 50%,var(--accent-soft),transparent 60%);
 }
 .pcard.back::after{content:''}
 .bj-actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -417,8 +417,8 @@ input[type=range]::-webkit-slider-thumb{
 .mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:min(90vw,48vh,520px);max-width:100%;margin:16px auto}
 .cell{
   aspect-ratio:1;border-radius:var(--r2);cursor:pointer;
-  background:linear-gradient(155deg,#1a1248,#0c0826);
-  border:1px solid rgba(91,33,182,.2);
+  background:linear-gradient(155deg,var(--surface-2),var(--surface-1));
+  border:1px solid var(--accent-dim);
   display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;user-select:none;
   box-shadow:inset 0 2px 0 rgba(255,255,255,.05),inset 0 -3px 8px rgba(0,0,0,.5),0 3px 8px rgba(0,0,0,.3);
@@ -431,7 +431,7 @@ input[type=range]::-webkit-slider-thumb{
 .cell:hover:not(.done){
   transform:translateY(-3px);
   border-color:var(--v-500);
-  box-shadow:inset 0 2px 0 rgba(255,255,255,.08),0 10px 22px rgba(91,33,182,.35);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.08),0 10px 22px var(--v-glow);
 }
 .cell svg{width:54%;height:54%;position:relative;z-index:1}
 .cell.gem{
@@ -458,7 +458,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 .mines-info>div{text-align:center;flex:1}
 .mines-info .lbl{font-size:.62rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;font-family:var(--body)}
-.mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.6rem;color:var(--gold);font-weight:700}
+.mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.6rem;color:var(--accent-2);font-weight:700}
 
 /* ══════════════════════════════════════════════════════════
    PLINKO
@@ -813,6 +813,17 @@ input[type=range]::-webkit-slider-thumb{
 .machine.fx-win-m{animation:fxPulse .5s var(--ease-out) 2}
 .machine.fx-win-m::before{animation:fxGlow .7s var(--ease-out)}
 .machine.fx-win-big::before,.machine.fx-win-mega::before{animation:fxGlow .7s var(--ease-out) 3}
+
+/* Jeux verrouillés (Blackjack / Démineur — routes 503, visuels prêts) */
+.machine.locked{pointer-events:none}
+.machine-veil{
+  position:absolute;inset:0;border-radius:inherit;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(5,5,12,.6);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  pointer-events:none;
+}
+.machine-veil .nav-soon{font-size:.85rem;padding:5px 18px;margin-left:0}
 
 /* Overlay BIG/MEGA redessiné (violet & or sobre) */
 .win-label{color:#fff;text-shadow:0 0 24px var(--accent-glow),0 2px 0 rgba(0,0,0,.4)}

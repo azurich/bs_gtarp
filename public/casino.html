@@ -220,12 +220,13 @@
           <!-- BLACKJACK -->
           <div id="view-blackjack" class="view game-view">
             <div class="view-inner">
-              <div class="card">
-                <div class="game-head">
-                  <h2><i data-lucide="layers-2" class="ic-game"></i> Blackjack</h2>
-                  <span class="sub">Battez le croupier sans dépasser 21</span>
+              <div class="machine locked" data-game="blackjack">
+                <div class="machine-veil"><span class="nav-soon">Bientôt</span></div>
+                <div class="machine-head">
+                  <span class="ic-game"><i data-lucide="layers-2"></i></span>
+                  <div class="machine-head-txt"><h2>Blackjack</h2><span class="sub">Battez le croupier sans dépasser 21</span></div>
                 </div>
-                <div class="game-board">
+                <div class="machine-board">
                   <div class="bj-table">
                     <div class="hand">
                       <h3>Croupier <b id="dealerScore">—</b></h3>
@@ -237,23 +238,25 @@
                     </div>
                   </div>
                 </div>
-                <div id="bjBetRow" class="bet-row">
-                  <div class="field">
-                    <label>Mise</label>
-                    <input id="bjBet" type="number" min="1" value="100">
-                    <div class="qbet">
-                      <button onclick="qbet('bjBet','half')">½</button>
-                      <button onclick="qbet('bjBet','double')">×2</button>
-                      <button onclick="qbet('bjBet','max')">MAX</button>
+                <div class="machine-controls">
+                  <div id="bjBetRow" class="bet-row">
+                    <div class="field">
+                      <label>Mise</label>
+                      <input id="bjBet" type="number" min="1" value="100">
+                      <div class="qbet">
+                        <button onclick="qbet('bjBet','half')">½</button>
+                        <button onclick="qbet('bjBet','double')">×2</button>
+                        <button onclick="qbet('bjBet','max')">MAX</button>
+                      </div>
                     </div>
+                    <button id="bjDealBtn" class="btn" onclick="bjDeal()">DISTRIBUER</button>
                   </div>
-                  <button id="bjDealBtn" class="btn" onclick="bjDeal()">DISTRIBUER</button>
+                  <div id="bjActions" class="bj-actions hidden">
+                    <button class="btn" onclick="bjHit()">TIRER</button>
+                    <button class="btn ghost" onclick="bjStand()">RESTER</button>
+                  </div>
+                  <div id="bjMsg" class="msg"></div>
                 </div>
-                <div id="bjActions" class="bj-actions hidden">
-                  <button class="btn" onclick="bjHit()">TIRER</button>
-                  <button class="btn ghost" onclick="bjStand()">RESTER</button>
-                </div>
-                <div id="bjMsg" class="msg"></div>
               </div>
             </div>
           </div>
@@ -261,36 +264,41 @@
           <!-- MINES -->
           <div id="view-mines" class="view game-view">
             <div class="view-inner">
-              <div class="card">
-                <div class="game-head">
-                  <h2><i data-lucide="bomb" class="ic-game"></i> Démineur</h2>
-                  <span class="sub">Évitez les bombes, encaissez vos gains</span>
+              <div class="machine locked" data-game="mines">
+                <div class="machine-veil"><span class="nav-soon">Bientôt</span></div>
+                <div class="machine-head">
+                  <span class="ic-game"><i data-lucide="bomb"></i></span>
+                  <div class="machine-head-txt"><h2>Démineur</h2><span class="sub">Évitez les bombes, encaissez vos gains</span></div>
                 </div>
-                <div class="mines-cfg">
-                  <div class="field" style="flex:1;min-width:130px">
-                    <label>Mise</label>
-                    <input id="minesBet" type="number" min="1" value="100">
+                <div class="machine-board">
+                  <div class="mines-grid" id="minesGrid"></div>
+                </div>
+                <div class="machine-controls">
+                  <div class="mines-cfg">
+                    <div class="field" style="flex:1;min-width:130px">
+                      <label>Mise</label>
+                      <input id="minesBet" type="number" min="1" value="100">
+                    </div>
+                    <div class="field">
+                      <label>Bombes</label>
+                      <select id="minesCount">
+                        <option value="1">1</option>
+                        <option value="3" selected>3</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                      </select>
+                    </div>
                   </div>
-                  <div class="field">
-                    <label>Bombes</label>
-                    <select id="minesCount">
-                      <option value="1">1</option>
-                      <option value="3" selected>3</option>
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="20">20</option>
-                    </select>
+                  <div id="minesStart"><button class="btn" onclick="minesStartGame()">JOUER</button></div>
+                  <div id="minesCash" class="hidden"><button class="btn gold" onclick="minesCashout()">ENCAISSER</button></div>
+                  <div class="mines-info">
+                    <div><div class="lbl">Multiplicateur</div><div class="val" id="minesMult">1.00×</div></div>
+                    <div><div class="lbl">Gains potentiels</div><div class="val" id="minesPot">0</div></div>
+                    <div><div class="lbl">Gemmes</div><div class="val" id="minesGems">0</div></div>
                   </div>
+                  <div id="minesMsg" class="msg"></div>
                 </div>
-                <div id="minesStart"><button class="btn" onclick="minesStartGame()">JOUER</button></div>
-                <div id="minesCash" class="hidden"><button class="btn gold" onclick="minesCashout()">ENCAISSER</button></div>
-                <div class="game-board"><div class="mines-grid" id="minesGrid"></div></div>
-                <div class="mines-info">
-                  <div><div class="lbl">Multiplicateur</div><div class="val" id="minesMult">1.00×</div></div>
-                  <div><div class="lbl">Gains potentiels</div><div class="val" id="minesPot">0</div></div>
-                  <div><div class="lbl">Gemmes</div><div class="val" id="minesGems">0</div></div>
-                </div>
-                <div id="minesMsg" class="msg"></div>
               </div>
             </div>
           </div>
