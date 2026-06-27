@@ -90,7 +90,7 @@ function launchConfetti(label) {
   $('winLabel').textContent = label;
   ov.classList.remove('hidden');
   cvs.width = innerWidth; cvs.height = innerHeight;
-  const COLORS = ['#ff2e88','#ffc94d','#23e0d6','#7b2ff7','#2dff9e','#ff3b5c'];
+  const COLORS = ['#7c3aed','#a855f7','#c9a3ff','#e9d5ff','#f5d061','#ffffff'];
   const pts = Array.from({length: 160}, () => ({
     x: Math.random() * cvs.width, y: -20 - Math.random() * cvs.height * 0.6,
     w: 6 + Math.random() * 10, h: 3 + Math.random() * 5,
@@ -113,17 +113,40 @@ function launchConfetti(label) {
     });
     frames++;
     if (alive && frames < 240) _confAF = requestAnimationFrame(frame);
-    else ov.classList.add('hidden');
+    else { ov.classList.add('hidden'); ov.classList.remove('mega'); }
   }
   if (_confAF) cancelAnimationFrame(_confAF);
   _confAF = requestAnimationFrame(frame);
-  setTimeout(() => { if (_confAF) cancelAnimationFrame(_confAF); ov.classList.add('hidden'); }, 5000);
+  setTimeout(() => { if (_confAF) cancelAnimationFrame(_confAF); ov.classList.add('hidden'); ov.classList.remove('mega'); }, 5000);
 }
 
 function checkBigWin(bet, gain) {
   if (!gain || gain <= 0 || !bet) return;
   if (gain >= bet * 20) launchConfetti('MEGA WIN\n+' + fmt(gain) + ' 🪙');
   else if (gain >= bet * 5) launchConfetti('BIG WIN\n+' + fmt(gain) + ' 🪙');
+}
+
+/* ── Moteur d'effets gradués (point d'entrée unique) ───────── */
+const FX = ['fx-lose','fx-partial','fx-win-s','fx-win-m','fx-win-big','fx-win-mega'];
+function gameResult({ machine, bet, gain, balance, xp, level, push }) {
+  const key = push ? 'push' : (window.Tiers ? Tiers.pickTier(gain, bet) : 'lose');
+  const isWin = key.indexOf('win') === 0;
+  setBalance(balance, key === 'push' ? undefined : isWin, xp, level);
+  if (machine) {
+    const res = machine.querySelector('.machine-result');
+    if (res) {
+      if (isWin)            { res.dataset.state = 'win';     res.textContent = '+' + fmt(gain) + ' · ×' + (gain / bet).toFixed(2); }
+      else if (key === 'partial') { res.dataset.state = 'lose'; res.textContent = '−' + fmt(bet - gain); }
+      else if (key === 'push')    { res.dataset.state = 'neutral'; res.textContent = 'Mise rendue'; }
+      else                  { res.dataset.state = 'lose';    res.textContent = 'Perdu'; }
+    }
+    machine.classList.remove(...FX);
+    void machine.offsetWidth;
+    if (key !== 'push') machine.classList.add('fx-' + key);
+  }
+  if (key === 'win-big')  launchConfetti('BIG WIN\n+' + fmt(gain) + ' 🪙');
+  if (key === 'win-mega') { const ov = $('winOverlay'); if (ov) ov.classList.add('mega'); launchConfetti('MEGA WIN\n+' + fmt(gain) + ' 🪙'); }
+  if (isWin) toast('+' + fmt(gain) + ' 🪙', 1800, 'success');
 }
 
 /* ── Navigation ──────────────────────────────────────────── */
@@ -340,7 +363,7 @@ async function spin() {
   $('slotBtn').disabled = true;
   const reels = [0,1,2].map(i => $('r'+i));
   reels.forEach(r => { r.classList.add('spin'); r.classList.remove('hit'); });
-  $('slotMsg').textContent = '';
+  { const res = $('slotResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const tick = setInterval(() => reels.forEach(r => { if (r.classList.contains('spin')) r.innerHTML = slotSymbolHTML(SYM[Math.random()*SYM.length|0]); }), 70);
   let d;
   try { d = await api('/play/slots', 'POST', { bet }); }
@@ -353,10 +376,9 @@ async function spin() {
   }, delay));
   setTimeout(() => {
     clearInterval(tick);
-    setBalance(d.balance, d.gain > 0, d.xp, d.level);
-    const m = $('slotMsg');
-    if (d.gain > 0) { reels.forEach(r => r.classList.add('hit')); m.className = 'msg win'; m.textContent = 'GAGNÉ +' + fmt(d.gain) + ' 🪙'; checkBigWin(bet, d.gain); }
-    else { m.className = 'msg lose'; m.textContent = 'Perdu — retente !'; shakeEl($('view-slots').querySelector('.card')); }
+    const machine = $('view-slots').querySelector('.machine');
+    if (d.gain > 0) reels.forEach(r => r.classList.add('hit'));
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
     slotSpinning = false; $('slotBtn').disabled = false;
   }, 1180);
 }

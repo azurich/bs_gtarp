@@ -16,6 +16,7 @@
   <script defer src="/core/shell.js"></script>
   <script defer src="/core/ui-select.js"></script>
   <script defer src="/core/game-icons.js"></script>
+  <script defer src="/core/tiers.js"></script>
   <script defer src="/casino.js"></script>
 </head>
 <body data-universe="casino">
@@ -184,34 +185,33 @@
           <!-- SLOTS -->
           <div id="view-slots" class="view game-view">
             <div class="view-inner">
-              <div class="card">
-                <div class="game-head">
-                  <h2><i data-lucide="cherry" class="ic-game"></i> Slots</h2>
-                  <span class="sub">3 rouleaux — alignez les symboles</span>
+              <div class="machine" data-game="slots">
+                <div class="machine-head">
+                  <span class="ic-game"></span>
+                  <div class="machine-head-txt"><h2>Slots</h2><span class="sub">3 rouleaux — alignez les symboles</span></div>
                 </div>
-                <div class="game-board">
+                <div class="machine-board">
                   <div class="reels">
-                    <div class="reel" id="r0">🍒</div>
-                    <div class="reel" id="r1">🔔</div>
-                    <div class="reel" id="r2">💎</div>
+                    <div class="reel" id="r0"></div>
+                    <div class="reel" id="r1"></div>
+                    <div class="reel" id="r2"></div>
                   </div>
                 </div>
-                <div class="bet-row">
-                  <div class="field">
-                    <label>Mise</label>
-                    <input id="slotBet" type="number" min="1" value="100">
-                    <div class="qbet">
-                      <button onclick="qbet('slotBet','half')">½</button>
-                      <button onclick="qbet('slotBet','double')">×2</button>
-                      <button onclick="qbet('slotBet','max')">MAX</button>
+                <div class="machine-result" id="slotResult" data-state="idle"></div>
+                <div class="machine-controls">
+                  <div class="bet-row">
+                    <div class="field">
+                      <label>Mise</label>
+                      <input id="slotBet" type="number" min="1" value="100">
+                      <div class="qbet">
+                        <button onclick="qbet('slotBet','half')">½</button>
+                        <button onclick="qbet('slotBet','double')">×2</button>
+                        <button onclick="qbet('slotBet','max')">MAX</button>
+                      </div>
                     </div>
+                    <button id="slotBtn" class="btn" onclick="spin()">TOURNER</button>
                   </div>
-                  <button id="slotBtn" class="btn" onclick="spin()">TOURNER</button>
-                </div>
-                <div id="slotMsg" class="msg"></div>
-                <div class="paytable">
-                  <span>7️⃣7️⃣7️⃣ = 20×</span><span>💎💎💎 = 8×</span><span>🔔🔔🔔 = 3×</span>
-                  <span>🍒🍒🍒 = 2×</span><span>⭐/🍋 ×3 = 1.5×</span><span>Paire = 1.5×</span>
+                  <div class="paytable" id="slotPaytable"></div>
                 </div>
               </div>
             </div>

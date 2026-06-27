@@ -326,8 +326,8 @@ input[type=range]::-webkit-slider-thumb{
   0%{transform:translateY(-10px)}50%{transform:translateY(10px)}100%{transform:translateY(-10px)}
 }
 .reel.hit{
-  border-color:var(--gold);
-  box-shadow:0 0 28px rgba(201,168,76,.55),0 0 56px rgba(201,168,76,.18),inset 0 10px 24px rgba(0,0,0,.7);
+  border-color:var(--accent);
+  box-shadow:0 0 28px var(--accent-glow),0 0 56px rgba(124,58,237,.18),inset 0 10px 24px rgba(0,0,0,.7);
   animation:reelHit .5s var(--ease-out);
 }
 @keyframes reelHit{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
@@ -766,3 +766,60 @@ input[type=range]::-webkit-slider-thumb{
 .is-me .podium-name{color:var(--v-300)}
 .is-me-row td{background:rgba(91,33,182,.06)!important}
 .leader-table{margin-top:12px}
+
+/* ===== MACHINE SHELL (refonte feutre & néon) ===== */
+.machine{
+  container-type:inline-size;
+  position:relative;display:flex;flex-direction:column;gap:clamp(14px,3cqw,22px);
+  padding:clamp(16px,3.5cqw,28px);
+  border-radius:var(--r3);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(124,58,237,.10), transparent 60%),
+    radial-gradient(100% 100% at 50% 100%, rgba(8,6,18,.9), rgba(10,8,22,.96)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.012) 0 2px, transparent 2px 4px);
+  border:1px solid var(--accent-dim);
+  box-shadow:0 0 0 1px rgba(124,58,237,.10),
+             0 24px 60px rgba(0,0,0,.55),
+             inset 0 1px 0 rgba(255,255,255,.04),
+             inset 0 -30px 60px rgba(0,0,0,.35);
+}
+.machine::before{ /* liseré néon lumineux */
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 0 1px rgba(124,58,237,.35), 0 0 28px -6px var(--accent-glow);
+  transition:box-shadow .3s var(--ease-out);
+}
+.machine-head{display:flex;align-items:center;gap:14px}
+.machine-head .ic-game{display:inline-flex;width:clamp(30px,6cqw,40px);color:var(--accent-2)}
+.machine-head .ic-game .gi{width:100%;height:auto;filter:drop-shadow(0 0 10px var(--accent-glow))}
+.machine-head h2{margin:0;font-family:var(--display);font-size:clamp(1.5rem,5cqw,2.2rem);line-height:1}
+.machine-head .sub{display:block;color:var(--muted);font-size:clamp(.7rem,2cqw,.82rem)}
+.machine-board{display:flex;align-items:center;justify-content:center;min-height:0}
+.machine-controls{display:flex;flex-direction:column;gap:14px}
+
+/* Indicateur de résultat (persistant, couvre tous les cas) */
+.machine-result{
+  min-height:1.6em;text-align:center;font-family:var(--num);font-weight:600;
+  font-size:clamp(.9rem,2.6cqw,1.05rem);letter-spacing:.02em;
+  opacity:0;transition:opacity .25s,color .25s;
+}
+.machine-result[data-state="idle"]{opacity:0}
+.machine-result[data-state="win"]{opacity:1;color:#46d588}
+.machine-result[data-state="lose"]{opacity:1;color:var(--muted)}
+.machine-result[data-state="neutral"]{opacity:1;color:var(--accent-2)}
+
+/* Effets gradués posés sur .machine */
+@keyframes fxShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+@keyframes fxGlow{0%{box-shadow:inset 0 0 0 1px var(--accent),0 0 50px -4px var(--accent-glow)}100%{box-shadow:inset 0 0 0 1px rgba(124,58,237,.35),0 0 28px -6px var(--accent-glow)}}
+@keyframes fxPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.012)}}
+.machine.fx-lose{animation:fxShake .5s var(--ease-out)}
+.machine.fx-lose .machine-board{filter:brightness(.7) saturate(.6);transition:filter .4s}
+.machine.fx-partial .machine-board{filter:brightness(.82) saturate(.8);transition:filter .4s}
+.machine.fx-win-s::before{animation:fxGlow .7s var(--ease-out)}
+.machine.fx-win-m{animation:fxPulse .5s var(--ease-out) 2}
+.machine.fx-win-m::before{animation:fxGlow .7s var(--ease-out)}
+.machine.fx-win-big::before,.machine.fx-win-mega::before{animation:fxGlow .7s var(--ease-out) 3}
+
+/* Overlay BIG/MEGA redessiné (violet & or sobre) */
+.win-label{color:#fff;text-shadow:0 0 24px var(--accent-glow),0 2px 0 rgba(0,0,0,.4)}
+.win-overlay.mega .win-label{font-size:clamp(2.6rem,10vw,6.5rem);
+  background:linear-gradient(180deg,#fff, var(--accent-2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
