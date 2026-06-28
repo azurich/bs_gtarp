@@ -257,25 +257,25 @@ input[type=range]::-webkit-slider-thumb{
 @media(min-width:861px){
   .game-view.active{height:100%}
   .game-view>.view-inner{height:100%;max-width:1080px;display:flex;flex-direction:column;padding:14px 24px}
-  .game-view>.view-inner>.card{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+  .game-view>.view-inner>.machine{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
   .game-view .game-head{margin-bottom:0;padding-bottom:10px}
-  .game-board{flex:1;min-height:0;container-type:size}
+  .machine-board{flex:1;min-height:0;container-type:size}
 
   /* carrés */
   .machine-board .wheel-wrap{width:min(100cqw,100cqh);height:min(100cqw,100cqh);margin:0}
-  .game-board .mines-grid{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:none;grid-template-rows:repeat(5,1fr);margin:0}
+  .machine-board .mines-grid{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:none;grid-template-rows:repeat(5,1fr);margin:0}
 
   /* rouleaux */
-  .game-board .reels{height:auto;width:auto;max-width:100%;margin:0}
-  .game-board .reel{flex:0 0 auto;height:min(88cqh,30cqw);max-width:none;width:auto;font-size:min(50cqh,18cqw)}
+  .machine-board .reels{height:auto;width:auto;max-width:100%;margin:0}
+  .machine-board .reel{flex:0 0 auto;height:min(88cqh,30cqw);max-width:none;width:auto;font-size:min(50cqh,18cqw)}
 
   /* plinko */
   .machine-board .plinko-screen{margin:0;max-width:100%;max-height:100%}
 
   /* blackjack */
-  .game-board .bj-table{width:100%;margin:0}
-  .game-board .pcard{height:min(32cqh,180px)}
-  .game-board .cards{min-height:0}
+  .machine-board .bj-table{width:100%;margin:0}
+  .machine-board .pcard{height:min(32cqh,180px)}
+  .machine-board .cards{min-height:0}
 
   /* dice */
   .game-board-stack{justify-content:center;gap:clamp(10px,3cqh,28px)}
@@ -759,7 +759,7 @@ input[type=range]::-webkit-slider-thumb{
 /* Hauteurs du podium */
 .p1 .podium-block{background:linear-gradient(180deg,rgba(124,58,237,.25),rgba(124,58,237,.08));height:90px;font-size:2rem;color:var(--v-300)}
 .p2 .podium-block{background:linear-gradient(180deg,rgba(167,139,250,.18),rgba(167,139,250,.05));height:65px;font-size:1.6rem;color:var(--v-300)}
-.p3 .podium-block{background:linear-gradient(180deg,rgba(180,120,80,.15),rgba(180,120,80,.04));height:50px;font-size:1.3rem;color:#cd7f32}
+.p3 .podium-block{background:linear-gradient(180deg,rgba(124,58,237,.10),rgba(124,58,237,.03));height:50px;font-size:1.3rem;color:var(--v-300)}
 .is-me .podium-name{color:var(--v-300)}
 .is-me-row td{background:var(--v-dim)!important}
 .leader-table{margin-top:12px}
@@ -789,7 +789,7 @@ input[type=range]::-webkit-slider-thumb{
 .machine-head .ic-game{display:inline-flex;width:clamp(30px,6cqw,40px);color:var(--accent-2)}
 .machine-head .ic-game .gi{width:100%;height:auto;filter:drop-shadow(0 0 10px var(--accent-glow))}
 .machine-head h2{margin:0;font-family:var(--display);font-size:clamp(1.5rem,5cqw,2.2rem);line-height:1}
-.machine-head .sub{display:block;color:var(--muted);font-size:clamp(.7rem,2cqw,.82rem)}
+.machine-head .sub{display:block;color:var(--tx-2);font-size:clamp(.7rem,2cqw,.82rem)}
 .machine-board{display:flex;align-items:center;justify-content:center;min-height:0}
 .machine-controls{display:flex;flex-direction:column;gap:14px}
 
@@ -801,7 +801,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 .machine-result[data-state="idle"]{opacity:0}
 .machine-result[data-state="win"]{opacity:1;color:#46d588}
-.machine-result[data-state="lose"]{opacity:1;color:var(--muted)}
+.machine-result[data-state="lose"]{opacity:1;color:var(--tx-2)}
 .machine-result[data-state="neutral"]{opacity:1;color:var(--accent-2)}
 
 /* Effets gradués posés sur .machine */

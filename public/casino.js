@@ -90,7 +90,7 @@ function launchConfetti(label) {
   $('winLabel').textContent = label;
   ov.classList.remove('hidden');
   cvs.width = innerWidth; cvs.height = innerHeight;
-  const COLORS = ['#7c3aed','#a855f7','#c9a3ff','#e9d5ff','#f5d061','#ffffff'];
+  const COLORS = ['#7c3aed','#a855f7','#c9a3ff','#e9d5ff','#c4b5fd','#ffffff'];
   const pts = Array.from({length: 160}, () => ({
     x: Math.random() * cvs.width, y: -20 - Math.random() * cvs.height * 0.6,
     w: 6 + Math.random() * 10, h: 3 + Math.random() * 5,
@@ -144,9 +144,9 @@ function gameResult({ machine, bet, gain, balance, xp, level, push }) {
     void machine.offsetWidth;
     if (key !== 'push') machine.classList.add('fx-' + key);
   }
-  if (key === 'win-big')  launchConfetti('BIG WIN\n+' + fmt(gain) + ' 🪙');
-  if (key === 'win-mega') { const ov = $('winOverlay'); if (ov) ov.classList.add('mega'); launchConfetti('MEGA WIN\n+' + fmt(gain) + ' 🪙'); }
-  if (isWin) toast('+' + fmt(gain) + ' 🪙', 1800, 'success');
+  if (key === 'win-big')  launchConfetti('BIG WIN\n+' + fmt(gain));
+  if (key === 'win-mega') { const ov = $('winOverlay'); if (ov) ov.classList.add('mega'); launchConfetti('MEGA WIN\n+' + fmt(gain)); }
+  if (isWin) toast('+' + fmt(gain), 1800, 'success');
 }
 
 /* ── Navigation ──────────────────────────────────────────── */
@@ -267,7 +267,7 @@ async function renderLeaderboard() {
           + '<td>' + (i + 4) + '</td>'
           + '<td>' + esc(p.name) + (isMine ? ' <span style="color:var(--v-300)">(vous)</span>' : '') + '</td>'
           + '<td style="color:var(--tx-3)">' + (p.level || 1) + '</td>'
-          + '<td style="color:var(--gold);font-family:var(--num);font-variant-numeric:tabular-nums">' + meta.cell(p) + '</td>'
+          + '<td style="color:var(--accent-2);font-family:var(--num);font-variant-numeric:tabular-nums">' + meta.cell(p) + '</td>'
           + '</tr>';
       });
       tableHtml += '</tbody></table>';
@@ -590,7 +590,7 @@ async function plinkoDrop() {
 /* défaut écrasé par /api/config (source de vérité = games.ts) */
 let WHEEL = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15];
 let wheelBuilt = false, wheelSpinning = false, wheelRot = 0;
-function wheelColor(m) { return m===0?'#1c1430':m>=50?'#ffd24d':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
+function wheelColor(m) { return m===0?'#1c1430':m>=50?'#a855f7':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
 function buildWheel() {
   if (wheelBuilt) return;
   const g = $('wheelG'), cx = 160, cy = 160, r = 150, n = WHEEL.length, seg = 360/n; let html = '';
@@ -601,7 +601,7 @@ function buildWheel() {
     const am = i*seg+seg/2, rad = am*Math.PI/180, lx = cx+106*Math.sin(rad), ly = cy-106*Math.cos(rad);
     html += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="#fff" font-family="Inter, system-ui, sans-serif" font-size="17" text-anchor="middle" dominant-baseline="middle" transform="rotate('+am.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')">'+(WHEEL[i]===0?'✕':WHEEL[i]+'×')+'</text>';
   }
-  html += '<circle cx="160" cy="160" r="150" fill="none" stroke="rgba(255,201,77,.55)" stroke-width="3"/>';
+  html += '<circle cx="160" cy="160" r="150" fill="none" stroke="rgba(168,85,247,.55)" stroke-width="3"/>';
   g.innerHTML = html; wheelBuilt = true; g.style.transform = 'rotate(0deg)';
 }
 async function wheelSpin() {
