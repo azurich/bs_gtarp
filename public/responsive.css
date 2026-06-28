@@ -16,8 +16,8 @@
   .sidebar{
     width:100%;flex-direction:column;height:auto;gap:0;padding:0;
     overflow:visible;position:relative;
-    border-right:none;border-bottom:1px solid rgba(91,33,182,.15);
-    background:linear-gradient(90deg,#0a0818,#06050f);
+    border-right:none;border-bottom:1px solid var(--v-dim);
+    background:linear-gradient(90deg,var(--surface-1),var(--bg));
   }
   .sidebar::before{display:none}
   .sidebar-logo{display:none}
@@ -26,7 +26,7 @@
   .sidebar-foot{
     order:-1;flex-direction:row;align-items:center;gap:10px;
     width:100%;padding:8px 12px;border-top:none;
-    border-bottom:1px solid rgba(91,33,182,.12);
+    border-bottom:1px solid var(--v-dim);
   }
   .sidebar-foot .side-credit{flex-direction:row;align-items:center;gap:8px;padding:0}
   .sidebar-foot .side-credit-lbl{display:none}
@@ -43,7 +43,7 @@
   .nav-section{flex-direction:row;gap:2px}
   .nav-section-label{display:none}
   .nav-spacer{display:none}
-  .nav-divider{width:1px;height:20px;margin:0 3px;align-self:center;background:rgba(91,33,182,.3)}
+  .nav-divider{width:1px;height:20px;margin:0 3px;align-self:center;background:var(--v-glow)}
   .nav-item{padding:6px 10px;gap:7px;font-size:.8rem;white-space:nowrap;border-radius:6px}
   .nav-item.active::before{top:auto;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:2px;border-radius:2px 2px 0 0}
   .ni{width:15px;height:15px}
@@ -92,16 +92,7 @@
   .card{padding:16px}
 }
 
-/* ── SLOTS ────────────────────────────────────────────── */
-@media(max-width:480px){
-  .reels{gap:10px;padding:12px}
-  .reel{width:85px;height:105px;font-size:48px}
-  .paytable{gap:4px}
-  .paytable span{font-size:.65rem;padding:3px 7px}
-}
-@media(max-width:380px){
-  .reel{width:72px;height:90px;font-size:40px}
-}
+/* ── SLOTS : voir @container dans casino.css ─────────── */
 
 /* ── BLACKJACK ────────────────────────────────────────── */
 @media(max-width:640px){
@@ -112,50 +103,7 @@
   .bj-actions .btn{min-width:80px;font-size:.85rem}
 }
 
-/* ── MINES ────────────────────────────────────────────── */
-@media(max-width:640px){
-  .mines-cfg{padding:12px;gap:10px}
-  .mines-grid{gap:6px;max-width:100%}
-  .cell{border-radius:var(--r1)}
-  .mines-info{padding:10px 8px;gap:4px}
-  .mines-info .lbl{font-size:.54rem;letter-spacing:.04em;line-height:1.2}
-  .mines-info .val{font-size:1.3rem}
-}
-@media(max-width:420px){
-  .mines-grid{gap:5px}
-  .mines-info{padding:9px 6px}
-  .mines-info .lbl{font-size:.5rem}
-  .mines-info .val{font-size:1.1rem}
-}
-@media(max-width:340px){
-  .mines-grid{gap:4px}
-}
-
-/* ── PLINKO ───────────────────────────────────────────── */
-/* Le canvas Plinko est déjà width:100%, pas d'ajustement nécessaire */
-@media(max-width:640px){
-  .plinko-risk{flex-wrap:wrap}
-}
-
-/* ── WHEEL ────────────────────────────────────────────── */
-@media(max-width:480px){
-  .wheel-wrap{width:min(300px,100%)}
-  .wheel-hub{width:50px;height:50px;font-size:.85rem}
-}
-
-/* ── DICE ─────────────────────────────────────────────── */
-@media(max-width:640px){
-  .dice-result{font-size:4.2rem}
-  .dice-track{height:46px;border-radius:23px}
-  .dice-dot{width:26px;height:26px}
-  .dice-zone{font-size:.56rem;letter-spacing:.08em}
-  .dice-stats{gap:6px}
-  .dice-stats .stat{min-width:80px}
-}
-@media(max-width:380px){
-  .dice-zone{display:none}
-  .dice-result{font-size:3.6rem}
-}
+/* ── MINES / PLINKO / WHEEL / DICE : voir @container dans casino.css ── */
 
 /* ── PROFIL / HISTORIQUE ──────────────────────────────── */
 @media(max-width:640px){
@@ -200,7 +148,7 @@
     width:100%;height:auto;position:static;
     flex-direction:row;flex-wrap:nowrap;overflow-x:auto;
   }
-  .adm-brand-area{flex:none;border-bottom:none;border-right:1px solid rgba(91,33,182,.1);padding:10px 12px}
+  .adm-brand-area{flex:none;border-bottom:none;border-right:1px solid var(--v-dim);padding:10px 12px}
   .adm-nav-links{flex-direction:row;padding:5px 6px;flex:1;gap:2px;overflow-x:auto}
   .adm-nl{padding:7px 10px;font-size:.8rem;gap:7px;white-space:nowrap;flex:none}
   .adm-nl::before{display:none}
@@ -228,7 +176,7 @@
   /* Sur écran tactile, désactiver les hover states qui restent collés */
   .home-game-card:hover{transform:none;box-shadow:none}
   .btn:hover{transform:none;box-shadow:0 4px 16px var(--accent-glow)}
-  .cell:hover:not(.done){transform:none;box-shadow:none;border-color:rgba(91,33,182,.15)}
+  .cell:hover:not(.done){transform:none;box-shadow:none;border-color:var(--v-dim)}
   .nav-item:hover{background:none}
   /* Tap highlight transparent */
   *{-webkit-tap-highlight-color:transparent}
