@@ -491,13 +491,14 @@ let PK_W = 440, PK_H = 360;
 function initPlinkoCanvas() {
   if (!PK) return;
   PK_DPR = window.devicePixelRatio || 1;
-  const board = PK.closest('.game-board');
-  let availW, availH;
-  if (board && board.clientHeight > 40) { availW = board.clientWidth; availH = board.clientHeight; }
-  else { availW = (PK.parentElement?.clientWidth || 440); availH = Math.round(window.innerHeight * 0.6); }
-  let w = Math.max(240, Math.min(availW, 700));
-  let h = Math.round(w * 0.8);
-  if (h > availH) { h = availH; w = Math.min(w, availW, Math.round(h / 0.8)); }
+  /* Le plateau a été renommé .game-board -> .machine-board lors de la refonte :
+     on dimensionne le canvas depuis la largeur (définie) du plateau, hauteur dérivée. */
+  const board = PK.closest('.machine-board') || PK.parentElement;
+  const availW = (board && board.clientWidth > 40) ? board.clientWidth : (PK.parentElement?.clientWidth || 440);
+  const maxH = Math.round(window.innerHeight * 0.6);
+  let w = Math.max(280, Math.min(availW, 600));
+  let h = Math.round(w * 0.82);
+  if (h > maxH) { h = maxH; w = Math.min(w, Math.round(h / 0.82)); }
   PK_W = w; PK_H = h;
   PK.style.width  = PK_W + 'px';
   PK.style.height = PK_H + 'px';

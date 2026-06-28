@@ -254,34 +254,13 @@ input[type=range]::-webkit-slider-thumb{
 ══════════════════════════════════════════════════════════ */
 .game-board{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%}
 
+/* Desktop : les machines se dimensionnent à leur contenu (styles de base) et
+   .content-wrap défile naturellement. On n'impose plus de « remplir la hauteur »
+   avec overflow:hidden — ce modèle rognait les jeux à contrôles hauts (Dice)
+   sur les viewports courts, rendant le jeu invisible. La largeur confortable du
+   plateau est gérée ci-dessous par le wrap de jeu. */
 @media(min-width:861px){
-  .game-view.active{height:100%}
-  .game-view>.view-inner{height:100%;max-width:1080px;display:flex;flex-direction:column;padding:14px 24px}
-  .game-view>.view-inner>.machine{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
-  .game-view .game-head{margin-bottom:0;padding-bottom:10px}
-  .machine-board{flex:1;min-height:0;container-type:size}
-
-  /* carrés */
-  .machine-board .wheel-wrap{width:min(100cqw,100cqh);height:min(100cqw,100cqh);margin:0}
-  .machine-board .mines-grid{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:none;grid-template-rows:repeat(5,1fr);margin:0}
-
-  /* rouleaux */
-  .machine-board .reels{height:auto;width:auto;max-width:100%;margin:0}
-  .machine-board .reel{flex:0 0 auto;height:min(88cqh,30cqw);max-width:none;width:auto;font-size:min(50cqh,18cqw)}
-
-  /* plinko */
-  .machine-board .plinko-screen{margin:0;max-width:100%;max-height:100%}
-
-  /* blackjack */
-  .machine-board .bj-table{width:100%;margin:0}
-  .machine-board .pcard{height:min(32cqh,180px)}
-  .machine-board .cards{min-height:0}
-
-  /* dice */
-  .game-board-stack{justify-content:center;gap:clamp(10px,3cqh,28px)}
-  .game-board-stack .dice-stage{margin:0;padding:0;background:none}
-  .game-board-stack .dice-result{font-size:min(34cqh,17vw)}
-  .game-board-stack .dice-track{width:100%}
+  .game-view>.view-inner{max-width:1080px}
 }
 
 /* ══════════════════════════════════════════════════════════
