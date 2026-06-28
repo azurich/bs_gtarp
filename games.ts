@@ -45,8 +45,8 @@ function pickWeighted(weights: number[]): number {
 /* ---------------- SLOTS ----------------
    Probabilités calibrées pour EV ≈ 0.70 × mise.
    37,1% des tours rapportent quelque chose (surtout des paires).
-   Paytable affichée : 7️⃣=20× 💎=8× 🔔=3× 🍒=2× ⭐/🍋=1.5× paire=1.5×
-   EV = .003·20 + .008·8 + .015·3 + .02·2 + .025·1.5 + .30·1.5 = 0.6965
+   Paytable affichée : 7️⃣=20× 💎=8× 🔔=3× 🍒=2× ⭐=1.75× 🍋=1.25× paire=1.5×
+   EV = .003·20 + .008·8 + .015·3 + .02·2 + .0125·1.75 + .0125·1.25 + .30·1.5 = 0.6965
 */
 const SYM = ['🍒', '🔔', '💎', '7️⃣', '🍋', '⭐']
 function fill3(s: string): string[] { return [s, s, s] }
@@ -67,7 +67,8 @@ export function playSlots(bet: number, budget: number) {
   else if (r < 0.011) { reels = fill3('💎');                 mult = 8   }
   else if (r < 0.026) { reels = fill3('🔔');                 mult = 3   }
   else if (r < 0.046) { reels = fill3('🍒');                 mult = 2   }
-  else if (r < 0.071) { reels = fill3(randItem(['⭐', '🍋'])); mult = 1.5 }
+  else if (r < 0.0585){ reels = fill3('⭐');                  mult = 1.75 }
+  else if (r < 0.071) { reels = fill3('🍋');                  mult = 1.25 }
   else if (r < 0.371) { reels = twoOfKind();                 mult = 1.5 }
   else                { reels = loseCombo();                 mult = 0   }
   // bridage cagnotte : un gain non payable devient une perte (rouleaux perdants)
