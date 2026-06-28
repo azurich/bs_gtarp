@@ -6,3 +6,4 @@ casino.db-shm
 data/*.db
 data/*.db-wal
 data/*.db-shm
+screenshot/
