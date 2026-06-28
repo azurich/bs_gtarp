@@ -319,7 +319,7 @@ input[type=range]::-webkit-slider-thumb{
   -webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 2px 8px var(--accent-glow))}
 .sym-gem    svg{color:#5be0ff}
-.sym-bell   svg{color:var(--accent-2)}
+.sym-clover svg{color:#3ecf6a}
 .sym-cherry svg{color:#ff4d6d}
 .sym-star   svg{color:var(--v-300)}
 .sym-lemon  svg{color:#d4e34a}
