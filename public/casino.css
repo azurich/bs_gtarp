@@ -130,7 +130,7 @@
   text-decoration:none;
 }
 .nav-item:hover{color:rgba(245,240,255,.82);background:var(--v-dim)}
-.nav-item.active{color:var(--v-300);background:var(--v-dim)}
+.nav-item.active{color:var(--v-300);background:var(--accent-soft)}
 .nav-item.active::before{
   content:'';position:absolute;left:0;top:50%;
   transform:translateY(-50%);
@@ -219,9 +219,9 @@
   transition:background .16s ease,border-color .16s ease,color .16s ease;
 }
 .qbet button:hover{
-  border-color:var(--v-500);background:var(--v-dim);color:var(--tx);
+  border-color:var(--v-500);background:var(--accent-soft);color:var(--tx);
 }
-.qbet button:active{background:var(--v-glow)}
+.qbet button:active{background:var(--accent-dim)}
 
 .slider-row{margin:16px 0}
 .slider-row label{
