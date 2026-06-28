@@ -260,7 +260,7 @@ input[type=range]::-webkit-slider-thumb{
    sur les viewports courts, rendant le jeu invisible. La largeur confortable du
    plateau est gérée ci-dessous par le wrap de jeu. */
 @media(min-width:861px){
-  .game-view>.view-inner{max-width:1080px}
+  .game-view>.view-inner{max-width:1080px;padding-top:12px;padding-bottom:14px}
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -268,7 +268,7 @@ input[type=range]::-webkit-slider-thumb{
 ══════════════════════════════════════════════════════════ */
 .reels{
   position:relative;display:flex;gap:14px;justify-content:center;
-  margin:26px 0;padding:22px 18px;
+  margin:12px 0;padding:14px 18px;
   border-radius:var(--r3);
   background:
     radial-gradient(ellipse 120% 80% at 50% 0%,var(--v-dim),transparent 70%),
@@ -321,7 +321,7 @@ input[type=range]::-webkit-slider-thumb{
 .sym-star   svg{color:var(--v-300)}
 .sym-lemon  svg{color:#d4e34a}
 
-.paytable{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.paytable{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
 .paytable span{
   background:var(--v-dim);padding:4px 11px;border-radius:var(--r1);
   border:1px solid var(--accent-dim);font-size:.72rem;color:var(--tx-2);
@@ -746,8 +746,8 @@ input[type=range]::-webkit-slider-thumb{
 /* ===== MACHINE SHELL (refonte feutre & néon) ===== */
 .machine{
   container-type:inline-size;
-  position:relative;display:flex;flex-direction:column;gap:clamp(14px,3cqw,22px);
-  padding:clamp(16px,3.5cqw,28px);
+  position:relative;display:flex;flex-direction:column;gap:clamp(10px,2.4cqw,18px);
+  padding:clamp(14px,3cqw,24px);
   border-radius:var(--r3);
   background:
     radial-gradient(120% 80% at 50% 0%, rgba(124,58,237,.10), transparent 60%),
