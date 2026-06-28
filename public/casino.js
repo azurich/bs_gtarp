@@ -356,7 +356,7 @@ function renderPaytable() {
   const p = $('slotPaytable'); if (!p) return;
   const rows = [['7️⃣','20×'],['💎','8×'],['🔔','3×'],['🍒','2×']];
   p.innerHTML = rows.map(r =>
-    '<span class="pt">' + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + ' = ' + r[1] + '</span>'
+    '<span class="pt">' + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + '<b>' + r[1] + '</b></span>'
   ).join('');
 }
 function initSlots() {
