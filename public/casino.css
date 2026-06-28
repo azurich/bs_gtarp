@@ -332,6 +332,7 @@ input[type=range]::-webkit-slider-thumb{
 }
 .paytable .pt{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--accent-dim);border-radius:var(--r2);padding:8px 15px;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1rem;color:var(--tx-2)}
 .paytable .pt b{color:var(--accent-2);font-weight:700;font-size:1.08rem;margin-left:5px}
+.paytable .pt-label{font-family:var(--body);font-size:.84rem;color:var(--tx-2);letter-spacing:.02em}
 .paytable .slot-sym{width:34px;height:34px}
 
 /* ══════════════════════════════════════════════════════════

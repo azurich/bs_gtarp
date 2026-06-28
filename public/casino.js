@@ -354,10 +354,11 @@ function slotSymbolHTML(emoji) {
 }
 function renderPaytable() {
   const p = $('slotPaytable'); if (!p) return;
-  const rows = [['7️⃣','20×'],['💎','8×'],['🔔','3×'],['🍒','2×']];
+  const rows = [['7️⃣','20×'],['💎','8×'],['🔔','3×'],['🍒','2×'],['⭐','1.5×'],['🍋','1.5×']];
   p.innerHTML = rows.map(r =>
     '<span class="pt">' + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + slotSymbolHTML(r[0]) + '<b>' + r[1] + '</b></span>'
-  ).join('');
+  ).join('')
+  + '<span class="pt"><span class="pt-label">Paire</span><b>1.5×</b></span>';
 }
 function initSlots() {
   ['🍒','🔔','💎'].forEach((s, i) => { const r = $('r'+i); if (r) r.innerHTML = slotSymbolHTML(s); });
