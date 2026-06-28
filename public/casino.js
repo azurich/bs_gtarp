@@ -347,7 +347,7 @@ const SLOT_SVG = {
 };
 const SLOT_MAP = { '💎':['gem','sym-gem'], '🔔':['clover','sym-clover'], '🍒':['cherry','sym-cherry'], '⭐':['star','sym-star'], '🍋':['lemon','sym-lemon'] };
 function slotSymbolHTML(emoji) {
-  if (emoji === '7️⃣') return '<span class="slot-sym sym-seven"><svg viewBox="0 0 100 100"><text x="50" y="53" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond,Georgia,serif" font-weight="700" font-size="96" fill="currentColor">7</text></svg></span>';
+  if (emoji === '7️⃣') return '<span class="slot-sym sym-seven"><svg viewBox="0 0 100 100"><text x="50" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond,Georgia,serif" font-weight="700" font-size="92" fill="currentColor">7</text></svg></span>';
   const m = SLOT_MAP[emoji];
   if (!m) return '<span class="slot-sym">' + emoji + '</span>';
   return '<span class="slot-sym ' + m[1] + '">' + SLOT_SVG[m[0]] + '</span>';
