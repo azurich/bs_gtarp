@@ -16,7 +16,14 @@ const GI: Record<string, string> = {
   mines:     innerIcon('scripts/gi-src/mines.svg'),
   dice:      innerIcon('scripts/gi-src/dice.svg'),
   plinko:    innerIcon('scripts/gi-src/plinko.svg'),
-  wheel:     innerIcon('scripts/gi-src/wheel.svg'),
+  // Roue de la fortune (icône maison) : pointeur + anneau + croisillon + moyeu.
+  // L'icône game-icons spinning-wheel a été jugée trop chargée/peu lisible.
+  wheel:
+    '<path d="M256 30 L294 96 L218 96 Z"/>' +
+    '<path fill-rule="evenodd" d="M256 96a190 190 0 1 0 0 380 190 190 0 0 0 0-380zm0 54a136 136 0 1 1 0 272 136 136 0 0 1 0-272z"/>' +
+    '<rect x="244" y="120" width="24" height="332" rx="6"/>' +
+    '<rect x="90" y="274" width="332" height="24" rx="6"/>' +
+    '<circle cx="256" cy="286" r="40"/>',
 }
 
 const header =
@@ -27,7 +34,7 @@ const header =
      mines     = lorc/land-mine
      dice      = delapouite/perspective-dice-six-faces-six
      plinko    = delapouite/ball-pyramid
-     wheel     = caro-asercion/spinning-wheel
+     wheel     = icône maison (roue de la fortune ; spinning-wheel game-icons jugée moche)
    SVG teintés à la couleur courante (currentColor). */
 `
 
