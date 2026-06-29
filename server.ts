@@ -490,10 +490,12 @@ const app = new Elysia()
 
     .post('/api/play/wheel', ({ body, user, set }) => {
       const u   = user as User
-      const bet = intBet((body as any).bet)
+      const b   = body as any
+      const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
-      const r = G.playWheel(bet, casinoBudget())
+      const r = G.playWheel(bet, risk, casinoBudget())
       payout(u, r.gain, 'wheel'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'wheel', bet, r.gain, `x${r.mult}`)
       return { index: r.index, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }

@@ -111,18 +111,47 @@ export function playPlinko(bet: number, risk: string, budget: number) {
 }
 
 /* ---------------- WHEEL ----------------
-   16 segments visuels, sélection pondérée (invisible au joueur).
-   EV = Σ pᵢ·multᵢ = 0.70 exactement, multiplicateurs ronds conservés.
-   15×→p .005 | 5×→p .02 | 2×(×2)→p .03 ch. | 1.5×(×4)→p .0675 ch. | 0×(×8)→p .080625 ch.
+   3 niveaux de risque (comme le Plinko), 16 segments visibles + poids cachés.
+   Chaque niveau est calibré à EV = RTP (0.70) via normWheel ; seule la variance
+   change : faible = récup. partielle (0.5–0.9×, jamais de 0×), moyen ≈ l'ancienne
+   roue, élevé = beaucoup de 0× + jackpot 50× rare.
 */
-export const WHEEL   = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15]
-const WHEEL_W = [0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.02,
-                 0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.005]
-export function playWheel(bet: number, budget: number) {
+const WHEEL_SEG: Record<'low' | 'med' | 'high', number[]> = {
+  low:  [0.5, 1.5, 0.7, 2, 0.5, 1.5, 0.9, 3, 0.5, 1.5, 0.7, 2, 0.5, 1.5, 0.9, 3],
+  med:  [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15],
+  high: [0, 0, 2, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 2, 0, 50],
+}
+// Formes de poids brutes (donnent la variance voulue). normWheel cale l'EV sur RTP
+// en mettant à l'échelle les poids des segments de valeur "balValue" (le balancier).
+const WHEEL_WRAW: Record<'low' | 'high', number[]> = {
+  low:  [5, 2, 4, 1, 5, 2, 3, 0.5, 5, 2, 4, 1, 5, 2, 3, 0.5],
+  high: [1, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 0.05],
+}
+// Met à l'échelle les poids des segments de valeur balValue pour que
+// Σ(w·seg)/Σw = RTP, puis normalise (Σ = 1). Garantit EV = RTP par construction.
+function normWheel(seg: number[], wRaw: number[], balValue: number): number[] {
+  let A = 0, B = 0, Wb = 0
+  seg.forEach((v, i) => { if (v === balValue) Wb += wRaw[i]; else { A += wRaw[i] * v; B += wRaw[i] } })
+  const f = (RTP * B - A) / (Wb * (balValue - RTP))
+  const w = wRaw.map((wi, i) => (seg[i] === balValue ? wi * f : wi))
+  const sum = w.reduce((s, wi) => s + wi, 0)
+  return w.map(wi => wi / sum)
+}
+export const WHEEL: Record<'low' | 'med' | 'high', number[]> = WHEEL_SEG
+export const WHEEL_W: Record<'low' | 'med' | 'high', number[]> = {
+  low:  normWheel(WHEEL_SEG.low, WHEEL_WRAW.low, 0.5),
+  // moyen : poids historiques (déjà EV=0.70), conservés à l'identique
+  med:  [0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.02,
+         0.080625, 0.0675, 0.080625, 0.03, 0.080625, 0.0675, 0.080625, 0.005],
+  high: normWheel(WHEEL_SEG.high, WHEEL_WRAW.high, 0),
+}
+export function playWheel(bet: number, risk: string, budget: number) {
+  const seg = WHEEL[risk as keyof typeof WHEEL]   ?? WHEEL.med
+  const wt  = WHEEL_W[risk as keyof typeof WHEEL_W] ?? WHEEL_W.med
   // bridage : poids à 0 pour les segments non payables (les 0× passent toujours)
-  const w   = WHEEL_W.map((wt, i) => (WHEEL[i] * bet <= budget ? wt : 0))
+  const w   = wt.map((x, i) => (seg[i] * bet <= budget ? x : 0))
   const idx = pickWeighted(w)
-  const m   = WHEEL[idx]
+  const m   = seg[idx]
   return { index: idx, mult: m, gain: Math.round(bet * m) }
 }
 
