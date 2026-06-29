@@ -622,9 +622,11 @@ async function wheelSpin() {
   const bet = int('wBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const risk = wheelRisk();
   if (wheelRiskBuilt !== risk) renderWheel();
-  let d; try { d = await api('/play/wheel', 'POST', { bet, risk }); } catch (e) { return toast(e.message, 4000, 'error'); }
   wheelSpinning = true; $('wBtn').disabled = true;
   const rs = $('wheelRisk'); if (rs) rs.disabled = true;
+  let d;
+  try { d = await api('/play/wheel', 'POST', { bet, risk }); }
+  catch (e) { wheelSpinning = false; $('wBtn').disabled = false; if (rs) rs.disabled = false; return toast(e.message, 4000, 'error'); }
   { const res = $('wResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const n = WHEEL[risk].length, seg = 360 / n, mid = d.index * seg + seg / 2, jitter = (Math.random() - .5) * (seg * .6);
   const base = Math.ceil(wheelRot / 360) * 360; wheelRot = base + 360 * 6 - mid + jitter;
