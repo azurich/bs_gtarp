@@ -132,7 +132,9 @@ const WHEEL_WRAW: Record<'low' | 'high', number[]> = {
 function normWheel(seg: number[], wRaw: number[], balValue: number): number[] {
   let A = 0, B = 0, Wb = 0
   seg.forEach((v, i) => { if (v === balValue) Wb += wRaw[i]; else { A += wRaw[i] * v; B += wRaw[i] } })
+  if (Wb === 0 || balValue === RTP) throw new Error('normWheel: balancier invalide (Wb=0 ou balValue=RTP)')
   const f = (RTP * B - A) / (Wb * (balValue - RTP))
+  if (!(f >= 0)) throw new Error('normWheel: facteur negatif (poids bruts incompatibles avec RTP)')
   const w = wRaw.map((wi, i) => (seg[i] === balValue ? wi * f : wi))
   const sum = w.reduce((s, wi) => s + wi, 0)
   return w.map(wi => wi / sum)
