@@ -142,7 +142,7 @@
                   <div class="hg-icon"><i data-lucide="circle-dot"></i></div><div class="hg-name">Plinko</div><div class="hg-tag">Risque réglable</div>
                 </div>
                 <div class="home-game-card anim-up" onclick="switchTab('wheel')" data-game="wheel" data-delay="4">
-                  <div class="hg-icon"><i data-lucide="disc-3"></i></div><div class="hg-name">Roue</div><div class="hg-tag">Jackpot 15×</div>
+                  <div class="hg-icon"><i data-lucide="disc-3"></i></div><div class="hg-name">Roue</div><div class="hg-tag">Risque réglable</div>
                 </div>
                 <div class="home-game-card anim-up" onclick="switchTab('dice')" data-game="dice" data-delay="5">
                   <div class="hg-icon"><i data-lucide="dice-5"></i></div><div class="hg-name">Dice</div><div class="hg-tag">Chance réglable</div>
@@ -349,7 +349,7 @@
               <div class="machine" data-game="wheel">
                 <div class="machine-head">
                   <span class="ic-game"></span>
-                  <div class="machine-head-txt"><h2>Roue</h2><span class="sub">Tentez le jackpot 15×</span></div>
+                  <div class="machine-head-txt"><h2>Roue</h2><span class="sub">Risque réglable · jackpot jusqu'à 50×</span></div>
                 </div>
                 <div class="machine-board">
                   <div class="wheel-wrap">
@@ -363,6 +363,14 @@
                 <div class="machine-result" id="wResult" data-state="idle"></div>
                 <div class="machine-controls">
                   <div class="bet-row">
+                    <div class="field plinko-risk">
+                      <label>Risque</label>
+                      <select id="wheelRisk">
+                        <option value="low">Faible</option>
+                        <option value="med" selected>Moyen</option>
+                        <option value="high">Élevé</option>
+                      </select>
+                    </div>
                     <div class="field">
                       <label>Mise</label>
                       <input id="wBet" type="number" min="1" value="100">

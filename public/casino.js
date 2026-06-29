@@ -171,7 +171,7 @@ function _doTab(v) {
   initAnimations(activeView);
   if (v === 'home')    renderHome();
   if (v === 'plinko')  { initPlinkoCanvas(); drawPlinko(); }
-  if (v === 'wheel')   buildWheel();
+  if (v === 'wheel')   renderWheel();
   if (v === 'dice')    diceUpdate();
   if (v === 'levels')  renderLevels();
   if (v === 'history') loadHistory();
@@ -590,33 +590,47 @@ async function plinkoDrop() {
 
 /* ══════════════════ WHEEL ═══════════════════════════════ */
 /* défaut écrasé par /api/config (source de vérité = games.ts) */
-let WHEEL = [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15];
-let wheelBuilt = false, wheelSpinning = false, wheelRot = 0;
-function wheelColor(m) { return m===0?'#1c1430':m>=50?'#a855f7':m>=10?'#ff2e88':m>=5?'#d6209e':m>=3?'#7b2ff7':m>=2?'#23e0d6':'#2a8fa0'; }
-function buildWheel() {
-  if (wheelBuilt) return;
-  const g = $('wheelG'), cx = 160, cy = 160, r = 150, n = WHEEL.length, seg = 360/n; let html = '';
+let WHEEL = {
+  low:  [0.5, 1.5, 0.7, 2, 0.5, 1.5, 0.9, 3, 0.5, 1.5, 0.7, 2, 0.5, 1.5, 0.9, 3],
+  med:  [0, 1.5, 0, 2, 0, 1.5, 0, 5, 0, 1.5, 0, 2, 0, 1.5, 0, 15],
+  high: [0, 0, 2, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 2, 0, 50],
+};
+let wheelSpinning = false, wheelRot = 0, wheelRiskBuilt = '';
+function wheelRisk() { const s = $('wheelRisk'); return (s && WHEEL[s.value]) ? s.value : 'med'; }
+function wheelColor(m) {
+  return m === 0 ? '#1c1430' : m < 1 ? '#3a3550'
+    : m >= 50 ? '#a855f7' : m >= 10 ? '#ff2e88' : m >= 5 ? '#d6209e'
+    : m >= 3 ? '#7b2ff7' : m >= 2 ? '#23e0d6' : '#2a8fa0';
+}
+function renderWheel() {
+  const risk = wheelRisk();
+  const segs = WHEEL[risk];
+  const g = $('wheelG'); if (!g) return;
+  const cx = 160, cy = 160, r = 150, n = segs.length, seg = 360 / n; let html = '';
   for (let i = 0; i < n; i++) {
-    const a0 = i*seg*Math.PI/180, a1 = (i+1)*seg*Math.PI/180;
-    const x0 = cx+r*Math.sin(a0), y0 = cy-r*Math.cos(a0), x1 = cx+r*Math.sin(a1), y1 = cy-r*Math.cos(a1);
-    html += '<path d="M'+cx+' '+cy+' L'+x0.toFixed(2)+' '+y0.toFixed(2)+' A'+r+' '+r+' 0 0 1 '+x1.toFixed(2)+' '+y1.toFixed(2)+' Z" fill="'+wheelColor(WHEEL[i])+'" stroke="rgba(0,0,0,.4)" stroke-width="1"/>';
-    const am = i*seg+seg/2, rad = am*Math.PI/180, lx = cx+106*Math.sin(rad), ly = cy-106*Math.cos(rad);
-    html += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" fill="#fff" font-family="Inter, system-ui, sans-serif" font-size="17" text-anchor="middle" dominant-baseline="middle" transform="rotate('+am.toFixed(1)+' '+lx.toFixed(1)+' '+ly.toFixed(1)+')">'+(WHEEL[i]===0?'✕':WHEEL[i]+'×')+'</text>';
+    const a0 = i * seg * Math.PI / 180, a1 = (i + 1) * seg * Math.PI / 180;
+    const x0 = cx + r * Math.sin(a0), y0 = cy - r * Math.cos(a0), x1 = cx + r * Math.sin(a1), y1 = cy - r * Math.cos(a1);
+    html += '<path d="M' + cx + ' ' + cy + ' L' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A' + r + ' ' + r + ' 0 0 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' Z" fill="' + wheelColor(segs[i]) + '" stroke="rgba(0,0,0,.4)" stroke-width="1"/>';
+    const am = i * seg + seg / 2, rad = am * Math.PI / 180, lx = cx + 106 * Math.sin(rad), ly = cy - 106 * Math.cos(rad);
+    html += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" fill="#fff" font-family="Inter, system-ui, sans-serif" font-size="15" text-anchor="middle" dominant-baseline="middle" transform="rotate(' + am.toFixed(1) + ' ' + lx.toFixed(1) + ' ' + ly.toFixed(1) + ')">' + (segs[i] === 0 ? '✕' : segs[i] + '×') + '</text>';
   }
   html += '<circle cx="160" cy="160" r="150" fill="none" stroke="rgba(168,85,247,.55)" stroke-width="3"/>';
-  g.innerHTML = html; wheelBuilt = true; g.style.transform = 'rotate(0deg)';
+  g.innerHTML = html; g.style.transform = 'rotate(' + wheelRot + 'deg)'; wheelRiskBuilt = risk;
 }
 async function wheelSpin() {
-  if (wheelSpinning) return; buildWheel();
+  if (wheelSpinning) return;
   const bet = int('wBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
-  let d; try { d = await api('/play/wheel', 'POST', { bet }); } catch (e) { return toast(e.message, 4000, 'error'); }
+  const risk = wheelRisk();
+  if (wheelRiskBuilt !== risk) renderWheel();
+  let d; try { d = await api('/play/wheel', 'POST', { bet, risk }); } catch (e) { return toast(e.message, 4000, 'error'); }
   wheelSpinning = true; $('wBtn').disabled = true;
+  const rs = $('wheelRisk'); if (rs) rs.disabled = true;
   { const res = $('wResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
-  const seg = 360/WHEEL.length, mid = d.index*seg+seg/2, jitter = (Math.random()-.5)*(seg*.6);
-  const base = Math.ceil(wheelRot/360)*360; wheelRot = base+360*6-mid+jitter;
-  $('wheelG').style.transform = 'rotate('+wheelRot+'deg)';
+  const n = WHEEL[risk].length, seg = 360 / n, mid = d.index * seg + seg / 2, jitter = (Math.random() - .5) * (seg * .6);
+  const base = Math.ceil(wheelRot / 360) * 360; wheelRot = base + 360 * 6 - mid + jitter;
+  $('wheelG').style.transform = 'rotate(' + wheelRot + 'deg)';
   setTimeout(() => {
-    wheelSpinning = false; $('wBtn').disabled = false;
+    wheelSpinning = false; $('wBtn').disabled = false; if (rs) rs.disabled = false;
     const machine = $('view-wheel').querySelector('.machine');
     gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
   }, 4700);
@@ -663,6 +677,8 @@ async function diceRoll() {
 
   initAnimations();
   const riskSel = $('plinkoRisk'); if (riskSel) riskSel.addEventListener('change', () => drawPlinko());
+  renderWheel();
+  const wRiskSel = $('wheelRisk'); if (wRiskSel) wRiskSel.addEventListener('change', () => renderWheel());
   let _pkResizeT;
   window.addEventListener('resize', () => {
     clearTimeout(_pkResizeT);
