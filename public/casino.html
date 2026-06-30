@@ -396,10 +396,10 @@
                   <div class="machine-head-txt"><h2>Dice</h2><span class="sub">Choisissez votre chance de gagner</span></div>
                 </div>
                 <div class="machine-board">
-                  <div class="game-board game-board-stack">
-                    <div class="dice-stage">
+                  <div class="dice-game">
+                    <div class="dice-readout">
+                      <span class="dice-result-cap">Dernier lancer</span>
                       <div class="dice-result" id="diceResult">—</div>
-                      <div class="dice-result-cap">Dernier lancer</div>
                     </div>
                     <div class="dice-track">
                       <span class="dice-zone dice-zone-win">GAGNANT</span>
@@ -408,16 +408,15 @@
                       <div class="dice-dot" id="diceDot"></div>
                     </div>
                     <div class="dice-scale"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+                    <div class="slider-row dice-slider">
+                      <label>Chance de gagner <b id="diceChanceLbl">50%</b></label>
+                      <input id="diceSlider" type="range" min="2" max="95" value="50" oninput="diceUpdate()">
+                    </div>
                   </div>
                 </div>
                 <div class="machine-result" id="diceResultMsg" data-state="idle"></div>
                 <div class="machine-controls">
-                  <div class="slider-row">
-                    <label>Chance de gagner <b id="diceChanceLbl">50%</b></label>
-                    <input id="diceSlider" type="range" min="2" max="95" value="50" oninput="diceUpdate()">
-                  </div>
                   <div class="dice-stats">
-                    <div class="stat"><div class="lbl">Cible (en dessous de)</div><div class="val" id="diceTargetLbl">50.00</div></div>
                     <div class="stat"><div class="lbl">Multiplicateur</div><div class="val" id="diceMult">—</div></div>
                     <div class="stat"><div class="lbl">Gains potentiels</div><div class="val" id="dicePot">—</div></div>
                   </div>

@@ -642,7 +642,7 @@ async function wheelSpin() {
 let diceRolling = false;
 function diceUpdate() {
   const c = Math.max(2, Math.min(95, +$('diceSlider').value));
-  $('diceChanceLbl').textContent = c+'%'; $('diceTargetLbl').textContent = c.toFixed(2);
+  $('diceChanceLbl').textContent = c+'%';
   const eff = (100/c)*GAME_RTP;
   $('diceMult').textContent = eff.toFixed(2)+'×';
   const bet = Math.floor(+$('diceBet').value)||0; $('dicePot').textContent = fmt(bet*eff);
