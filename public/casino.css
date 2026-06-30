@@ -523,16 +523,20 @@ input[type=range]::-webkit-slider-thumb{
   left:var(--win,50%);transform:translateX(-50%);border-radius:3px;
 }
 .dice-dot{
-  position:absolute;top:50%;width:clamp(28px,5.5cqw,46px);aspect-ratio:1;border-radius:24%;z-index:4;
+  position:absolute;top:50%;width:clamp(24px,4.6cqw,38px);aspect-ratio:1;border-radius:24%;z-index:4;
   background:linear-gradient(150deg,#fff,#e7e7f3);
-  transform:translate(-50%,-50%);left:50%;
-  box-shadow:0 0 16px rgba(255,255,255,.55),0 4px 10px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.12);
+  transform:translate(-50%,-50%);left:50%;overflow:hidden;
+  box-shadow:0 0 14px rgba(255,255,255,.5),0 4px 10px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.12);
   transition:left .85s var(--ease-out);
-  display:flex;align-items:center;justify-content:center;padding:15%;
 }
-.dice-dot svg{width:100%;height:100%}
-.dice-dot svg circle{fill:#2e1065}
-.dice-scale{display:flex;width:100%;justify-content:space-between;color:var(--tx-2);font-size:clamp(.62rem,1.6cqw,.78rem);font-weight:500;font-family:var(--body);letter-spacing:.05em;padding:4px 0 0;font-variant-numeric:tabular-nums}
+.dice-dot svg{width:100%;height:100%;display:block;fill:#2e1065}
+.dice-scale{position:relative;width:100%;height:1.1em;margin-top:5px;color:var(--tx-2);font-size:clamp(.62rem,1.6cqw,.78rem);font-weight:500;font-family:var(--body);letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.dice-scale span{position:absolute;top:0;transform:translateX(-50%)}
+.dice-scale span:nth-child(1){left:0;transform:none}
+.dice-scale span:nth-child(2){left:25%}
+.dice-scale span:nth-child(3){left:50%}
+.dice-scale span:nth-child(4){left:75%}
+.dice-scale span:nth-child(5){left:100%;transform:translateX(-100%)}
 
 /* Slider de chance colle sous la piste (lien visuel direct avec --win) */
 .dice-slider{margin:clamp(3px,1cqw,7px) 0 0}
