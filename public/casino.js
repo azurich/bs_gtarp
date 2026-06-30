@@ -655,9 +655,9 @@ async function diceRoll() {
   let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message, 4000, 'error'); }
   diceRolling = true; $('diceBtn').disabled = true;
   { const res = $('diceResultMsg'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
-  const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%';
+  const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%'; dot.classList.add('rolling');
   setTimeout(() => {
-    diceRolling = false; $('diceBtn').disabled = false;
+    diceRolling = false; $('diceBtn').disabled = false; dot.classList.remove('rolling');
     res.textContent = d.roll.toFixed(2); res.className = 'dice-result '+(d.win?'win':'lose');
     const machine = $('view-dice').querySelector('.machine');
     gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });

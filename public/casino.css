@@ -491,15 +491,15 @@ input[type=range]::-webkit-slider-thumb{
   color:var(--v-300);letter-spacing:-.02em;font-weight:700;
   transition:color .2s,text-shadow .2s,transform .2s;
 }
-.dice-result.win{color:var(--green);text-shadow:0 0 28px rgba(16,185,129,.55);transform:scale(1.04)}
-.dice-result.lose{color:var(--red);text-shadow:0 0 28px rgba(244,63,94,.45)}
+.dice-result.win{color:var(--green);text-shadow:0 0 13px rgba(16,185,129,.45);transform:scale(1.04)}
+.dice-result.lose{color:var(--red);text-shadow:0 0 13px rgba(244,63,94,.4)}
 .dice-result-cap{font-family:var(--body);font-size:clamp(.58rem,1.8cqw,.72rem);text-transform:uppercase;letter-spacing:.2em;color:var(--tx-3)}
 
 .dice-track{
   --dt:clamp(46px,7cqw,72px);
   position:relative;width:100%;height:var(--dt);border-radius:calc(var(--dt)/2);margin:4px 0;
   background:linear-gradient(90deg,
-    #0e7a4e 0%,#12a065 var(--win,50%),
+    #0c5e3c 0%,#12875a var(--win,50%),
     #1a1330 var(--win,50%),#120e26 100%);
   border:1px solid var(--accent-dim);
   box-shadow:inset 0 3px 14px rgba(0,0,0,.7),0 4px 16px rgba(0,0,0,.4);
@@ -530,6 +530,8 @@ input[type=range]::-webkit-slider-thumb{
   transition:left .85s var(--ease-out);
 }
 .dice-dot svg{width:100%;height:100%;display:block;fill:#2e1065}
+@keyframes diceTumble{from{transform:rotate(0)}to{transform:rotate(720deg)}}
+.dice-dot.rolling svg{animation:diceTumble .82s cubic-bezier(.3,.7,.25,1)}
 .dice-scale{position:relative;width:100%;height:1.1em;margin-top:5px;color:var(--tx-2);font-size:clamp(.62rem,1.6cqw,.78rem);font-weight:500;font-family:var(--body);letter-spacing:.05em;font-variant-numeric:tabular-nums}
 .dice-scale span{position:absolute;top:0;transform:translateX(-50%)}
 .dice-scale span:nth-child(1){left:0;transform:none}
