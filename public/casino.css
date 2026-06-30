@@ -233,7 +233,7 @@
 
 input[type=range]{
   width:100%;-webkit-appearance:none;height:4px;border-radius:4px;
-  background:linear-gradient(90deg,var(--red),var(--green));outline:none;
+  background:var(--accent-dim);outline:none;
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
@@ -481,12 +481,10 @@ input[type=range]::-webkit-slider-thumb{
 /* ══════════════════════════════════════════════════════════
    DICE — gauge premium
 ══════════════════════════════════════════════════════════ */
-.dice-game{width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column}
+.dice-game{width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column}
 
 /* Lecture du lancer — compacte (remplace l'ancien gros .dice-stage) */
-.dice-readout{display:flex;flex-direction:column;align-items:center;gap:3px;
-  margin:0 0 clamp(4px,1cqw,8px);padding:clamp(8px,2.2cqw,18px) 0 clamp(2px,.8cqw,6px);
-  background:radial-gradient(ellipse 58% 130% at 50% 38%,var(--accent-glow),transparent 64%)}
+.dice-readout{display:flex;flex-direction:column;align-items:center;gap:3px;margin:0 0 clamp(6px,1.5cqw,12px)}
 .dice-result{
   font-family:var(--num);font-variant-numeric:tabular-nums;
   font-size:clamp(2.4rem,12cqw,4rem);line-height:1;text-align:center;
@@ -525,13 +523,16 @@ input[type=range]::-webkit-slider-thumb{
   left:var(--win,50%);transform:translateX(-50%);border-radius:3px;
 }
 .dice-dot{
-  position:absolute;top:50%;width:clamp(26px,5cqw,44px);aspect-ratio:1;border-radius:50%;z-index:4;
-  background:radial-gradient(circle at 34% 28%,#fff,#cfcfe0 70%);
+  position:absolute;top:50%;width:clamp(28px,5.5cqw,46px);aspect-ratio:1;border-radius:24%;z-index:4;
+  background:linear-gradient(150deg,#fff,#e7e7f3);
   transform:translate(-50%,-50%);left:50%;
-  box-shadow:0 0 18px rgba(255,255,255,.9),0 3px 10px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.15);
+  box-shadow:0 0 16px rgba(255,255,255,.55),0 4px 10px rgba(0,0,0,.55),inset 0 -2px 4px rgba(0,0,0,.12);
   transition:left .85s var(--ease-out);
+  display:flex;align-items:center;justify-content:center;padding:15%;
 }
-.dice-scale{display:flex;width:100%;justify-content:space-between;color:var(--tx-2);font-size:clamp(.62rem,1.6cqw,.78rem);font-weight:500;font-family:var(--body);letter-spacing:.05em;padding:4px 2px 0;font-variant-numeric:tabular-nums}
+.dice-dot svg{width:100%;height:100%}
+.dice-dot svg circle{fill:#2e1065}
+.dice-scale{display:flex;width:100%;justify-content:space-between;color:var(--tx-2);font-size:clamp(.62rem,1.6cqw,.78rem);font-weight:500;font-family:var(--body);letter-spacing:.05em;padding:4px 0 0;font-variant-numeric:tabular-nums}
 
 /* Slider de chance colle sous la piste (lien visuel direct avec --win) */
 .dice-slider{margin:clamp(3px,1cqw,7px) 0 0}
