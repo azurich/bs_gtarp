@@ -151,7 +151,6 @@ function gameResult({ machine, bet, gain, balance, xp, level, push }) {
 
 /* ── Navigation ──────────────────────────────────────────── */
 function switchTab(v) {
-  if (v === 'blackjack' || v === 'mines') { toast('Bientôt disponible', 2600, 'info'); return; }
   if (v !== 'mines' && minesActive) {
     openModal(
       'Partie en cours',
@@ -169,7 +168,8 @@ function _doTab(v) {
   const activeView = $('view-' + v);
   if (activeView) activeView.classList.add('active');
   initAnimations(activeView);
-  if (v === 'home')    renderHome();
+  if (v === 'home')      renderHome();
+  if (v === 'blackjack') bjRefreshBudget();
   if (v === 'plinko')  { initPlinkoCanvas(); drawPlinko(); }
   if (v === 'wheel')   renderWheel();
   if (v === 'dice')    diceUpdate();
@@ -410,19 +410,25 @@ function bjRender(d) {
 }
 function bjFinish(d) {
   $('bjActions').classList.add('hidden'); $('bjBetRow').classList.remove('hidden');
-  setBalance(d.balance, d.outcome === 'win', d.xp, d.level);
-  const m = $('bjMsg');
-  if (d.outcome === 'win')  { m.className = 'msg win';  m.textContent = 'Gagné ! ' + d.playerScore + ' vs ' + d.dealerScore + '  +' + fmt(d.gain) + ' 🪙'; checkBigWin(bjCurrentBet, d.gain); }
-  else if (d.outcome === 'push') { m.className = 'msg info'; m.textContent = 'Égalité — mise rendue.'; }
-  else { m.className = 'msg lose'; m.textContent = (d.playerScore > 21 ? 'Buste ! ' : 'Perdu. ') + d.playerScore + ' vs ' + d.dealerScore; }
+  const machine = $('view-blackjack').querySelector('.machine');
+  gameResult({ machine, bet: bjCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, push: d.outcome === 'push' });
+  bjUpdateMaxBet(d.budget);
+}
+function bjUpdateMaxBet(budget) {
+  const el = $('bjMaxBet'); if (!el) return;
+  const max = Math.floor((budget || 0) / 2.2);
+  el.textContent = 'Mise max (cagnotte) : ' + fmt(max);
+}
+async function bjRefreshBudget() {
+  try { const r = await api('/budget'); bjUpdateMaxBet(r.budget); } catch (e) {}
 }
 async function bjDeal() {
   const bet = int('bjBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   $('bjDealBtn').disabled = true;
   bjCurrentBet = bet;
   let d; try { d = await api('/bj/deal', 'POST', { bet }); } catch (e) { $('bjDealBtn').disabled = false; return toast(e.message, 4000, 'error'); }
-  $('bjBetRow').classList.add('hidden'); $('bjActions').classList.remove('hidden'); $('bjMsg').textContent = '';
-  setBalance(d.balance, undefined, d.xp, d.level); bjRender(d); $('bjDealBtn').disabled = false;
+  $('bjBetRow').classList.add('hidden'); $('bjActions').classList.remove('hidden');
+  setBalance(d.balance, undefined, d.xp, d.level); bjUpdateMaxBet(d.budget); bjRender(d); $('bjDealBtn').disabled = false;
   if (d.outcome) bjFinish(d);
 }
 async function bjHit()   { let d; try { d = await api('/bj/hit',   'POST'); } catch (e) { return toast(e.message, 4000, 'error'); } bjRender(d); if (d.outcome) bjFinish(d); }

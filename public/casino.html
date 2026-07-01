@@ -56,11 +56,11 @@
             <button class="nav-item" data-v="slots" onclick="switchTab('slots')">
               <span class="ni"><i data-lucide="cherry"></i></span><span>Slots</span>
             </button>
-            <button class="nav-item locked" data-v="blackjack" onclick="switchTab('blackjack')">
-              <span class="ni"><i data-lucide="layers-2"></i></span><span>Blackjack</span><span class="nav-soon">Bientôt</span>
+            <button class="nav-item" data-v="blackjack" onclick="switchTab('blackjack')">
+              <span class="ni"><i data-lucide="layers-2"></i></span><span>Blackjack</span>
             </button>
-            <button class="nav-item locked" data-v="mines" onclick="switchTab('mines')">
-              <span class="ni"><i data-lucide="bomb"></i></span><span>Démineur</span><span class="nav-soon">Bientôt</span>
+            <button class="nav-item" data-v="mines" onclick="switchTab('mines')">
+              <span class="ni"><i data-lucide="bomb"></i></span><span>Démineur</span>
             </button>
             <button class="nav-item" data-v="plinko" onclick="switchTab('plinko')">
               <span class="ni"><i data-lucide="circle-dot"></i></span><span>Plinko</span>
@@ -132,11 +132,11 @@
                 <div class="home-game-card anim-up" onclick="switchTab('slots')" data-game="slots" data-delay="0">
                   <div class="hg-icon"><i data-lucide="cherry"></i></div><div class="hg-name">Slots</div><div class="hg-tag">Jackpot 20×</div>
                 </div>
-                <div class="home-game-card locked anim-up" onclick="switchTab('blackjack')" data-game="blackjack" data-delay="1">
-                  <div class="hg-icon"><i data-lucide="layers-2"></i></div><div class="hg-name">Blackjack</div><div class="hg-tag hg-soon">Bientôt</div>
+                <div class="home-game-card anim-up" onclick="switchTab('blackjack')" data-game="blackjack" data-delay="1">
+                  <div class="hg-icon"><i data-lucide="layers-2"></i></div><div class="hg-name">Blackjack</div><div class="hg-tag">Bats le croupier</div>
                 </div>
-                <div class="home-game-card locked anim-up" onclick="switchTab('mines')" data-game="mines" data-delay="2">
-                  <div class="hg-icon"><i data-lucide="bomb"></i></div><div class="hg-name">Démineur</div><div class="hg-tag hg-soon">Bientôt</div>
+                <div class="home-game-card anim-up" onclick="switchTab('mines')" data-game="mines" data-delay="2">
+                  <div class="hg-icon"><i data-lucide="bomb"></i></div><div class="hg-name">Démineur</div><div class="hg-tag">Évite les bombes</div>
                 </div>
                 <div class="home-game-card anim-up" onclick="switchTab('plinko')" data-game="plinko" data-delay="3">
                   <div class="hg-icon"><i data-lucide="circle-dot"></i></div><div class="hg-name">Plinko</div><div class="hg-tag">Risque réglable</div>
@@ -220,8 +220,7 @@
           <!-- BLACKJACK -->
           <div id="view-blackjack" class="view game-view">
             <div class="view-inner">
-              <div class="machine locked" data-game="blackjack">
-                <div class="machine-veil"><span class="nav-soon">Bientôt</span></div>
+              <div class="machine" data-game="blackjack">
                 <div class="machine-head">
                   <span class="ic-game"><i data-lucide="layers-2"></i></span>
                   <div class="machine-head-txt"><h2>Blackjack</h2><span class="sub">Battez le croupier sans dépasser 21</span></div>
@@ -239,6 +238,7 @@
                   </div>
                 </div>
                 <div class="machine-controls">
+                  <div class="dice-result-cap" id="bjMaxBet" style="text-align:center"></div>
                   <div id="bjBetRow" class="bet-row">
                     <div class="field">
                       <label>Mise</label>
@@ -255,7 +255,7 @@
                     <button class="btn" onclick="bjHit()">TIRER</button>
                     <button class="btn ghost" onclick="bjStand()">RESTER</button>
                   </div>
-                  <div id="bjMsg" class="msg"></div>
+                  <div class="machine-result" id="bjResultMsg" data-state="idle"></div>
                 </div>
               </div>
             </div>
@@ -264,8 +264,7 @@
           <!-- MINES -->
           <div id="view-mines" class="view game-view">
             <div class="view-inner">
-              <div class="machine locked" data-game="mines">
-                <div class="machine-veil"><span class="nav-soon">Bientôt</span></div>
+              <div class="machine" data-game="mines">
                 <div class="machine-head">
                   <span class="ic-game"><i data-lucide="bomb"></i></span>
                   <div class="machine-head-txt"><h2>Démineur</h2><span class="sub">Évitez les bombes, encaissez vos gains</span></div>
