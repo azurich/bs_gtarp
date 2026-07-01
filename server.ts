@@ -565,6 +565,8 @@ const app = new Elysia()
       const existingMines = activeMines.get(u.id)
       if (existingMines?.live) { set.status = 400; return { error: 'Une partie de Démineur est déjà en cours.' } }
       const bombs = Math.max(1, Math.min(24, Math.floor(Number(b.bombs) || 5)))
+      const startMax = Math.floor(casinoBudget() / G.minesStepFactor(0, bombs))
+      if (bet > startMax) { set.status = 400; return { error: 'Mise max actuelle : ' + startMax + ' (cagnotte)' } }
       if (!charge(u, bet, 'mines')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       awardXP(u.id, bet)
       activeMines.set(u.id, {

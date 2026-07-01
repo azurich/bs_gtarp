@@ -120,11 +120,6 @@ function launchConfetti(label) {
   setTimeout(() => { if (_confAF) cancelAnimationFrame(_confAF); ov.classList.add('hidden'); ov.classList.remove('mega'); }, 5000);
 }
 
-function checkBigWin(bet, gain) {
-  if (!gain || gain <= 0 || !bet) return;
-  if (gain >= bet * 20) launchConfetti('MEGA WIN\n+' + fmt(gain) + ' 🪙');
-  else if (gain >= bet * 5) launchConfetti('BIG WIN\n+' + fmt(gain) + ' 🪙');
-}
 
 /* ── Moteur d'effets gradués (point d'entrée unique) ───────── */
 const FX = ['fx-lose','fx-partial','fx-win-s','fx-win-m','fx-win-big','fx-win-mega'];
