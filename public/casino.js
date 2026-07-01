@@ -435,7 +435,7 @@ async function bjHit()   { let d; try { d = await api('/bj/hit',   'POST'); } ca
 async function bjStand() { let d; try { d = await api('/bj/stand', 'POST'); } catch (e) { return toast(e.message, 4000, 'error'); } bjRender(d); bjFinish(d); }
 
 /* ══════════════════ MINES ══════════════════════════════ */
-let minesActive = false, minesCurrentBet = 0;
+let minesActive = false, minesCurrentBet = 0, minesMaxReached = false;
 const MINE_GEM  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M6 3 4 9h16l-2-6zM2 9h20" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/></svg>';
 const MINE_BOMB = '<svg viewBox="0 0 24 24"><circle cx="11" cy="14.5" r="7" fill="currentColor"/><path d="M16.5 6.5 19 4m0 0h-2.6M19 4v2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="8.5" cy="12" r="1.6" fill="#fff" opacity=".4"/></svg>';
 function buildMinesGrid() { const g = $('minesGrid'); if (!g) return; g.innerHTML = ''; for (let i = 0; i < 25; i++) { const c = document.createElement('div'); c.className = 'cell'; c.dataset.i = i; c.onclick = () => minesPick(i); g.appendChild(c); } }
@@ -446,43 +446,48 @@ async function minesStartGame() {
   const bet = int('minesBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const bombs = +$('minesCount').value;
   let d; try { d = await api('/mines/start', 'POST', { bet, bombs }); } catch (e) { return toast(e.message, 4000, 'error'); }
-  buildMinesGrid(); minesActive = true; minesCurrentBet = bet;
-  $('minesStart').classList.add('hidden'); $('minesCash').classList.remove('hidden'); $('minesMsg').textContent = '';
+  buildMinesGrid(); minesActive = true; minesCurrentBet = bet; minesMaxReached = false;
+  $('minesGrid').classList.remove('maxed');
+  $('minesStart').classList.add('hidden'); $('minesCash').classList.remove('hidden');
+  { const r = $('minesResultMsg'); if (r) { r.dataset.state = 'idle'; r.textContent = ''; } }
   $('minesMult').textContent = '1.00×'; $('minesPot').textContent = '0'; $('minesGems').textContent = '0';
   setBalance(d.balance, undefined, d.xp, d.level);
 }
 async function minesPick(i) {
-  if (!minesActive) return;
+  if (!minesActive || minesMaxReached) return;
   const cell = minesCell(i); if (cell.classList.contains('done')) return;
   let d; try { d = await api('/mines/pick', 'POST', { i }); } catch (e) { return toast(e.message, 4000, 'error'); }
   cell.classList.add('done');
+  const machine = $('view-mines').querySelector('.machine');
   if (d.result === 'bomb') {
     cell.classList.add('bomb'); cell.innerHTML = MINE_BOMB; revealBombs(d.bombs); shakeEl($('minesGrid')); minesActive = false;
     $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
-    setBalance(d.balance, false, d.xp, d.level);
-    const m = $('minesMsg'); m.className = 'msg lose'; m.textContent = '💥 Bombe ! Mise perdue.';
+    gameResult({ machine, bet: minesCurrentBet, gain: 0, balance: d.balance, xp: d.xp, level: d.level });
     return;
   }
   cell.classList.add('gem'); cell.innerHTML = MINE_GEM;
   $('minesMult').textContent = d.mult.toFixed(2) + '×'; $('minesPot').textContent = fmt(d.pot);
   $('minesGems').textContent = (+$('minesGems').textContent) + 1;
-  setBalance(d.balance, undefined, d.xp, d.level);
   if (d.cashedOut) {
     revealBombs(d.bombs); minesActive = false;
     $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
-    flashBal(true);
-    const m = $('minesMsg'); m.className = 'msg win'; m.textContent = 'Tout déminé ! +' + fmt(d.gain) + ' 🪙';
-    checkBigWin(minesCurrentBet, d.gain);
+    gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+    return;
+  }
+  setBalance(d.balance, undefined, d.xp, d.level);
+  if (d.maxReached) {
+    minesMaxReached = true;
+    $('minesGrid').classList.add('maxed');
+    const r = $('minesResultMsg'); if (r) { r.dataset.state = 'neutral'; r.textContent = 'Max atteint (cagnotte) — encaisse'; }
   }
 }
 async function minesCashout() {
   if (!minesActive) return;
   let d; try { d = await api('/mines/cashout', 'POST'); } catch (e) { return toast(e.message, 4000, 'error'); }
-  revealBombs(d.bombs); minesActive = false;
+  revealBombs(d.bombs); minesActive = false; minesMaxReached = false;
   $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
-  setBalance(d.balance, true, d.xp, d.level);
-  const m = $('minesMsg'); m.className = 'msg win'; m.textContent = 'Encaissé +' + fmt(d.gain) + ' 🪙';
-  checkBigWin(minesCurrentBet, d.gain);
+  const machine = $('view-mines').querySelector('.machine');
+  gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
 }
 
 /* ══════════════════ PLINKO ══════════════════════════════ */
