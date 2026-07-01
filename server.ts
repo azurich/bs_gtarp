@@ -20,7 +20,7 @@ interface BjState {
 interface MinesState {
   bet: number; bombs: number; bombSet: Set<number>; revealed: Set<number>
   picks: number; gems: number; mult: number; live: boolean
-  startedAt: number
+  startedAt: number; maxReached?: boolean
 }
 
 /* ── constantes ───────────────────────────────────────────── */
@@ -121,7 +121,7 @@ function publicUser(u: User) {
 }
 function userSnapshot(id: number) {
   const u = Q.userById.get(id) as User
-  return { balance: Math.floor(u.credit), xp: u.xp ?? 0, level: u.level ?? 1 }
+  return { balance: Math.floor(u.credit), xp: u.xp ?? 0, level: u.level ?? 1, budget: Math.floor(casinoBudget()) }
 }
 function awardXP(userId: number, bet: number) {
   // XP proportionnelle à la mise dépensée : 1 XP par crédit misé
@@ -197,6 +197,8 @@ function bjResolve(user: User, st: BjState) {
   } else if (outcome === 'push') {
     Q.addCredit.run(st.bet, user.id)
   }
+  // cagnotte : win -> (bet, gain) ; push -> (bet, bet) [mise rendue] ; lose -> (bet, 0)
+  bookCasino(st.bet, outcome === 'push' ? st.bet : gain)
   recordHistory(user.id, 'blackjack', st.bet, gain, outcome)
   activeBJ.delete(user.id)
   return { ...bjView(st, true), outcome, gain, ...userSnapshot(user.id) }
@@ -463,6 +465,8 @@ const app = new Elysia()
 
     .get('/api/config', () => ({ rtp: G.RTP, plinko: G.PK_MULT, wheel: G.WHEEL }))
 
+    .get('/api/budget', () => ({ budget: Math.floor(casinoBudget()) }))
+
     /* ── Jeux one-shot (économie RTP fixe, voir games.ts) ── */
     .post('/api/play/slots', ({ body, user, set }) => {
       const u   = user as User
@@ -516,10 +520,11 @@ const app = new Elysia()
 
     /* ── Blackjack ──────────────────────────────────────── */
     .post('/api/bj/deal', ({ body, user, set }) => {
-      set.status = 503; return { error: 'Le Blackjack est temporairement indisponible.' }
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      const max = G.bjMaxBet(casinoBudget())
+      if (bet > max) { set.status = 400; return { error: 'Mise max actuelle : ' + max + ' (cagnotte)' } }
       const existing = activeBJ.get(u.id)
       if (existing?.live) { set.status = 400; return { error: 'Une partie de Blackjack est déjà en cours.' } }
       if (!charge(u, bet, 'blackjack')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
@@ -553,7 +558,6 @@ const app = new Elysia()
 
     /* ── Mines ──────────────────────────────────────────── */
     .post('/api/mines/start', ({ body, user, set }) => {
-      set.status = 503; return { error: 'Le Démineur est temporairement indisponible.' }
       const u     = user as User
       const b     = body as any
       const bet   = intBet(b.bet)
@@ -574,27 +578,31 @@ const app = new Elysia()
       const u  = user as User
       const st = activeMines.get(u.id)
       if (!st || !st.live) { set.status = 400; return { error: 'Aucune partie en cours' } }
+      if (st.maxReached) { set.status = 400; return { error: 'Max atteint — encaisse' } }
       const i = Math.floor(Number((body as any).i))
       if (!(i >= 0 && i < 25)) { set.status = 400; return { error: 'Case invalide' } }
       if (st.revealed.has(i))  { set.status = 400; return { error: 'Case déjà révélée' } }
       st.revealed.add(i)
       if (st.bombSet.has(i)) {
         st.live = false
+        bookCasino(st.bet, 0)
         recordHistory(u.id, 'mines', st.bet, 0, 'bomb')
         activeMines.delete(u.id)
         return { result: 'bomb', i, bombs: [...st.bombSet], ...userSnapshot(u.id) }
       }
       const safe = 25 - st.bombs, k = st.picks
-      st.mult *= ((25 - k) / (safe - k)) * (1 - G.MINES_RAKE)
+      st.mult *= G.minesStepFactor(k, st.bombs)
       st.gems++; st.picks++
       const pot = Math.round(st.bet * st.mult)
       if (st.gems === safe) {
         payout(u, pot, 'mines')
+        bookCasino(st.bet, pot)
         recordHistory(u.id, 'mines', st.bet, pot, 'sweep')
         st.live = false; activeMines.delete(u.id)
         return { result: 'gem', i, mult: +st.mult.toFixed(2), pot, cashedOut: true, gain: pot, bombs: [...st.bombSet], ...userSnapshot(u.id) }
       }
-      return { result: 'gem', i, mult: +st.mult.toFixed(2), pot, ...userSnapshot(u.id) }
+      st.maxReached = st.picks < safe && st.bet * st.mult * G.minesStepFactor(st.picks, st.bombs) > casinoBudget()
+      return { result: 'gem', i, mult: +st.mult.toFixed(2), pot, maxReached: st.maxReached, ...userSnapshot(u.id) }
     })
 
     .post('/api/mines/cashout', ({ user, set }) => {
@@ -603,6 +611,7 @@ const app = new Elysia()
       if (!st || !st.live) { set.status = 400; return { error: 'Aucune partie en cours' } }
       const gain = Math.round(st.bet * st.mult)
       payout(u, gain, 'mines')
+      bookCasino(st.bet, gain)
       recordHistory(u.id, 'mines', st.bet, gain, `${st.gems} gems`)
       st.live = false; activeMines.delete(u.id)
       return { gain, mult: +st.mult.toFixed(2), bombs: [...st.bombSet], ...userSnapshot(u.id) }

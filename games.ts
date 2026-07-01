@@ -225,6 +225,18 @@ export function bjDraw(deck: Card[], hand: Card[], otherIsPlayer: boolean, bias:
    Plus le joueur est cupide, plus la maison gagne.
 */
 export const MINES_RAKE = 0.11   // ~11% de marge par case dévoilée
+
+// Plafond de mise Blackjack imposé par la cagnotte (gain max d'une main = mise × BJ_BJ_MULT)
+// +1e-9 corrige l'arrondi flottant IEEE-754 (ex : 2200/2.2 = 999.9999… sans epsilon)
+export function bjMaxBet(budget: number): number {
+  return Math.floor(budget / BJ_BJ_MULT + 1e-9)
+}
+// Facteur de multiplicateur d'une case sûre du Démineur (picks déjà révélés, bombs placées)
+export function minesStepFactor(picks: number, bombs: number): number {
+  const safe = 25 - bombs
+  return ((25 - picks) / (safe - picks)) * (1 - MINES_RAKE)
+}
+
 export function placeBombs(n: number): Set<number> {
   const s = new Set<number>()
   while (s.size < n) s.add((rnd() * 25) | 0)
