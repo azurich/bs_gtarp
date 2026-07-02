@@ -4,9 +4,9 @@ RUN addgroup -S casino && adduser -S casino -G casino
 
 WORKDIR /app
 
-# dépendances d'abord (layer mis en cache)
-COPY package.json .
-RUN bun install --production
+# dépendances d'abord (layer mis en cache) — lock inclus pour builds reproductibles
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
 # code source
 COPY . .
