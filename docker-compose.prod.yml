@@ -1,0 +1,20 @@
+services:
+  casino:
+    image: ghcr.io/azurich/bs_gtarp:latest
+    restart: unless-stopped
+    ports:
+      # loopback STRICT : seul le tunnel cloudflared hôte y accède
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    environment:
+      # FORCE la base dans le volume persisté (surcharge un éventuel DB_FILE du .env)
+      - DB_FILE=/app/data/casino.db
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 15s
+      retries: 3
