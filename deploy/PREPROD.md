@@ -14,7 +14,7 @@ Pour l'alternative VPS public (Caddy + Let's Encrypt), voir `../DEPLOY.md`.
 ## 1. Installer Docker + plugin compose
 ```bash
 sudo apt update
-sudo apt install -y ca-certificates curl
+sudo apt install -y ca-certificates curl sqlite3
 curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker "$USER"   # puis re-login pour appliquer le groupe
 docker --version && docker compose version
@@ -31,6 +31,7 @@ cd /opt/blackstate
 
 ## 3. Configurer `.env` (jamais commité)
 ```bash
+cd /opt/blackstate
 cat > .env <<'EOF'
 PORT=3000
 ADMIN_USER=ton_admin
@@ -79,7 +80,9 @@ Ajouter (backup tous les jours à 4h) :
 ```
 0 4 * * * /opt/blackstate/deploy/backup.sh >> /opt/blackstate/backups/backup.log 2>&1
 ```
-> `backup.sh` utilise `DB_FILE` ; il sauvegarde `/opt/blackstate/data/casino.db`.
+> `backup.sh` sauvegarde `/opt/blackstate/data/casino.db` par défaut (surchargeable via `BACKUP_DB=…`).
+> Si la base est absente, le script échoue bruyamment au lieu de produire un backup vide.
+> Vérifier un premier lancement manuel : `./deploy/backup.sh && ls -la /opt/blackstate/backups` (vérifier que le fichier .db n'est pas vide).
 > Copie aussi ces sauvegardes hors-machine.
 
 ## 7. Mettre à jour (après un `git push` sur `main`)
