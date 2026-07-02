@@ -1,0 +1,13 @@
+# Exemple de configuration d'un tunnel cloudflared géré par FICHIER (voie CLI).
+# À adapter puis placer dans /etc/cloudflared/config.yml sur la Debian.
+# ── Alternative : gérer le tunnel via le dashboard Cloudflare Zero Trust
+#    (Public Hostname : Type=HTTP, URL=localhost:3000) — dans ce cas ce fichier
+#    n'est qu'un pense-bête, la config vit côté Cloudflare.
+
+tunnel: <TUNNEL_ID>
+credentials-file: /etc/cloudflared/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: blackstate.club
+    service: http://localhost:3000
+  - service: http_status:404
