@@ -444,20 +444,21 @@ input[type=range]::-webkit-slider-thumb{
 .cell.bomb svg{color:#2e0207;stroke-width:1.8}
 @keyframes cellPop{0%{transform:scale(.7)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
 .cell.done{cursor:default}
+/* barre d'infos = une belle ligne (pilule) : multiplicateur en vedette, pot & gemmes avec icônes */
 .mines-info{
-  display:flex;align-items:stretch;max-width:520px;
-  margin:clamp(6px,1.2vh,12px) auto 0;
-  background:rgba(0,0,0,.3);border:1px solid var(--bdr);
-  border-radius:var(--r2);overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  gap:clamp(12px,3.5cqw,24px);width:max-content;max-width:100%;
+  margin:clamp(8px,1.4vh,14px) auto 0;
+  padding:clamp(9px,1.5vh,13px) clamp(18px,4.5cqw,30px);
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.28));
+  border:1px solid var(--bdr-med);border-radius:999px;
+  box-shadow:0 6px 20px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);
+  font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;
 }
-/* valeur EN HAUT (toujours alignée), label en dessous ; séparateurs entre stats */
-.mi-stat{flex:1;text-align:center;padding:clamp(8px,1.5vh,13px) 8px;min-width:0}
-.mi-stat + .mi-stat{border-left:1px solid var(--bdr)}
-.mi-val{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;font-size:clamp(1.1rem,3.4cqw,1.5rem);color:var(--tx);line-height:1.05}
-.mi-lbl{font-size:.6rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.08em;margin-top:5px;font-family:var(--body);line-height:1.2}
-/* pot = héros central : plus grand, accent, léger halo */
-.mi-hero{flex:1.25;background:linear-gradient(180deg,var(--accent-soft),transparent 80%)}
-.mi-hero .mi-val{color:var(--accent-2);font-size:clamp(1.3rem,4.4cqw,1.9rem)}
+.mi-item{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-size:clamp(1rem,3.2cqw,1.3rem);color:var(--tx);line-height:1}
+.mines-info svg{width:1.05em;height:1.05em;color:var(--tx-3);stroke-width:2;flex:none}
+.mi-mult{color:var(--accent-2);font-size:clamp(1.15rem,3.9cqw,1.6rem)}
+.mi-sep{width:1px;align-self:stretch;min-height:1.15em;background:var(--bdr-med);flex:none}
 
 /* ══════════════════════════════════════════════════════════
    PLINKO

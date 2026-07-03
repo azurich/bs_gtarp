@@ -290,9 +290,11 @@
                   <div id="minesStart"><button class="btn" onclick="minesStartGame()">JOUER</button></div>
                   <div id="minesCash" class="hidden"><button class="btn" onclick="minesCashout()">ENCAISSER</button></div>
                   <div class="mines-info">
-                    <div class="mi-stat"><div class="mi-val" id="minesMult">1.00×</div><div class="mi-lbl">Multiplicateur</div></div>
-                    <div class="mi-stat mi-hero"><div class="mi-val" id="minesPot">0</div><div class="mi-lbl">Gains potentiels</div></div>
-                    <div class="mi-stat"><div class="mi-val" id="minesGems">0</div><div class="mi-lbl">Gemmes</div></div>
+                    <span class="mi-item mi-mult" id="minesMult">1.00×</span>
+                    <span class="mi-sep"></span>
+                    <span class="mi-item"><i data-lucide="coins"></i><span id="minesPot">0</span></span>
+                    <span class="mi-sep"></span>
+                    <span class="mi-item"><i data-lucide="gem"></i><span id="minesGems">0</span></span>
                   </div>
                   <div class="machine-result" id="minesResultMsg" data-state="idle"></div>
                 </div>
