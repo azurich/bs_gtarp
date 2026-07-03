@@ -336,7 +336,8 @@ input[type=range]::-webkit-slider-thumb{
    BLACKJACK — table de feutre, cartes premium, flip 3D
 ══════════════════════════════════════════════════════════ */
 .bj-table{
-  display:grid;gap:22px;margin:18px 0;padding:24px 20px;
+  width:100%;
+  display:grid;gap:clamp(10px,2vh,22px);margin:0;padding:clamp(14px,2.4vh,24px) clamp(16px,3cqw,24px);
   border-radius:var(--r3);
   background:
     radial-gradient(ellipse 90% 70% at 50% 30%,#136b3f,#0c4a2c 70%,#08321d),
@@ -350,12 +351,14 @@ input[type=range]::-webkit-slider-thumb{
   margin-bottom:10px;
 }
 .hand h3 b{color:#fff;font-size:1.05rem;font-family:var(--num);font-variant-numeric:tabular-nums;margin-left:4px}
-.cards{display:flex;gap:12px;flex-wrap:wrap;min-height:clamp(80px,20vh,170px);align-items:flex-start;perspective:900px}
+.cards{display:flex;gap:12px;flex-wrap:wrap;min-height:clamp(66px,13vh,132px);align-items:flex-start;perspective:900px}
+/* emplacement fantôme quand la main est vide (présence de la table avant distribution) */
+.cards:empty::before{content:'';width:clamp(46px,9vh,92px);aspect-ratio:70/100;border-radius:8px;border:1.5px dashed var(--accent-soft);background:rgba(255,255,255,.03)}
 .pcard{
-  aspect-ratio:70/100;height:clamp(74px,min(23vh,19vw),190px);border-radius:8px;
+  aspect-ratio:70/100;height:clamp(64px,min(13vh,17vw),150px);border-radius:8px;
   background:linear-gradient(155deg,#fffdf6,#ece8dc);
   color:#15151c;position:relative;
-  font-weight:800;font-size:clamp(11px,min(2.7vh,2.2vw),28px);
+  font-weight:800;font-size:clamp(10px,min(1.8vh,2vw),24px);
   box-shadow:0 10px 22px rgba(0,0,0,.45),0 1px 0 rgba(255,255,255,.9) inset;
   animation:cardFlipIn .42s var(--ease-out) both;
   transform-style:preserve-3d;
@@ -385,16 +388,17 @@ input[type=range]::-webkit-slider-thumb{
 .pcard.back::after{content:''}
 .bj-actions{display:flex;gap:10px;flex-wrap:wrap}
 .bj-actions .btn{width:auto;flex:1;min-width:100px}
+.bj-maxbet{text-align:center;font-family:var(--body);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--tx-3);min-height:1em}
 
 /* ══════════════════════════════════════════════════════════
    MINES — tuiles à relief, gemmes & bombes dessinées
 ══════════════════════════════════════════════════════════ */
 .mines-cfg{
   display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;
-  margin-bottom:18px;padding:16px;
+  margin-bottom:clamp(8px,1.6vh,16px);padding:clamp(10px,1.6vh,16px);
   background:rgba(0,0,0,.25);border-radius:var(--r2);border:1px solid var(--bdr);
 }
-.mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:min(90vw,48vh,520px);max-width:100%;margin:16px auto}
+.mines-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;width:min(88vw,40vh,440px);max-width:100%;margin:clamp(6px,1.4vh,16px) auto}
 .mines-grid.maxed .cell:not(.done){pointer-events:none;opacity:.5}
 .cell{
   aspect-ratio:1;border-radius:var(--r2);cursor:pointer;
@@ -433,13 +437,13 @@ input[type=range]::-webkit-slider-thumb{
 .cell.done{cursor:default}
 .mines-info{
   display:flex;justify-content:space-between;max-width:520px;
-  margin:12px auto 0;gap:8px;
+  margin:clamp(6px,1.2vh,12px) auto 0;gap:8px;
   background:rgba(0,0,0,.3);border:1px solid var(--bdr);
-  border-radius:var(--r2);padding:12px 18px;
+  border-radius:var(--r2);padding:clamp(8px,1.4vh,12px) 18px;
 }
 .mines-info>div{text-align:center;flex:1}
 .mines-info .lbl{font-size:.62rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;font-family:var(--body)}
-.mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:1.6rem;color:var(--accent-2);font-weight:700}
+.mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:clamp(1.15rem,3.4cqw,1.6rem);color:var(--accent-2);font-weight:700}
 
 /* ══════════════════════════════════════════════════════════
    PLINKO
