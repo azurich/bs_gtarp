@@ -47,6 +47,10 @@ chmod 600 .env
 L'image étant **publique**, aucun `docker login` n'est nécessaire.
 ```bash
 mkdir -p data
+# L'app tourne en utilisateur non-root "casino" (uid 10001) DANS le conteneur.
+# Le volume ./data (bind-mount) doit lui appartenir, sinon SQLite ne peut pas
+# créer/écrire casino.db et le conteneur crashe en boucle (SQLITE_CANTOPEN).
+sudo chown -R 10001:10001 data
 docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps        # doit être "healthy"
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/   # -> 200

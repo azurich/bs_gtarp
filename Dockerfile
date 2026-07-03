@@ -1,6 +1,9 @@
 FROM oven/bun:1-alpine
 
-RUN addgroup -S casino && adduser -S casino -G casino
+# uid/gid figés (10001) : le bind-mount ./data côté hôte doit appartenir à cet
+# uid, sinon SQLite ne peut pas écrire casino.db (SQLITE_CANTOPEN). 10001 évite
+# la collision avec l'utilisateur "bun" (uid 1000) de l'image de base.
+RUN addgroup -g 10001 -S casino && adduser -u 10001 -S -G casino casino
 
 WORKDIR /app
 
