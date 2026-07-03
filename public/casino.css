@@ -450,7 +450,7 @@ input[type=range]::-webkit-slider-thumb{
   background:rgba(0,0,0,.3);border:1px solid var(--bdr);
   border-radius:var(--r2);padding:clamp(8px,1.4vh,12px) 18px;
 }
-.mines-info>div{text-align:center;flex:1}
+.mines-info>div{text-align:center;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
 .mines-info .lbl{font-size:.62rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;font-family:var(--body)}
 .mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:clamp(1.15rem,3.4cqw,1.6rem);color:var(--accent-2);font-weight:700}
 

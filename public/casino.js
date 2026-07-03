@@ -461,7 +461,9 @@ async function minesPick(i) {
     return;
   }
   cell.classList.add('gem'); cell.innerHTML = MINE_GEM;
-  $('minesMult').textContent = d.mult.toFixed(2) + '×'; $('minesPot').textContent = fmt(d.pot);
+  // multiplicateur affiché = gain effectif (pot/mise) pour qu'il colle TOUJOURS au
+  // gain entier encaissable (sinon x1.13 affiché mais 11 credits sur mise 10 = x1.10)
+  $('minesMult').textContent = (d.pot / minesCurrentBet).toFixed(2) + '×'; $('minesPot').textContent = fmt(d.pot);
   $('minesGems').textContent = (+$('minesGems').textContent) + 1;
   if (d.cashedOut) {
     revealBombs(d.bombs); minesActive = false;
