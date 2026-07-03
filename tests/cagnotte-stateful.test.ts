@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test'
-import { bjMaxBet, minesStepFactor, BJ_BJ_MULT, MINES_RAKE } from '../games.ts'
+import { bjMaxBet, minesStepFactor, BJ_BJ_MULT, MINES_RAKE } from '../src/games.ts'
 
 test('bjMaxBet = floor(budget / 2.2)', () => {
   expect(BJ_BJ_MULT).toBe(2.2)

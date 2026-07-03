@@ -327,7 +327,7 @@ function checkAdmin(headers: Record<string, string | undefined>): User | null {
 }
 
 /* ── static helpers (module scope — créés une seule fois) ─── */
-const pub = (f: string) => Bun.file(join(import.meta.dir, 'public', f))
+const pub = (f: string) => Bun.file(join(import.meta.dir, '..', 'public', f))
 const PAGES: Record<string, string> = {
   '/': 'club.html', '/casino': 'casino.html', '/fight': 'fight.html',
   '/profil': 'profil.html', '/admin': 'admin.html',

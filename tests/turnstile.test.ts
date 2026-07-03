@@ -1,5 +1,5 @@
 import { test, expect, afterEach } from 'bun:test'
-import { verifyTurnstile } from '../turnstile'
+import { verifyTurnstile } from '../src/turnstile'
 
 const realFetch = globalThis.fetch
 afterEach(() => { globalThis.fetch = realFetch })

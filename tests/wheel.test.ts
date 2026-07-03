@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test'
-import { WHEEL, WHEEL_W } from '../games.ts'
+import { WHEEL, WHEEL_W } from '../src/games.ts'
 
 const RISKS = ['low', 'med', 'high'] as const
 
