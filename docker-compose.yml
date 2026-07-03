@@ -9,9 +9,9 @@ services:
     environment:
       # FORCE la base dans le volume persisté (sinon perte de données au recreate
       # du conteneur). Surcharge un éventuel DB_FILE défini dans .env.
-      - DB_FILE=/app/data/casino.db
+      - DB_FILE=/app/data/blackstate.db
     volumes:
-      # SQLite persisté sur le host dans ./data/casino.db
+      # SQLite persisté sur le host dans ./data/blackstate.db
       - ./data:/app/data
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]

@@ -5,9 +5,9 @@
 set -euo pipefail
 
 # Chemin de la base à sauvegarder sur l'HÔTE.
-#   Déploiement Docker (PREPROD.md) : /opt/blackstate/data/casino.db (volume ./data)
-#   VPS bare-metal (DEPLOY.md)       : export BACKUP_DB=/opt/blackstate/casino.db
-DB="${BACKUP_DB:-/opt/blackstate/data/casino.db}"
+#   Déploiement Docker (PREPROD.md) : /opt/blackstate/data/blackstate.db (volume ./data)
+#   VPS bare-metal (DEPLOY.md)       : export BACKUP_DB=/opt/blackstate/blackstate.db
+DB="${BACKUP_DB:-/opt/blackstate/data/blackstate.db}"
 DEST=/opt/blackstate/backups
 RETENTION_DAYS=14
 
@@ -21,9 +21,9 @@ mkdir -p "$DEST"
 TS=$(date +%Y%m%d-%H%M%S)
 
 # .backup = snapshot cohérent (gère le WAL), contrairement à un simple cp
-sqlite3 "$DB" ".backup '$DEST/casino-$TS.db'"
+sqlite3 "$DB" ".backup '$DEST/blackstate-$TS.db'"
 
 # Purge des sauvegardes trop anciennes
-find "$DEST" -name 'casino-*.db' -mtime +"$RETENTION_DAYS" -delete
+find "$DEST" -name 'blackstate-*.db' -mtime +"$RETENTION_DAYS" -delete
 
-echo "[$(date)] Sauvegarde OK : $DEST/casino-$TS.db"
+echo "[$(date)] Sauvegarde OK : $DEST/blackstate-$TS.db"

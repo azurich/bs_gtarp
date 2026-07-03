@@ -36,7 +36,7 @@ cat > .env <<'EOF'
 PORT=3000
 ADMIN_USER=ton_admin
 ADMIN_PASS=un_mot_de_passe_TRES_long_et_unique
-DB_FILE=/app/data/casino.db
+DB_FILE=/app/data/blackstate.db
 EOF
 chmod 600 .env
 ```
@@ -47,9 +47,9 @@ chmod 600 .env
 L'image étant **publique**, aucun `docker login` n'est nécessaire.
 ```bash
 mkdir -p data
-# L'app tourne en utilisateur non-root "casino" (uid 10001) DANS le conteneur.
+# L'app tourne en utilisateur non-root "blackstate" (uid 10001) DANS le conteneur.
 # Le volume ./data (bind-mount) doit lui appartenir, sinon SQLite ne peut pas
-# créer/écrire casino.db et le conteneur crashe en boucle (SQLITE_CANTOPEN).
+# créer/écrire blackstate.db et le conteneur crashe en boucle (SQLITE_CANTOPEN).
 sudo chown -R 10001:10001 data
 docker compose -f docker-compose.prod.yml up -d
 docker compose -f docker-compose.prod.yml ps        # doit être "healthy"
@@ -84,7 +84,7 @@ Ajouter (backup tous les jours à 4h) :
 ```
 0 4 * * * /opt/blackstate/deploy/backup.sh >> /opt/blackstate/backups/backup.log 2>&1
 ```
-> `backup.sh` sauvegarde `/opt/blackstate/data/casino.db` par défaut (surchargeable via `BACKUP_DB=…`).
+> `backup.sh` sauvegarde `/opt/blackstate/data/blackstate.db` par défaut (surchargeable via `BACKUP_DB=…`).
 > Si la base est absente, le script échoue bruyamment au lieu de produire un backup vide.
 > Vérifier un premier lancement manuel : `./deploy/backup.sh && ls -la /opt/blackstate/backups` (vérifier que le fichier .db n'est pas vide).
 > Copie aussi ces sauvegardes hors-machine.

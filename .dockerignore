@@ -1,8 +1,9 @@
 node_modules
 data/
-casino.db
-casino.db-wal
-casino.db-shm
+blackstate.db
+blackstate.db-wal
+blackstate.db-shm
+casino.db*
 .git
 .gitignore
 .env

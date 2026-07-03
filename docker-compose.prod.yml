@@ -9,7 +9,7 @@ services:
       - .env
     environment:
       # FORCE la base dans le volume persisté (surcharge un éventuel DB_FILE du .env)
-      - DB_FILE=/app/data/casino.db
+      - DB_FILE=/app/data/blackstate.db
     volumes:
       - ./data:/app/data
     healthcheck:

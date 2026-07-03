@@ -32,12 +32,12 @@ cp .env.example .env
 # édite .env : ADMIN_USER, ADMIN_PASS, PORT, DB_FILE
 ```
 
-(Si tu changes `ADMIN_USER`/`ADMIN_PASS` après le 1er démarrage, supprime `casino.db*`
+(Si tu changes `ADMIN_USER`/`ADMIN_PASS` après le 1er démarrage, supprime `blackstate.db*`
 pour régénérer le compte, ou change le mot de passe en base.)
 
 ## 3. Données
 
-Tout est stocké dans un seul fichier **`casino.db`** (SQLite). Pour sauvegarder : copie ce fichier.
+Tout est stocké dans un seul fichier **`blackstate.db`** (SQLite). Pour sauvegarder : copie ce fichier.
 Tables : `users`, `sessions`, `settings` (les taux), `logs`.
 
 ---
@@ -51,7 +51,7 @@ Mets un reverse-proxy (Nginx/Caddy) devant pour le HTTPS et un nom de domaine. P
 ### b) Hébergeur gratuit / pas cher
 - **Render** (offre gratuite permanente, sans carte) : crée un *Web Service*, build `npm install`,
   start `npm start`. ⚠️ le service se met en veille après ~15 min d'inactivité (réveil ~30-50 s),
-  et le disque est éphémère → pour garder `casino.db`, ajoute un *Persistent Disk* (payant) ou
+  et le disque est éphémère → pour garder `blackstate.db`, ajoute un *Persistent Disk* (payant) ou
   passe sur une vraie base (voir §5).
 - **Railway / Fly.io** : pratiques mais plus de palier 100 % gratuit (crédit d'essai puis ~5 $/mois),
   carte requise. Volume persistant simple pour le fichier SQLite.

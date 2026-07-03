@@ -55,7 +55,7 @@ nano /opt/blackstate/.env
 PORT=3000
 ADMIN_USER=ton_admin
 ADMIN_PASS=un_mot_de_passe_TRES_long_et_unique
-DB_FILE=/opt/blackstate/casino.db
+DB_FILE=/opt/blackstate/blackstate.db
 ```
 > ⚠️ Mets un **vrai** mot de passe admin. Il est haché au premier démarrage.
 

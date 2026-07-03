@@ -1,8 +1,9 @@
 node_modules/
 .env
-casino.db
-casino.db-wal
-casino.db-shm
+blackstate.db
+blackstate.db-wal
+blackstate.db-shm
+casino.db*
 data/*.db
 data/*.db-wal
 data/*.db-shm
