@@ -1,107 +1,77 @@
-# NEON SANTOS — Social Casino (crédits virtuels)
+# BlackState Club — casino GTA RP (crédits virtuels)
 
 Casino web pour serveur **GTA RP**, en crédits virtuels. Architecture client-serveur :
-le **navigateur affiche et anime**, mais **le serveur décide tout** (argent, RNG, taux de gain).
-Aucun joueur ne peut tricher en modifiant le code de sa page.
+le **navigateur affiche et anime**, mais **le serveur décide tout** (argent, RNG, taux de
+gain). Aucun joueur ne peut tricher en modifiant le code de sa page.
 
 Jeux : Slots, Blackjack, Démineur, Plinko, Roue de la fortune, Dice.
-Espace joueur (compte, solde, stats, classement) + espace admin
-(création/approvisionnement de comptes, économie RTP fixe en lecture seule, journal d'activité).
+Espace joueur (compte, solde, stats, classement) + espace admin (création /
+approvisionnement de comptes, économie RTP fixe en lecture seule, journal d'activité).
+
+**Stack :** Bun + ElysiaJS + `bun:sqlite` (base = un simple fichier). Front vanilla
+multi-pages. 2FA (TOTP) et CAPTCHA (Cloudflare Turnstile) sur l'auth.
 
 ---
 
-## 1. Prérequis
+## Développement local
 
-- **Node.js ≥ 22.5** (la base SQLite est intégrée à Node, rien à compiler).
-  Vérifie avec `node --version`.
-
-## 2. Installation & lancement (local / chez toi)
+Prérequis : **[Bun](https://bun.sh) ≥ 1.3**.
 
 ```bash
-npm install
-npm start
+bun install
+cp env.example .env      # édite ADMIN_USER / ADMIN_PASS
+bun run dev              # ou : bun run start
 ```
 
-Puis ouvre **http://localhost:3000**.
+Puis ouvre **http://localhost:3000**. Au premier démarrage, un compte admin est créé
+à partir de `ADMIN_USER` / `ADMIN_PASS` du `.env` (⚠️ mets un vrai mot de passe).
 
-Au premier démarrage, un compte admin est créé : **admin / admin**.
-**Change-le immédiatement** via le fichier `.env` (voir `.env.example`) :
+En local, laisse `TURNSTILE_*` vide dans `.env` → le CAPTCHA est désactivé et les
+formulaires marchent normalement.
+
+## Tests
 
 ```bash
-cp .env.example .env
-# édite .env : ADMIN_USER, ADMIN_PASS, PORT, DB_FILE
+bun test
 ```
 
-(Si tu changes `ADMIN_USER`/`ADMIN_PASS` après le 1er démarrage, supprime `blackstate.db*`
-pour régénérer le compte, ou change le mot de passe en base.)
+## Données
 
-## 3. Données
-
-Tout est stocké dans un seul fichier **`blackstate.db`** (SQLite). Pour sauvegarder : copie ce fichier.
-Tables : `users`, `sessions`, `settings` (les taux), `logs`.
+Tout est stocké dans un seul fichier SQLite (`blackstate.db` par défaut, ou le chemin
+`DB_FILE`). Pour sauvegarder : copie ce fichier (voir `deploy/backup.sh`).
 
 ---
 
-## 4. Héberger
+## Déploiement (production)
 
-### a) Chez toi
-`npm start` sur un PC allumé en permanence, puis ouvre/redirige le port (ex. 3000) sur ta box.
-Mets un reverse-proxy (Nginx/Caddy) devant pour le HTTPS et un nom de domaine. Pense au risque DDoS.
+Le déploiement de référence est **conteneur Docker + tunnel Cloudflare** sur une
+machine Debian, avec l'image publiée sur GitHub Container Registry par GitHub Actions.
 
-### b) Hébergeur gratuit / pas cher
-- **Render** (offre gratuite permanente, sans carte) : crée un *Web Service*, build `npm install`,
-  start `npm start`. ⚠️ le service se met en veille après ~15 min d'inactivité (réveil ~30-50 s),
-  et le disque est éphémère → pour garder `blackstate.db`, ajoute un *Persistent Disk* (payant) ou
-  passe sur une vraie base (voir §5).
-- **Railway / Fly.io** : pratiques mais plus de palier 100 % gratuit (crédit d'essai puis ~5 $/mois),
-  carte requise. Volume persistant simple pour le fichier SQLite.
-- **VPS** (~5-7 €/mois) : le plus stable. `git pull`, `npm install`, lance avec `pm2` ou un service systemd.
+👉 Procédure complète : **[`deploy/PREPROD.md`](deploy/PREPROD.md)**.
 
-> Important : sur un hébergeur au disque éphémère, le fichier SQLite est **effacé à chaque redéploiement**.
-> Utilise un disque persistant, ou migre vers une base managée (§5).
+En bref : `docker compose -f docker-compose.prod.yml up -d` tire l'image
+`ghcr.io/azurich/bs_gtarp`, l'app écoute en loopback, et un tunnel `cloudflared`
+l'expose en HTTPS. Mises à jour via `deploy/update.sh`.
 
 ---
 
-## 5. Brancher la vraie monnaie RP (MySQL du serveur FiveM) — plus tard
+## Sécurité — en place
 
-Aujourd'hui le casino a sa **propre économie** (crédits internes, alimentés par l'admin).
-Pour utiliser l'argent que les joueurs ont **déjà en jeu**, il faut taper dans la base **MySQL/MariaDB**
-de ton serveur FiveM (celle d'ESX/QBCore/QBox).
-
-Marche à suivre :
-1. `npm install mysql2`.
-2. Réécris **`db.js`** pour te connecter à la MySQL du serveur (mêmes noms de requêtes, l'API est proche).
-3. Dans `server.js`, remplace la lecture/écriture de `users.credit` par la table d'argent du framework
-   (ex. ESX : colonne `money`/`bank` de `users` ; QBCore : champ JSON `money` de `players`),
-   en identifiant le joueur par son **identifiant RP** (license / citizenid) plutôt que par pseudo.
-4. Idéalement, fais-les se connecter via **Discord OAuth** lié à leur identité RP.
-
-Tant que les gains **ne se reconvertissent pas en argent réel**, tu restes dans le cadre d'un
-minijeu in-game (pas un casino au sens de la loi). Ne mets jamais de vrai argent en jeu sans licence.
-
----
-
-## 6. Sécurité — déjà en place / à renforcer
-
-En place :
-- Mots de passe **hachés** (bcrypt), jamais en clair.
+- Mots de passe **hachés** (bcrypt), jamais en clair ; 2FA TOTP optionnelle.
 - **Toute** la logique d'argent, le RNG et les taux de gain sont **côté serveur**.
 - Sessions par token, routes admin protégées (403 si non-admin).
-- Validations : mises entières positives, solde vérifié, cases du démineur non rejouables.
+- Rate-limiting sur l'auth, en-têtes de sécurité + CSP stricte, CAPTCHA Turnstile
+  sur login + inscription (activé si les clés `TURNSTILE_*` sont définies).
+- Inscription **sur invitation** uniquement.
 
-À renforcer avant une grosse mise en prod :
-- HTTPS obligatoire (reverse-proxy).
-- Limiteur de requêtes (rate limiting) pour éviter le spam de mises.
-- Les parties de blackjack/démineur en cours sont gardées **en mémoire** : un redémarrage du
-  serveur annule une partie en cours (le solde reste correct). Pour du multi-instance, déporte cet
-  état (Redis/DB).
+> Les parties de Blackjack / Démineur en cours sont gardées **en mémoire** : un
+> redémarrage du serveur annule une partie en cours (le solde reste correct). Pour du
+> multi-instance, il faudrait déporter cet état (Redis/DB).
 
 ---
 
-## 7. Marque & légal
+## Marque & légal
 
-Ambiance néon *inspirée* de la Californie. **Non affilié à Rockstar Games / Take-Two** :
-n'utilise pas les logos GTA, la police « Pricedown » ni les personnages officiels si tu publies.
-Garde le nom « Neon Santos » comme exemple ou mets le tien.
-
-Crédits **virtuels** uniquement. Pas d'argent réel sans licence ANJ.
+Crédits **virtuels** uniquement — pas d'argent réel sans licence ANJ. Univers de
+fiction (GTA RP) : **non affilié à Rockstar Games / Take-Two** ; n'utilise pas les
+logos, polices ou personnages officiels de GTA.

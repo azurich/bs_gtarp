@@ -624,12 +624,6 @@ input[type=range]::-webkit-slider-thumb{
 .home-game-card .hg-icon .gi{filter:drop-shadow(0 0 10px currentColor)}
 .home-game-card:hover .hg-icon .gi{filter:drop-shadow(0 0 16px currentColor)}
 
-/* Jeux verrouillés (Bientôt) */
-.nav-item.locked{opacity:.5}
-.nav-soon{margin-left:auto;font-size:.55rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--v-300);background:rgba(124,58,237,.16);border:1px solid rgba(124,58,237,.32);padding:1px 6px;border-radius:999px;flex:none}
-.home-game-card.locked{opacity:.5;filter:grayscale(.45)}
-.home-game-card.locked:hover{transform:none;box-shadow:none;border-color:rgba(255,255,255,.08)}
-.home-game-card.locked .hg-tag.hg-soon{color:var(--v-300)}
 .hg-icon{display:flex;align-items:center;justify-content:center;margin-bottom:10px;height:44px}
 .hg-icon svg.lucide{width:36px;height:36px;stroke-width:1.4;color:var(--v-300)}
 .hg-name{font-family:var(--display);font-size:1.1rem;letter-spacing:.03em;margin-bottom:8px;color:var(--tx)}
@@ -807,17 +801,6 @@ input[type=range]::-webkit-slider-thumb{
 .machine.fx-win-m{animation:fxPulse .5s var(--ease-out) 2}
 .machine.fx-win-m::before{animation:fxGlow .7s var(--ease-out)}
 .machine.fx-win-big::before,.machine.fx-win-mega::before{animation:fxGlow .7s var(--ease-out) 3}
-
-/* Jeux verrouillés (Blackjack / Démineur — routes 503, visuels prêts) */
-.machine.locked{pointer-events:none}
-.machine-veil{
-  position:absolute;inset:0;border-radius:inherit;z-index:10;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(5,5,12,.6);
-  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
-  pointer-events:none;
-}
-.machine-veil .nav-soon{font-size:.85rem;padding:5px 18px;margin-left:0}
 
 /* Overlay BIG/MEGA redessiné (violet sobre) */
 .win-label{color:#fff;text-shadow:0 0 24px var(--accent-glow),0 2px 0 rgba(0,0,0,.4)}

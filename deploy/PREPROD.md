@@ -5,8 +5,6 @@ tirée sur une machine **Debian**, exposée par un **tunnel cloudflared** sur
 `https://blackstate.club`. Pas de port public, pas de reverse proxy, pas de
 conteneur DB (SQLite = fichier sur volume).
 
-Pour l'alternative VPS public (Caddy + Let's Encrypt), voir `../DEPLOY.md`.
-
 ## 0. Pré-requis
 - Machine Debian avec `cloudflared` déjà installé.
 - Un tunnel Cloudflare pour le domaine `blackstate.club`.

@@ -1,5 +1,5 @@
 /* BlackState — noyau session/API partagé */
-let TOKEN = localStorage.getItem('ns_token') || null;
+let TOKEN = localStorage.getItem('bs_token') || null;
 let USER  = null;
 const $ = id => document.getElementById(id);
 
@@ -10,7 +10,7 @@ async function api(path, method = 'GET', body) {
   const res = await fetch('/api' + path, opt);
   let data = {}; try { data = await res.json(); } catch (e) {}
   if (res.status === 401 && path !== '/login') {
-    TOKEN = null; USER = null; localStorage.removeItem('ns_token');
+    TOKEN = null; USER = null; localStorage.removeItem('bs_token');
     if (location.pathname !== '/') { location.href = '/'; }
     throw new Error(data.error || 'Session expirée');
   }
@@ -55,12 +55,12 @@ async function doLogin(user, pass, code, cfToken) {
   if (cfToken) body.cfToken = cfToken;                 // captcha : 1re étape uniquement
   const d = await api('/login', 'POST', body);
   if (d.totp && !d.token) return { need2fa: true };   // mot de passe OK → code 2FA requis
-  TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
+  TOKEN = d.token; localStorage.setItem('bs_token', TOKEN); USER = d.user;
   return USER;
 }
 async function logout() {
   try { await api('/logout', 'POST'); } catch (e) {}
-  TOKEN = null; USER = null; localStorage.removeItem('ns_token');
+  TOKEN = null; USER = null; localStorage.removeItem('bs_token');
   location.href = '/';
 }
 async function requireAuth() {

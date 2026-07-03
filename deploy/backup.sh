@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Sauvegarde à chaud de la base SQLite (cohérente même pendant l'écriture).
 # Nécessite sqlite3 : sudo apt install -y sqlite3
-# À planifier en cron (voir PREPROD.md / DEPLOY.md).
+# À planifier en cron (voir PREPROD.md).
 set -euo pipefail
 
 # Chemin de la base à sauvegarder sur l'HÔTE.
-#   Déploiement Docker (PREPROD.md) : /opt/blackstate/data/blackstate.db (volume ./data)
-#   VPS bare-metal (DEPLOY.md)       : export BACKUP_DB=/opt/blackstate/blackstate.db
+#   Chemin par défaut : /opt/blackstate/data/blackstate.db (volume ./data)
+#   Surcharge possible : export BACKUP_DB=/chemin/vers/blackstate.db
 DB="${BACKUP_DB:-/opt/blackstate/data/blackstate.db}"
 DEST=/opt/blackstate/backups
 RETENTION_DAYS=14

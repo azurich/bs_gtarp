@@ -113,7 +113,7 @@ async function submitRegister() {
       phone: $('regPhone').value, discord: $('regDiscord').value,
       cfToken: cfToken(cfRegId),
     });
-    TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
+    TOKEN = d.token; localStorage.setItem('bs_token', TOKEN); USER = d.user;
     // Étape 2FA optionnelle avant d'arriver au hub
     $('registerSection').classList.add('hidden');
     $('regTwofa').classList.remove('hidden');
