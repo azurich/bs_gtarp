@@ -9,6 +9,7 @@ import { join } from 'node:path'
 import db, { DB_FILE } from './db.ts'
 import { unlinkSync } from 'node:fs'
 import { generateSecret, verifyTOTP, otpauthURI } from './totp.ts'
+import { verifyTurnstile } from './turnstile.ts'
 import * as G from './games.ts'
 import type { User, Session } from './db.ts'
 
@@ -242,16 +243,38 @@ const authRL = rateLimit(15 * 60_000, 15, { error: 'Trop de tentatives, réessai
 // Ces deux directives sont indépendantes. Supprimer script-src-attr casserait toute l'UI.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
+  // challenges.cloudflare.com : script + iframe + XHR du widget Turnstile (CAPTCHA)
+  "script-src 'self' https://challenges.cloudflare.com",
   "script-src-attr 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self'",
+  "connect-src 'self' https://challenges.cloudflare.com",
+  "frame-src 'self' https://challenges.cloudflare.com",
   "img-src 'self' data:",
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
 ].join('; ')
+
+/* ── Turnstile (CAPTCHA) ──────────────────────────────────── */
+const TURNSTILE_SITE    = process.env.TURNSTILE_SITE_KEY   ?? ''
+const TURNSTILE_SECRET  = process.env.TURNSTILE_SECRET_KEY ?? ''
+const TURNSTILE_ENABLED = !!(TURNSTILE_SITE && TURNSTILE_SECRET)
+
+// IP client réelle derrière le tunnel Cloudflare (CF-Connecting-IP), sinon XFF.
+function clientIP(request: Request): string {
+  return request.headers.get('cf-connecting-ip')?.trim()
+      || request.headers.get('x-forwarded-for')?.split(',')[0].trim()
+      || ''
+}
+
+// Rejette si Turnstile est activé et le token absent/invalide.
+// Renvoie un message d'erreur (à retourner tel quel) ou null si OK/désactivé.
+async function turnstileGate(token: string, request: Request): Promise<string | null> {
+  if (!TURNSTILE_ENABLED) return null
+  const ok = await verifyTurnstile(TURNSTILE_SECRET, token, clientIP(request))
+  return ok ? null : 'Vérification anti-robot échouée, réessaie.'
+}
 
 /* ── plugins d'authentification ───────────────────────────── */
 const withAuth = new Elysia({ name: 'auth' })
@@ -330,6 +353,9 @@ const app = new Elysia()
     set.headers['X-XSS-Protection']        = '0'
   })
 
+  /* ── Config publique Turnstile (clé de site pour le front) ── */
+  .get('/api/turnstile', () => ({ turnstile: TURNSTILE_ENABLED ? TURNSTILE_SITE : null }))
+
   /* ── Vérification d'invitation (publique) ─────────────── */
   .get('/api/invite/:token', ({ params, set }) => {
     const row = db.prepare('SELECT credits, used FROM invites WHERE token = ?').get(params.token) as { credits: number; used: number } | null
@@ -342,8 +368,10 @@ const app = new Elysia()
   .use(new Elysia()
     .use(authRL)
 
-    .post('/api/register', async ({ body, set }) => {
+    .post('/api/register', async ({ body, set, request }) => {
       const b = body as Record<string, unknown>
+      const captchaErr = await turnstileGate(String(b.cfToken ?? ''), request)
+      if (captchaErr) { set.status = 400; return { error: captchaErr } }
       const u = String(b.user ?? '').trim()
       const p = String(b.pass ?? '')
       const inviteCode = String(b.invite ?? '').trim()
@@ -369,11 +397,17 @@ const app = new Elysia()
       return { token, user: publicUser(Q.userById.get(newId) as User) }
     })
 
-    .post('/api/login', async ({ body, set }) => {
+    .post('/api/login', async ({ body, set, request }) => {
       const b = body as Record<string, unknown>
       const u = String(b.user ?? '').trim()
       const p = String(b.pass ?? '')
       const code = String(b.code ?? '').trim()
+      // Turnstile vérifié à la 1re étape (mot de passe) uniquement ; le 2e POST
+      // (code TOTP) ne re-exige pas de token (usage unique, humain déjà validé).
+      if (!code) {
+        const captchaErr = await turnstileGate(String(b.cfToken ?? ''), request)
+        if (captchaErr) { set.status = 400; return { error: captchaErr } }
+      }
       // SECURITY: rejeter les mots de passe trop longs avant d'appeler bcrypt (DoS)
       if (p.length > 128) { set.status = 401; return { error: 'Pseudo ou mot de passe incorrect.' } }
       const row = Q.userByName.get(u) as User | null

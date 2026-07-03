@@ -50,8 +50,10 @@ async function getMe() {
   try { const d = await api('/me'); USER = d.user; return USER; }
   catch (e) { USER = null; return null; }
 }
-async function doLogin(user, pass, code) {
-  const d = await api('/login', 'POST', code ? { user, pass, code } : { user, pass });
+async function doLogin(user, pass, code, cfToken) {
+  const body = code ? { user, pass, code } : { user, pass };
+  if (cfToken) body.cfToken = cfToken;                 // captcha : 1re étape uniquement
+  const d = await api('/login', 'POST', body);
   if (d.totp && !d.token) return { need2fa: true };   // mot de passe OK → code 2FA requis
   TOKEN = d.token; localStorage.setItem('ns_token', TOKEN); USER = d.user;
   return USER;

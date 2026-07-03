@@ -37,6 +37,10 @@ PORT=3000
 ADMIN_USER=ton_admin
 ADMIN_PASS=un_mot_de_passe_TRES_long_et_unique
 DB_FILE=/app/data/blackstate.db
+# CAPTCHA Turnstile (optionnel) — les DEUX pour l'activer sur login+inscription.
+# Clé de site = publique, clé secrète = SERVEUR UNIQUEMENT. Cloudflare → Turnstile.
+TURNSTILE_SITE_KEY=<ta_cle_de_site>
+TURNSTILE_SECRET_KEY=<ta_cle_secrete>
 EOF
 chmod 600 .env
 ```

@@ -60,6 +60,7 @@
             <button type="button" class="pw-eye" onclick="togglePw('loginPass', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
           </div>
         </label>
+        <div id="loginCaptcha" class="cf-slot"></div>
         <div id="loginErr" class="form-err"></div>
         <button class="btn" onclick="doPortalLogin()">Entrer dans le club</button>
         <button type="button" class="portal-note portal-note-link" onclick="showJoinInfo()">L'accès se fait uniquement sur invitation.</button>
@@ -83,6 +84,7 @@
           <label>Numéro (tél RP)<input id="regPhone"></label>
           <label>id Discord<input id="regDiscord"></label>
         </div>
+        <div id="regCaptcha" class="cf-slot"></div>
         <div id="regErr" class="form-err"></div>
         <button class="btn" onclick="submitRegister()">Créer mon compte</button>
       </div>
