@@ -411,7 +411,7 @@ function bjFinish(d) {
 }
 function bjUpdateMaxBet(budget) {
   const el = $('bjMaxBet'); if (!el) return;
-  const max = Math.floor((budget || 0) / 2.2 + 1e-9);
+  const max = Math.floor((budget || 0) / 2.5 + 1e-9);
   el.textContent = 'Mise max (cagnotte) : ' + fmt(max);
 }
 async function bjRefreshBudget() {

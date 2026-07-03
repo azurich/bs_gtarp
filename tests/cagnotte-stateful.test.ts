@@ -1,11 +1,11 @@
 import { test, expect } from 'bun:test'
 import { bjMaxBet, minesStepFactor, BJ_BJ_MULT, MINES_RAKE } from '../src/games.ts'
 
-test('bjMaxBet = floor(budget / 2.2)', () => {
-  expect(BJ_BJ_MULT).toBe(2.2)
-  expect(bjMaxBet(2200)).toBe(1000)
+test('bjMaxBet = floor(budget / 2.5)', () => {
+  expect(BJ_BJ_MULT).toBe(2.5)
+  expect(bjMaxBet(2500)).toBe(1000)   // 2500/2.5 = 1000
   expect(bjMaxBet(0)).toBe(0)
-  expect(bjMaxBet(100)).toBe(45)      // 100/2.2 = 45.45 -> 45
+  expect(bjMaxBet(101)).toBe(40)      // 101/2.5 = 40.4 -> 40
 })
 
 test('minesStepFactor — 1re case (3 bombes) = (25/22)*(1-rake)', () => {

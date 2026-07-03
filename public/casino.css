@@ -336,7 +336,7 @@ input[type=range]::-webkit-slider-thumb{
    BLACKJACK — table de feutre, cartes premium, flip 3D
 ══════════════════════════════════════════════════════════ */
 .bj-table{
-  width:100%;
+  width:100%;position:relative;overflow:hidden;
   display:grid;gap:clamp(10px,2vh,22px);margin:0;padding:clamp(14px,2.4vh,24px) clamp(16px,3cqw,24px);
   border-radius:var(--r3);
   background:
@@ -345,13 +345,22 @@ input[type=range]::-webkit-slider-thumb{
   border:1px solid var(--accent-dim);
   box-shadow:0 16px 44px rgba(0,0,0,.55),inset 0 0 60px rgba(0,0,0,.4),inset 0 0 0 2px var(--accent-soft);
 }
+/* monogramme BlackState gravé au centre du feutre */
+.bj-table::before{
+  content:'BLACKSTATE';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--display);font-weight:600;font-size:clamp(1.4rem,7cqw,3.2rem);
+  letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.055);
+  white-space:nowrap;pointer-events:none;z-index:0;
+}
+.bj-table .hand{position:relative;z-index:1}
 .hand h3{
+  text-align:center;
   font-family:var(--body);font-weight:600;letter-spacing:.08em;
   text-transform:uppercase;font-size:.7rem;color:rgba(255,255,255,.6);
   margin-bottom:10px;
 }
 .hand h3 b{color:#fff;font-size:1.05rem;font-family:var(--num);font-variant-numeric:tabular-nums;margin-left:4px}
-.cards{display:flex;gap:12px;flex-wrap:wrap;min-height:clamp(66px,13vh,132px);align-items:flex-start;perspective:900px}
+.cards{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;min-height:clamp(66px,13vh,132px);align-items:flex-start;perspective:900px}
 /* emplacement fantôme quand la main est vide (présence de la table avant distribution) */
 .cards:empty::before{content:'';width:clamp(46px,9vh,92px);aspect-ratio:70/100;border-radius:8px;border:1.5px dashed var(--accent-soft);background:rgba(255,255,255,.03)}
 .pcard{

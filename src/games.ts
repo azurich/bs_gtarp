@@ -181,9 +181,9 @@ export function playDice(bet: number, chance: number, budget: number) {
    Croupier fortement avantagé via BJ_BIAS (cartes orientées) +
    gains réduits. RTP visé ~0.70 (variable selon le jeu du joueur).
 */
-export const BJ_BIAS     = 36    // % de tirages orientés maison → RTP ~70% (calibré par simulation)
-export const BJ_WIN_MULT = 1.8   // gain sur victoire normale (mise incluse)
-export const BJ_BJ_MULT  = 2.2   // gain sur blackjack naturel (mise incluse)
+export const BJ_BIAS     = 47    // % de tirages orientés maison → RTP ~70% (recalibré par simulation pour mult 2.0/2.5)
+export const BJ_WIN_MULT = 2.0   // gain sur victoire normale (mise incluse) — paiement "réel" ×2
+export const BJ_BJ_MULT  = 2.5   // gain sur blackjack naturel (mise incluse) — paiement "réel" 3:2
 
 const SUITS: [string, 'b' | 'red'][] = [['♠', 'b'], ['♣', 'b'], ['♥', 'red'], ['♦', 'red']]
 const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
