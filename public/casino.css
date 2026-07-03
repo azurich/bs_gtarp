@@ -445,14 +445,19 @@ input[type=range]::-webkit-slider-thumb{
 @keyframes cellPop{0%{transform:scale(.7)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
 .cell.done{cursor:default}
 .mines-info{
-  display:flex;justify-content:space-between;max-width:520px;
-  margin:clamp(6px,1.2vh,12px) auto 0;gap:8px;
+  display:flex;align-items:stretch;max-width:520px;
+  margin:clamp(6px,1.2vh,12px) auto 0;
   background:rgba(0,0,0,.3);border:1px solid var(--bdr);
-  border-radius:var(--r2);padding:clamp(8px,1.4vh,12px) 18px;
+  border-radius:var(--r2);overflow:hidden;
 }
-.mines-info>div{text-align:center;flex:1;display:flex;flex-direction:column;justify-content:flex-end}
-.mines-info .lbl{font-size:.62rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;font-family:var(--body)}
-.mines-info .val{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:clamp(1.15rem,3.4cqw,1.6rem);color:var(--accent-2);font-weight:700}
+/* valeur EN HAUT (toujours alignée), label en dessous ; séparateurs entre stats */
+.mi-stat{flex:1;text-align:center;padding:clamp(8px,1.5vh,13px) 8px;min-width:0}
+.mi-stat + .mi-stat{border-left:1px solid var(--bdr)}
+.mi-val{font-family:var(--num);font-variant-numeric:tabular-nums;font-weight:700;font-size:clamp(1.1rem,3.4cqw,1.5rem);color:var(--tx);line-height:1.05}
+.mi-lbl{font-size:.6rem;color:var(--tx-4);text-transform:uppercase;letter-spacing:.08em;margin-top:5px;font-family:var(--body);line-height:1.2}
+/* pot = héros central : plus grand, accent, léger halo */
+.mi-hero{flex:1.25;background:linear-gradient(180deg,var(--accent-soft),transparent 80%)}
+.mi-hero .mi-val{color:var(--accent-2);font-size:clamp(1.3rem,4.4cqw,1.9rem)}
 
 /* ══════════════════════════════════════════════════════════
    PLINKO
@@ -857,15 +862,9 @@ input[type=range]::-webkit-slider-thumb{
   .mines-cfg{padding:12px;gap:10px}
   .mines-grid{gap:clamp(4px,1.5cqw,8px);max-width:100%}
   .cell{border-radius:var(--r1)}
-  .mines-info{padding:10px 8px;gap:4px}
-  .mines-info .lbl{font-size:.54rem;letter-spacing:.04em;line-height:1.2}
-  .mines-info .val{font-size:1.3rem}
 }
 @container (max-width: 420px){
   .mines-grid{gap:5px}
-  .mines-info{padding:9px 6px}
-  .mines-info .lbl{font-size:.5rem}
-  .mines-info .val{font-size:1.1rem}
 }
 @container (max-width: 340px){
   .mines-grid{gap:4px}
