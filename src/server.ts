@@ -211,8 +211,10 @@ function cleanup() {
   db.prepare('DELETE FROM sessions WHERE created < ?').run(now - SESSION_TTL)
   db.prepare('DELETE FROM logs WHERE ts < ?').run(now - LOG_MAX_AGE)
   const cut = now - GAME_TTL
-  for (const [id, st] of activeBJ)    if (st.startedAt < cut) activeBJ.delete(id)
-  for (const [id, st] of activeMines) if (st.startedAt < cut) activeMines.delete(id)
+  // Parties abandonnées (TTL) : la mise a été prélevée au deal/start mais jamais
+  // résolue → on la comptabilise dans la cagnotte comme misée-et-perdue (bet, 0).
+  for (const [id, st] of activeBJ)    if (st.startedAt < cut) { bookCasino(st.bet, 0); activeBJ.delete(id) }
+  for (const [id, st] of activeMines) if (st.startedAt < cut) { bookCasino(st.bet, 0); activeMines.delete(id) }
 }
 cleanup()
 setInterval(cleanup, 60 * 60_000)

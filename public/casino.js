@@ -411,7 +411,7 @@ function bjFinish(d) {
 }
 function bjUpdateMaxBet(budget) {
   const el = $('bjMaxBet'); if (!el) return;
-  const max = Math.floor((budget || 0) / 2.2);
+  const max = Math.floor((budget || 0) / 2.2 + 1e-9);
   el.textContent = 'Mise max (cagnotte) : ' + fmt(max);
 }
 async function bjRefreshBudget() {
@@ -480,6 +480,7 @@ async function minesCashout() {
   if (!minesActive) return;
   let d; try { d = await api('/mines/cashout', 'POST'); } catch (e) { return toast(e.message, 4000, 'error'); }
   revealBombs(d.bombs); minesActive = false; minesMaxReached = false;
+  $('minesGrid').classList.remove('maxed');
   $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
   const machine = $('view-mines').querySelector('.machine');
   gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
