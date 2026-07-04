@@ -59,16 +59,25 @@ Seuls **3 / 6 / 12** sont exposés (le serveur valide `bombs ∈ {3, 6, 12}`).
   la grille montre un décompte cohérent.
 - Au plus **une** bombe est « touchée » en jeu (le clic fatal met fin à la partie).
 
-## Cagnotte — « empêcher l'impayable » (conservé)
+## Cagnotte — « empêcher l'impayable » (bombe forcée)
 
-- **Plafond de mise au start** : `floor(budget / M1[bombs])` (le 1er gain est
-  toujours payable).
-- **`maxReached`** : après chaque gemme, si `bet × M(gems+1) > budget`, on bloque la
-  continuation (case suivante refusée côté serveur, `maxReached: true` côté front)
-  → le gain encaissé reste toujours ≤ budget malgré les multiplicateurs qui
-  explosent.
-- `bookCasino(bet, gain)` inchangé : perte → `(bet, 0)` ; encaisse/sweep →
-  `(bet, gain)`. Parties abandonnées (cleanup) → `(bet, 0)` (déjà en place).
+- **Plafond de mise au start** : `floor(budget / M(bombs, 1))` — le 1er gain est
+  toujours payable (sinon la mise est refusée). Garantit qu'on ne force pas une
+  bombe dès le 1er clic.
+- **Bombe forcée** : à chaque clic, si le prochain gain `bet × M(gems+1)`
+  dépasserait `casinoBudget()`, le tirage est **forcé en bombe** (le joueur perd)
+  au lieu du tirage truqué normal. Si la cagnotte peut payer → tirage normal (probas
+  définies). Aucun gain encaissé ne dépasse jamais le budget, **sans état
+  « bloqué »** : pas de cases grisées ni de message « max atteint » → plus discret,
+  ça ressemble à une bombe ordinaire. (Remplace l'ancien mécanisme `maxReached`,
+  supprimé côté serveur ET front.)
+- `bookCasino(bet, gain)` inchangé : perte/bombe (naturelle ou forcée) →
+  `(bet, 0)` ; encaisse/sweep → `(bet, gain)`. Parties abandonnées (cleanup) →
+  `(bet, 0)` (déjà en place).
+- Effet RTP : la bombe forcée ne se déclenche que quand la cagnotte est trop faible
+  pour couvrir le prochain gain (cagnotte quasi vide) — cohérent avec la stinginess
+  à cagnotte vide des autres jeux. En cagnotte saine, elle ne se déclenche
+  quasiment jamais → RTP reste 70 %.
 
 ## Architecture & fichiers
 
@@ -85,25 +94,31 @@ Seuls **3 / 6 / 12** sont exposés (le serveur valide `bombs ∈ {3, 6, 12}`).
 ### `server.ts` (handlers Mines)
 - `/api/mines/start` : valider `bombs ∈ {3,6,12}` ; plafond mise
   `floor(casinoBudget() / G.minesMult(bombs, 1))` ; état sans `bombSet` pré-placé.
-- `/api/mines/pick` : refuser si `maxReached` ; sinon **tirer** safe/bombe via
-  `rnd() < G.minesSafeProb(bombs, st.picks + 1)`. Sur bombe : `bookCasino(bet,0)`,
+- `/api/mines/pick` : **issue du clic** = bombe forcée si
+  `st.bet × G.minesMult(bombs, st.gems + 1) > casinoBudget()`, sinon tirage truqué
+  `rnd() < G.minesSafeProb(bombs, st.gems + 1)`. Sur bombe : `bookCasino(bet, 0)`,
   fin, révéler bombes d'affichage. Sur gemme : `st.gems++`,
   `st.mult = G.minesMult(bombs, st.gems)`, `pot = round(bet × st.mult)` ; si
-  `st.gems === 25 - bombs` → sweep (payout + bookCasino + fin) ; sinon calculer
-  `st.maxReached = bet × G.minesMult(bombs, st.gems + 1) > casinoBudget()`.
+  `st.gems === 25 − bombs` → sweep (payout + bookCasino + fin). Plus de champ
+  `maxReached`.
 - `/api/mines/cashout` : `gain = round(bet × st.mult)` (inchangé dans la forme).
 
 ### `public/casino.js`
 - L'affichage utilise déjà `pot/mise` pour le multiplicateur → cohérent. Vérifier
   le rendu des bombes de fin (le serveur renvoie toujours un tableau `bombs`).
+- **Retirer le mécanisme `maxReached`** devenu inutile : flag `minesMaxReached`,
+  la classe `.mines-grid.maxed` (HTML/CSS) et le message « Max atteint — encaisse ».
+  Avec la bombe forcée, il n'y a plus d'état bloqué à gérer.
 
 ### Tests
 - **Retirer** les tests `minesStepFactor` de `tests/cagnotte-stateful.test.ts`.
 - **Ajouter** `tests/mines.test.ts` :
   - `minesMult`/`minesSafeProb` valeurs exactes (M1, g par mode).
-  - **Simulation RTP** : pour chaque mode, jouer N parties avec des politiques
-    d'encaissement variées → RTP mesuré ≈ **0.70** (tolérance serrée, c'est exact
-    par construction).
+  - **Simulation RTP** : pour chaque mode, jouer N parties (budget **illimité** →
+    bombe forcée jamais déclenchée) avec des politiques d'encaissement variées →
+    RTP mesuré ≈ **0.70** (tolérance serrée, exact par construction).
+  - **Solvabilité** : avec un budget contraint, vérifier qu'aucun gain encaissé ne
+    dépasse le budget (la bombe forcée coupe avant).
 
 ## Tests / vérification
 1. **Automatisé** : `bun test` — RTP ≈ 0.70 pour 3/6/12 bombes (simulation) ;
