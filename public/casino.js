@@ -505,7 +505,7 @@ function initPlinkoCanvas() {
      on dimensionne le canvas depuis la largeur (définie) du plateau, hauteur dérivée. */
   const board = PK.closest('.machine-board') || PK.parentElement;
   const availW = (board && board.clientWidth > 40) ? board.clientWidth : (PK.parentElement?.clientWidth || 440);
-  const maxH = Math.round(window.innerHeight * 0.6);
+  const maxH = Math.round(window.innerHeight * 0.46);
   let w = Math.max(280, Math.min(availW, 600));
   let h = Math.round(w * 0.82);
   if (h > maxH) { h = maxH; w = Math.min(w, Math.round(h / 0.82)); }
