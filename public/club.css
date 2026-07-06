@@ -4,6 +4,7 @@
 
 /* ── Portail (page /) ── */
 .portal {
+  position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -111,8 +112,12 @@
   display: flex; flex-direction: column; align-items: center; gap: 24px;
 }
 .hub-top {
-  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  position: absolute; top: 18px; left: 24px; right: 24px; z-index: 30;
+  display: flex; align-items: flex-start; justify-content: space-between;
 }
+.hub-brand { text-align: left; }
+.hub-top .portal-logo { font-size: clamp(1.6rem, 3.6vw, 2.4rem); text-align: left; line-height: 1; }
+.hub-top .portal-logo-club { text-align: left; padding-left: 0; margin-top: 1px; font-size: clamp(.78rem, 1.8vw, 1rem); letter-spacing: .34em; }
 .hub-hello { font-size: 1.05rem; color: rgba(230, 225, 245, .7); margin: 0; }
 .hub-hello b { color: #f5f0ff; }
 
@@ -148,7 +153,6 @@
   box-shadow: 0 20px 50px -12px rgba(0, 0, 0, .7);
   transform: translate(-50%, -50%);
   transition: transform .42s cubic-bezier(.16, 1, .3, 1), opacity .42s ease, box-shadow .3s ease;
-  will-change: transform, opacity;
 }
 .hub-tile img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
 .hub-tile[data-uni="casino"] { --tc: rgba(124, 58, 237, .65); }
@@ -169,20 +173,6 @@
   border-radius: 999px; padding: 5px 12px; backdrop-filter: blur(4px);
 }
 .hub-lock svg { width: 13px; height: 13px; }
-/* flèches */
-.hub-arrow {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 20;
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(20, 18, 30, .7); border: 1px solid rgba(255, 255, 255, .12);
-  color: #f5f0ff; font-size: 1.8rem; line-height: 1; cursor: pointer;
-  backdrop-filter: blur(6px); transition: background .15s, border-color .15s, opacity .15s;
-}
-.hub-arrow:hover { background: rgba(40, 36, 60, .9); border-color: var(--accent, #c9a84c); }
-.hub-arrow:disabled { opacity: .22; cursor: default; }
-.hub-prev { left: max(6px, 2%); }
-.hub-next { right: max(6px, 2%); }
-@media (max-width: 560px) { .hub-arrow { width: 38px; height: 38px; font-size: 1.5rem; } }
 
 /* ══════════════════════════════════════════════════════════
    Pages internes (profil) — conteneur + en-tête avec retour

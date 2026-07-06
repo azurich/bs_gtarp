@@ -80,20 +80,23 @@ function cfReset(id) {
 let hubIndex = 0, hubTiles = [], hubDragged = false;
 function hubRender() {
   if (!hubTiles.length) return;
-  const w = hubTiles[0].offsetWidth || 0;
-  const spacing = w * 0.72;
+  const car = $('hubCarousel');
+  const cw = car.clientWidth, ch = car.clientHeight;
+  const tw = hubTiles[0].offsetWidth, th = hubTiles[0].offsetHeight;
+  // positions en pixels ENTIERS -> tuiles nettes (pas de sous-pixel = pas de flou)
+  const baseLeft = Math.round((cw - tw) / 2), baseTop = Math.round((ch - th) / 2);
+  const spacing = tw * 0.72;
   hubTiles.forEach((t, i) => {
     const d = i - hubIndex, ad = Math.abs(d);
-    t.style.transform = `translate(-50%,-50%) translateX(${d * spacing}px) scale(${ad === 0 ? 1 : 0.78})`;
+    t.style.left = baseLeft + 'px';
+    t.style.top = baseTop + 'px';
+    t.style.transform = `translateX(${Math.round(d * spacing)}px) scale(${ad === 0 ? 1 : 0.78})`;
     t.style.opacity = ad === 0 ? '1' : ad === 1 ? '0.5' : '0';
     t.style.zIndex = String(10 - ad);
     t.style.pointerEvents = ad <= 1 ? 'auto' : 'none';
     t.classList.toggle('is-center', ad === 0);
     t.setAttribute('aria-current', ad === 0 ? 'true' : 'false');
   });
-  const prev = document.querySelector('.hub-prev'), next = document.querySelector('.hub-next');
-  if (prev) prev.disabled = hubIndex === 0;
-  if (next) next.disabled = hubIndex === hubTiles.length - 1;
 }
 function hubSlide(dir) {
   hubIndex = Math.max(0, Math.min(hubTiles.length - 1, hubIndex + dir));
@@ -107,7 +110,7 @@ function hubEnter() {
 function hubInit() {
   const track = $('hubTrack'); if (!track) return;
   hubTiles = [...track.querySelectorAll('.hub-tile')];
-  hubIndex = 0;
+  hubIndex = 1;   // Profil (tuile du milieu) centré par défaut
   const activate = i => { if (hubDragged) { hubDragged = false; return; } if (i === hubIndex) hubEnter(); else { hubIndex = i; hubRender(); } };
   hubTiles.forEach((t, i) => {
     t.addEventListener('click', () => activate(i));
