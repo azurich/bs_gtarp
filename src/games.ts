@@ -226,6 +226,39 @@ export function bjDraw(deck: Card[], hand: Card[], otherIsPlayer: boolean, bias:
 */
 export const MINES_RAKE = 0.11   // ~11% de marge par case dévoilée
 
+/* ---------------- MINES truqué (RTP 70 %) ----------------
+   M(n) = m1 * g^(n-1) ; P(atteindre n) = 0.70 / M(n) ;
+   survie clic n : n===1 -> 0.70/m1 (edge sur le 1er clic), sinon 1/g.
+   RTP = P(n) * M(n) = 0.70 à tout encaissement, exact par construction.
+*/
+export const MINES_RTP = 0.70
+export const MINES_CURVES: Record<number, { m1: number; g: number }> = {
+  3:  { m1: 1.15, g: 1.25 },
+  6:  { m1: 1.5,  g: 1.6  },
+  12: { m1: 3.0,  g: 2.5  },
+}
+export function minesMaxGems(bombs: number): number { return 25 - bombs }
+export function minesMult(bombs: number, gems: number): number {
+  if (gems <= 0) return 1
+  const c = MINES_CURVES[bombs]
+  return c.m1 * Math.pow(c.g, gems - 1)
+}
+export function minesSafeProb(bombs: number, pick: number): number {
+  const c = MINES_CURVES[bombs]
+  return pick === 1 ? MINES_RTP / c.m1 : 1 / c.g
+}
+// Positions de bombes pour l'AFFICHAGE de fin : `bombs` cases parmi les non-gemmes,
+// en incluant la case fatale si fournie (>= 0).
+export function minesDisplayBombs(revealedGems: Iterable<number>, bombs: number, fatal: number): number[] {
+  const gems = new Set(revealedGems)
+  const pool: number[] = []
+  for (let i = 0; i < 25; i++) if (i !== fatal && !gems.has(i)) pool.push(i)
+  for (let k = pool.length - 1; k > 0; k--) { const j = (Math.random() * (k + 1)) | 0; [pool[k], pool[j]] = [pool[j], pool[k]] }
+  const out = fatal >= 0 ? [fatal] : []
+  while (out.length < bombs && pool.length) out.push(pool.pop()!)
+  return out
+}
+
 // Plafond de mise Blackjack imposé par la cagnotte (gain max d'une main = mise × BJ_BJ_MULT)
 // +1e-9 corrige l'arrondi flottant IEEE-754 (ex : 2200/2.2 = 999.9999… sans epsilon)
 export function bjMaxBet(budget: number): number {
