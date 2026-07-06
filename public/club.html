@@ -118,22 +118,21 @@
         <span class="hub-wallet-lbl">Crédits Club</span>
         <span class="hub-wallet-val"><span class="bs-coin"></span><b id="hubCredit" data-credit>0</b></span>
       </div>
-      <div class="universe-cards">
-        <a class="universe-card uni-casino" href="/casino">
-          <span class="uni-ic"><i data-lucide="dice-5"></i></span>
-          <span class="uni-name">Casino</span>
-          <span class="uni-desc">Machines, cartes, roue…</span>
-        </a>
-        <span class="universe-card uni-fight disabled">
-          <span class="uni-ic"><i data-lucide="swords"></i></span>
-          <span class="uni-name">Fight</span>
-          <span class="uni-desc">Combats — Bientôt</span>
-        </span>
-        <a class="universe-card uni-profil" href="/profil">
-          <span class="uni-ic"><i data-lucide="user"></i></span>
-          <span class="uni-name">Profil</span>
-          <span class="uni-desc">Mes infos & stats</span>
-        </a>
+      <div class="hub-carousel" id="hubCarousel" tabindex="0" aria-label="Choisir une section">
+        <button class="hub-arrow hub-prev" type="button" aria-label="Précédent" onclick="hubSlide(-1)">‹</button>
+        <div class="hub-track" id="hubTrack">
+          <div class="hub-tile" data-uni="casino" data-go="/casino" role="button" tabindex="0" aria-label="Casino">
+            <img src="/tiles/casino.png" alt="Casino" draggable="false">
+          </div>
+          <div class="hub-tile hub-locked" data-uni="fight" data-locked="1" role="button" tabindex="0" aria-label="Fight — bientôt">
+            <img src="/tiles/fight.png" alt="Fight" draggable="false">
+            <span class="hub-lock"><i data-lucide="lock"></i>Bientôt</span>
+          </div>
+          <div class="hub-tile" data-uni="profil" data-go="/profil" role="button" tabindex="0" aria-label="Profil">
+            <img src="/tiles/profil.png" alt="Profil" draggable="false">
+          </div>
+        </div>
+        <button class="hub-arrow hub-next" type="button" aria-label="Suivant" onclick="hubSlide(1)">›</button>
       </div>
     </section>
 
