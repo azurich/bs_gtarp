@@ -19,9 +19,9 @@ interface BjState {
   player: G.Card[]; dealer: G.Card[]; live: boolean; startedAt: number
 }
 interface MinesState {
-  bet: number; bombs: number; bombSet: Set<number>; revealed: Set<number>
-  picks: number; gems: number; mult: number; live: boolean
-  startedAt: number; maxReached?: boolean
+  bet: number; bombs: number
+  revealed: Set<number>   // cases-gemmes révélées
+  gems: number; mult: number; live: boolean; startedAt: number
 }
 
 /* ── constantes ───────────────────────────────────────────── */
@@ -594,20 +594,21 @@ const app = new Elysia()
 
     /* ── Mines ──────────────────────────────────────────── */
     .post('/api/mines/start', ({ body, user, set }) => {
-      const u     = user as User
-      const b     = body as any
-      const bet   = intBet(b.bet)
+      const u   = user as User
+      const b   = body as any
+      const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      const bombs = Math.floor(Number(b.bombs))
+      if (![3, 6, 12].includes(bombs)) { set.status = 400; return { error: 'Nombre de bombes invalide' } }
       const existingMines = activeMines.get(u.id)
       if (existingMines?.live) { set.status = 400; return { error: 'Une partie de Démineur est déjà en cours.' } }
-      const bombs = Math.max(1, Math.min(24, Math.floor(Number(b.bombs) || 5)))
-      const startMax = Math.floor(casinoBudget() / G.minesStepFactor(0, bombs))
+      const startMax = Math.floor(casinoBudget() / G.minesMult(bombs, 1))
       if (bet > startMax) { set.status = 400; return { error: 'Mise max actuelle : ' + startMax + ' (cagnotte)' } }
       if (!charge(u, bet, 'mines')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       awardXP(u.id, bet)
       activeMines.set(u.id, {
-        bet, bombs, bombSet: G.placeBombs(bombs), revealed: new Set(),
-        picks: 0, gems: 0, mult: 1, live: true, startedAt: Date.now(),
+        bet, bombs, revealed: new Set<number>(),
+        gems: 0, mult: 1, live: true, startedAt: Date.now(),
       })
       return { bombs, mult: 1, pot: 0, ...userSnapshot(u.id) }
     })
@@ -616,31 +617,36 @@ const app = new Elysia()
       const u  = user as User
       const st = activeMines.get(u.id)
       if (!st || !st.live) { set.status = 400; return { error: 'Aucune partie en cours' } }
-      if (st.maxReached) { set.status = 400; return { error: 'Max atteint — encaisse' } }
       const i = Math.floor(Number((body as any).i))
       if (!(i >= 0 && i < 25)) { set.status = 400; return { error: 'Case invalide' } }
       if (st.revealed.has(i))  { set.status = 400; return { error: 'Case déjà révélée' } }
-      st.revealed.add(i)
-      if (st.bombSet.has(i)) {
+
+      // Issue : bombe FORCÉE si le prochain gain dépasserait le budget cagnotte
+      // (empêcher l'impayable) ; sinon tirage truqué (survie = minesSafeProb).
+      const nextMult   = G.minesMult(st.bombs, st.gems + 1)
+      const forcedBomb = st.bet * nextMult > casinoBudget()
+      const safe       = !forcedBomb && Math.random() < G.minesSafeProb(st.bombs, st.gems + 1)
+
+      if (!safe) {
         st.live = false
         bookCasino(st.bet, 0)
         recordHistory(u.id, 'mines', st.bet, 0, 'bomb')
         activeMines.delete(u.id)
-        return { result: 'bomb', i, bombs: [...st.bombSet], ...userSnapshot(u.id) }
+        return { result: 'bomb', i, bombs: G.minesDisplayBombs(st.revealed, st.bombs, i), ...userSnapshot(u.id) }
       }
-      const safe = 25 - st.bombs, k = st.picks
-      st.mult *= G.minesStepFactor(k, st.bombs)
-      st.gems++; st.picks++
+
+      st.revealed.add(i)
+      st.gems++
+      st.mult = nextMult
       const pot = Math.round(st.bet * st.mult)
-      if (st.gems === safe) {
+      if (st.gems === G.minesMaxGems(st.bombs)) {           // sweep : toutes les sûres révélées
         payout(u, pot, 'mines')
         bookCasino(st.bet, pot)
         recordHistory(u.id, 'mines', st.bet, pot, 'sweep')
         st.live = false; activeMines.delete(u.id)
-        return { result: 'gem', i, mult: +st.mult.toFixed(2), pot, cashedOut: true, gain: pot, bombs: [...st.bombSet], ...userSnapshot(u.id) }
+        return { result: 'gem', i, pot, cashedOut: true, gain: pot, bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
       }
-      st.maxReached = st.picks < safe && st.bet * st.mult * G.minesStepFactor(st.picks, st.bombs) > casinoBudget()
-      return { result: 'gem', i, mult: +st.mult.toFixed(2), pot, maxReached: st.maxReached, ...userSnapshot(u.id) }
+      return { result: 'gem', i, pot, ...userSnapshot(u.id) }
     })
 
     .post('/api/mines/cashout', ({ user, set }) => {
@@ -652,7 +658,7 @@ const app = new Elysia()
       bookCasino(st.bet, gain)
       recordHistory(u.id, 'mines', st.bet, gain, `${st.gems} gems`)
       st.live = false; activeMines.delete(u.id)
-      return { gain, mult: +st.mult.toFixed(2), bombs: [...st.bombSet], ...userSnapshot(u.id) }
+      return { gain, bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
     })
 
     /* ── Historique / Leaderboard ───────────────────────── */
