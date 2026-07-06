@@ -1,7 +1,7 @@
 import { test, expect } from 'bun:test'
 import {
   minesMult, minesSafeProb, minesMaxGems, minesDisplayBombs,
-  MINES_RTP, MINES_CURVES,
+  MINES_RTP,
 } from '../src/games.ts'
 
 test('minesMult = m1 * g^(gems-1)', () => {

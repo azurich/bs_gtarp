@@ -258,12 +258,6 @@ export function bjMaxBet(budget: number): number {
   return Math.floor(budget / BJ_BJ_MULT + 1e-9)
 }
 
-export function placeBombs(n: number): Set<number> {
-  const s = new Set<number>()
-  while (s.size < n) s.add((rnd() * 25) | 0)
-  return s
-}
-
 /* ---------------- INFOS PUBLIQUES (admin lecture seule) ---------------- */
 export const GAME_INFO = [
   { key: 'slots',     label: 'Slots',     rtp: 0.70, note: '37% de tours payants · jackpot 7️⃣ = 20×' },
