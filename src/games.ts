@@ -219,13 +219,6 @@ export function bjDraw(deck: Card[], hand: Card[], otherIsPlayer: boolean, bias:
   return deck.splice((rnd() * deck.length) | 0, 1)[0]
 }
 
-/* ---------------- MINES (stateful) ----------------
-   Placement de bombes équitable, AUCUN sauvetage du joueur.
-   Marge prélevée par case via MINES_RAKE : RTP = (1-rake)^picks.
-   Plus le joueur est cupide, plus la maison gagne.
-*/
-export const MINES_RAKE = 0.11   // ~11% de marge par case dévoilée
-
 /* ---------------- MINES truqué (RTP 70 %) ----------------
    M(n) = m1 * g^(n-1) ; P(atteindre n) = 0.70 / M(n) ;
    survie clic n : n===1 -> 0.70/m1 (edge sur le 1er clic), sinon 1/g.
@@ -263,11 +256,6 @@ export function minesDisplayBombs(revealedGems: Iterable<number>, bombs: number,
 // +1e-9 corrige l'arrondi flottant IEEE-754 (ex : 2200/2.2 = 999.9999… sans epsilon)
 export function bjMaxBet(budget: number): number {
   return Math.floor(budget / BJ_BJ_MULT + 1e-9)
-}
-// Facteur de multiplicateur d'une case sûre du Démineur (picks déjà révélés, bombs placées)
-export function minesStepFactor(picks: number, bombs: number): number {
-  const safe = 25 - bombs
-  return ((25 - picks) / (safe - picks)) * (1 - MINES_RAKE)
 }
 
 export function placeBombs(n: number): Set<number> {
