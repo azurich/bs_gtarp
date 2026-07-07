@@ -267,3 +267,11 @@ export const GAME_INFO = [
   { key: 'blackjack', label: 'Blackjack', rtp: 0.70, note: 'Croupier avantagé · gains 1.8× / BJ 2.2×' },
   { key: 'mines',     label: 'Démineur',  rtp: 0.70, note: '~11% de marge par case · la cupidité coûte cher' },
 ] as const
+
+/* ---------------- JACKPOT ADMIN ----------------
+   Montant d'un jackpot : pct du pool (GROS) ou du budget = reserve*pool (PETIT). */
+export function jackpotAmount(base: 'pool' | 'budget', pool: number, reserve: number, pct: number): number {
+  const p = Math.max(0, pool)
+  const baseAmount = base === 'pool' ? p : reserve * p
+  return Math.round(baseAmount * pct)
+}
