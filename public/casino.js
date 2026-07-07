@@ -121,6 +121,20 @@ function launchConfetti(label) {
 }
 
 
+/* Célébration générique de jackpot (aucune mention de l'origine admin) */
+function showJackpot(gain) {
+  const ov = document.createElement('div');
+  ov.className = 'jackpot-overlay';
+  ov.innerHTML = '<div class="jackpot-box"><div class="jackpot-title">JACKPOT !</div>'
+    + '<div class="jackpot-amount"><span class="bs-coin"></span>' + fmt(gain) + '</div>'
+    + '<div class="jackpot-sub">Crédits Club remportés</div></div>';
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add('show'));
+  const close = () => { ov.classList.remove('show'); setTimeout(() => ov.remove(), 320); };
+  ov.addEventListener('click', close);
+  setTimeout(close, 6000);
+}
+
 /* ── Moteur d'effets gradués (point d'entrée unique) ───────── */
 const FX = ['fx-lose','fx-partial','fx-win-s','fx-win-m','fx-win-big','fx-win-mega'];
 function gameResult({ machine, bet, gain, balance, xp, level, push }) {
@@ -372,6 +386,7 @@ async function spin() {
   let d;
   try { d = await api('/play/slots', 'POST', { bet }); }
   catch (e) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { clearInterval(tick); reels.forEach(r => r.classList.remove('spin')); slotSpinning = false; $('slotBtn').disabled = false; setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   /* arrêt en cascade des 3 rouleaux pour le suspense */
   const stops = [600, 850, 1100];
   stops.forEach((delay, i) => setTimeout(() => {
@@ -422,6 +437,7 @@ async function bjDeal() {
   $('bjDealBtn').disabled = true;
   bjCurrentBet = bet;
   let d; try { d = await api('/bj/deal', 'POST', { bet }); } catch (e) { $('bjDealBtn').disabled = false; return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { $('bjDealBtn').disabled = false; setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   $('bjBetRow').classList.add('hidden'); $('bjActions').classList.remove('hidden');
   setBalance(d.balance, undefined, d.xp, d.level); bjUpdateMaxBet(d.budget); bjRender(d); $('bjDealBtn').disabled = false;
   if (d.outcome) bjFinish(d);
@@ -441,6 +457,7 @@ async function minesStartGame() {
   const bet = int('minesBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const bombs = +$('minesCount').value;
   let d; try { d = await api('/mines/start', 'POST', { bet, bombs }); } catch (e) { return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   buildMinesGrid(); minesActive = true; minesCurrentBet = bet;
   $('minesStart').classList.add('hidden'); $('minesCash').classList.remove('hidden');
   { const r = $('minesResultMsg'); if (r) { r.dataset.state = 'idle'; r.textContent = ''; } }
@@ -567,6 +584,7 @@ async function plinkoDrop() {
   const bet = int('plinkoBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const risk = $('plinkoRisk').value;
   let d; try { d = await api('/play/plinko', 'POST', { bet, risk }); } catch (e) { return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   { const res = $('plinkoResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } } pkHighlight = -1;
   const target = d.bin, steps = []; for (let i = 0; i < target; i++) steps.push(1); while (steps.length < PK_ROWS) steps.push(0); shuffleArr(steps);
   const g = pkGeom(); const span = g.binY - g.topY - g.spacing*0.4;
@@ -629,6 +647,7 @@ async function wheelSpin() {
   let d;
   try { d = await api('/play/wheel', 'POST', { bet, risk }); }
   catch (e) { wheelSpinning = false; $('wBtn').disabled = false; if (rs) rs.disabled = false; return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { wheelSpinning = false; $('wBtn').disabled = false; if (rs) rs.disabled = false; setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   { const res = $('wResult'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const n = WHEEL[risk].length, seg = 360 / n, mid = d.index * seg + seg / 2, jitter = (Math.random() - .5) * (seg * .6);
   const base = Math.ceil(wheelRot / 360) * 360; wheelRot = base + 360 * 6 - mid + jitter;
@@ -655,6 +674,7 @@ async function diceRoll() {
   const bet = int('diceBet'); if (!bet) return toast('Mise invalide', 2800, 'error');
   const chance = Math.max(2, Math.min(95, +$('diceSlider').value));
   let d; try { d = await api('/play/dice', 'POST', { bet, chance }); } catch (e) { return toast(e.message, 4000, 'error'); }
+  if (d.jackpot) { setBalance(d.balance, undefined, d.xp, d.level); showJackpot(d.gain); return; }
   diceRolling = true; $('diceBtn').disabled = true;
   { const res = $('diceResultMsg'); if (res) { res.dataset.state = 'idle'; res.textContent = ''; } }
   const dot = $('diceDot'), res = $('diceResult'); res.className = 'dice-result'; res.textContent = '…'; dot.style.left = d.roll.toFixed(2)+'%'; dot.classList.add('rolling');
