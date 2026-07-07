@@ -81,6 +81,8 @@ const Q = {
 /* ── état des parties stateful ────────────────────────────── */
 const activeBJ    = new Map<number, BjState>()
 const activeMines = new Map<number, MinesState>()
+// Jackpot admin armé (caché) : consommé par le prochain jeu. En mémoire (perdu au restart).
+let pendingJackpot: { base: 'pool' | 'budget'; armedBy: string } | null = null
 
 /* ── helpers ──────────────────────────────────────────────── */
 const RE_USER   = /^[a-zA-Z0-9_-]{3,20}$/
@@ -165,6 +167,22 @@ function casinoBudget(): number {
 }
 function bookCasino(bet: number, gain: number) {
   Q.bookCasino.run(bet, gain)
+}
+// Court-circuite le prochain jeu en jackpot. Renvoie le corps de réponse.
+function awardJackpot(u: User, bet: number, gameKey: string, set: { status?: number }): object {
+  if (!charge(u, bet, gameKey)) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
+  const c = Q.getCasino.get() as { wagered: number; paid: number }
+  const pool = Math.max(0, c.wagered - c.paid)
+  const pct  = 0.30 + Math.random() * 0.30
+  const gain = G.jackpotAmount(pendingJackpot!.base, pool, CASINO_RESERVE, pct)
+  payout(u, gain, gameKey)
+  bookCasino(bet, gain)
+  awardXP(u.id, bet)
+  recordHistory(u.id, gameKey, bet, gain, 'jackpot')
+  logEvent(pendingJackpot!.armedBy, 'admin',
+    'JACKPOT gagné par ' + u.username + ' : ' + gain + ' (' + gameKey + ', ' + Math.round(pct * 100) + '% du ' + pendingJackpot!.base + ')', gain)
+  pendingJackpot = null
+  return { jackpot: true, gain, ...userSnapshot(u.id) }
 }
 function recordHistory(userId: number, game: string, bet: number, gain: number, result: string | null) {
   Q.insHistory.run(userId, game, bet, gain, result ?? null, Date.now())
@@ -508,6 +526,7 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'slots', set)
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playSlots(bet, casinoBudget())
       payout(u, r.gain, 'slots'); awardXP(u.id, bet); bookCasino(bet, r.gain)
@@ -520,6 +539,7 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'plinko', set)
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playPlinko(bet, risk, casinoBudget())
@@ -533,6 +553,7 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'wheel', set)
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playWheel(bet, risk, casinoBudget())
@@ -546,6 +567,7 @@ const app = new Elysia()
       const b      = body as any
       const bet    = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'dice', set)
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playDice(bet, chance, casinoBudget())
@@ -559,6 +581,7 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'blackjack', set)
       const max = G.bjMaxBet(casinoBudget())
       if (bet > max) { set.status = 400; return { error: 'Mise max actuelle : ' + max + ' (cagnotte)' } }
       const existing = activeBJ.get(u.id)
@@ -598,6 +621,7 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
+      if (pendingJackpot) return awardJackpot(u, bet, 'mines', set)
       const bombs = Math.floor(Number(b.bombs))
       if (![3, 6, 12].includes(bombs)) { set.status = 400; return { error: 'Nombre de bombes invalide' } }
       const existingMines = activeMines.get(u.id)
@@ -754,6 +778,26 @@ const app = new Elysia()
       if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
       Q.resetCasino.run()
       logEvent(adm.username, 'admin', 'Cagnotte réinitialisée')
+      return { ok: true }
+    })
+    .get('/api/admin/jackpot', ({ headers, set }) => {
+      if (!checkAdmin(headers as any)) { set.status = 403; return { error: 'Réservé admin' } }
+      return { armed: !!pendingJackpot, base: pendingJackpot?.base ?? null }
+    })
+    .post('/api/admin/jackpot', ({ headers, body, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      const base = (body as any).base
+      if (base !== 'pool' && base !== 'budget') { set.status = 400; return { error: 'Base invalide' } }
+      pendingJackpot = { base, armedBy: adm.username }
+      logEvent(adm.username, 'admin', 'Jackpot armé (' + base + ')')
+      return { ok: true, base }
+    })
+    .delete('/api/admin/jackpot', ({ headers, set }) => {
+      const adm = checkAdmin(headers as any)
+      if (!adm) { set.status = 403; return { error: 'Réservé admin' } }
+      pendingJackpot = null
+      logEvent(adm.username, 'admin', 'Jackpot annulé')
       return { ok: true }
     })
 
