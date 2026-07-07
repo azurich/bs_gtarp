@@ -117,23 +117,23 @@
         <button class="btn ghost sm" onclick="logout()">Déconnexion</button>
       </div>
       <p class="hub-hello">Bonjour <b id="hubUser"></b></p>
-      <div class="hub-wallet">
-        <span class="hub-wallet-lbl">Crédits Club</span>
-        <span class="hub-wallet-val"><span class="bs-coin"></span><b id="hubCredit" data-credit>0</b></span>
-      </div>
       <div class="hub-carousel" id="hubCarousel" tabindex="0" aria-label="Choisir une section">
         <div class="hub-track" id="hubTrack">
           <div class="hub-tile" data-uni="casino" data-go="/casino" role="button" tabindex="0" aria-label="Casino">
-            <img src="/tiles/casino.png" alt="Casino" draggable="false">
+            <img src="/tiles/casino.webp" alt="Casino" draggable="false">
           </div>
           <div class="hub-tile" data-uni="profil" data-go="/profil" role="button" tabindex="0" aria-label="Profil">
-            <img src="/tiles/profil.png" alt="Profil" draggable="false">
+            <img src="/tiles/profil.webp" alt="Profil" draggable="false">
           </div>
           <div class="hub-tile hub-locked" data-uni="fight" data-locked="1" role="button" tabindex="0" aria-label="Fight — bientôt">
-            <img src="/tiles/fight.png" alt="Fight" draggable="false">
+            <img src="/tiles/fight.webp" alt="Fight" draggable="false">
             <span class="hub-lock"><i data-lucide="lock"></i>Bientôt</span>
           </div>
         </div>
+      </div>
+      <div class="hub-wallet">
+        <span class="hub-wallet-lbl">Crédits Club</span>
+        <span class="hub-wallet-val"><span class="bs-coin"></span><b id="hubCredit" data-credit>0</b></span>
       </div>
     </section>
 
