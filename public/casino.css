@@ -880,12 +880,3 @@ input[type=range]::-webkit-slider-thumb{
   .dice-zone{display:none}
   .dice-stats .stat{min-width:100px}
 }
-
-/* ── Overlay Jackpot (générique) ── */
-.jackpot-overlay { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 40%, rgba(201,168,76,.18), rgba(5,5,12,.9) 70%); opacity: 0; transition: opacity .3s ease; cursor: pointer; }
-.jackpot-overlay.show { opacity: 1; }
-.jackpot-box { text-align: center; transform: scale(.85); transition: transform .35s var(--ease-back, cubic-bezier(.34,1.56,.64,1)); }
-.jackpot-overlay.show .jackpot-box { transform: scale(1); }
-.jackpot-title { font-family: var(--display, serif); font-weight: 700; font-size: clamp(3rem, 12vw, 7rem); letter-spacing: .04em; color: #fff; text-shadow: 0 0 40px rgba(201,168,76,.8), 0 0 12px rgba(201,168,76,.9); }
-.jackpot-amount { display: inline-flex; align-items: center; gap: 14px; margin-top: 10px; font-family: var(--num); font-variant-numeric: tabular-nums; font-weight: 700; font-size: clamp(2rem, 8vw, 4.5rem); color: var(--gold, #c9a84c); }
-.jackpot-sub { margin-top: 8px; font-family: var(--body); font-size: .9rem; letter-spacing: .1em; text-transform: uppercase; color: rgba(245,240,255,.6); }
