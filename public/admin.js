@@ -223,6 +223,7 @@ async function renderGameInfo() {
   const box = $('settingsBox'); if (!box) return;
   box.innerHTML = '<div class="loading-row"><span class="spinner"></span></div>';
   let d; try { d = await api('/admin/casino'); } catch (e) { box.innerHTML = '<p class="hint">Erreur de chargement.</p>'; return; }
+  let jp; try { jp = await api('/admin/jackpot'); } catch (e) { jp = { armed: false, base: null }; }
   const f = n => fmt(Math.round(n));
   box.innerHTML =
       '<div class="rtp-banner">'
@@ -236,6 +237,17 @@ async function renderGameInfo() {
     +   '<div class="cg-stat"><span class="cg-lbl">RTP réel observé</span><span class="cg-val">' + Math.round(d.rtp * 100) + '%</span></div>'
     +   '<div class="cg-stat"><span class="cg-lbl">Réserve gardée</span><span class="cg-val">' + Math.round((1 - d.reserve) * 100) + '%</span></div>'
     + '</div>'
+    + '<div class="cg-jackpot">'
+    +   '<div class="cg-jp-head">Jackpot' + (jp.armed ? '<span class="cg-jp-armed">ARMÉ · ' + (jp.base === 'pool' ? 'GROS' : 'PETIT') + '</span>' : '') + '</div>'
+    +   '<p class="hint">Arme le prochain jeu : le prochain joueur remporte 30-60 %. '
+    +     'GROS = de la cagnotte (' + f(d.pool) + ' → ' + f(0.30 * d.pool) + '–' + f(0.60 * d.pool) + '). '
+    +     'PETIT = du budget (' + f(d.budget) + ' → ' + f(0.30 * d.budget) + '–' + f(0.60 * d.budget) + ').</p>'
+    +   '<div class="cg-jp-actions">'
+    +     '<button class="btn sm" onclick="armJackpot(\'pool\')">Armer GROS</button>'
+    +     '<button class="btn sm ghost" onclick="armJackpot(\'budget\')">Armer PETIT</button>'
+    +     (jp.armed ? '<button class="btn sm ghost" onclick="cancelJackpot()">Annuler</button>' : '')
+    +   '</div>'
+    + '</div>'
     + '<button class="btn ghost sm" onclick="resetCasino()" style="margin-top:18px">Réinitialiser la cagnotte</button>';
 }
 
@@ -248,6 +260,14 @@ function resetCasino() {
       catch (e) { toast(e.message, 4000, 'error'); }
     }
   );
+}
+
+async function armJackpot(base) {
+  try { await api('/admin/jackpot', 'POST', { base }); toast('Jackpot armé (' + (base === 'pool' ? 'GROS' : 'PETIT') + ')'); renderGameInfo(); }
+  catch (e) { toast(e.message, 4000, 'error'); }
+}
+function cancelJackpot() {
+  api('/admin/jackpot', 'DELETE').then(() => { toast('Jackpot annulé'); renderGameInfo(); }).catch(e => toast(e.message, 4000, 'error'));
 }
 
 /* ── logs ─────────────────────────────────────────────────── */
