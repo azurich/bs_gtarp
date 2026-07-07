@@ -168,21 +168,27 @@ function casinoBudget(): number {
 function bookCasino(bet: number, gain: number) {
   Q.bookCasino.run(bet, gain)
 }
-// Court-circuite le prochain jeu en jackpot. Renvoie le corps de réponse.
-function awardJackpot(u: User, bet: number, gameKey: string, set: { status?: number }): object {
-  if (!charge(u, bet, gameKey)) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
+// Jackpot v2 : force un vrai multiplicateur du jeu <= cible/mise. Renvoie la réponse
+// de jeu forcée, un objet erreur (crédits insuffisants), ou null (pas de jackpot -> reste armé).
+function jackpotResolve(
+  u: User, bet: number, gameKey: string, mults: number[],
+  forcer: (m: number) => Record<string, unknown> & { gain: number },
+  set: { status?: number },
+): object | null {
   const c = Q.getCasino.get() as { wagered: number; paid: number }
   const pool = Math.max(0, c.wagered - c.paid)
   const pct  = 0.30 + Math.random() * 0.30
-  const gain = G.jackpotAmount(pendingJackpot!.base, pool, CASINO_RESERVE, pct)
-  payout(u, gain, gameKey)
-  bookCasino(bet, gain)
-  awardXP(u.id, bet)
-  recordHistory(u.id, gameKey, bet, gain, 'jackpot')
+  const target = G.jackpotAmount(pendingJackpot!.base, pool, CASINO_RESERVE, pct)
+  const m = G.pickJackpotMult(mults, bet > 0 ? target / bet : 0)
+  if (m === null) return null                       // mise trop grosse -> pas de jackpot, reste armé
+  if (!charge(u, bet, gameKey)) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
+  const r = forcer(m)
+  payout(u, r.gain, gameKey); awardXP(u.id, bet); bookCasino(bet, r.gain)
+  recordHistory(u.id, gameKey, bet, r.gain, 'jackpot')
   logEvent(pendingJackpot!.armedBy, 'admin',
-    'JACKPOT gagné par ' + u.username + ' : ' + gain + ' (' + gameKey + ', ' + Math.round(pct * 100) + '% du ' + pendingJackpot!.base + ')', gain)
+    'JACKPOT ' + gameKey + ' par ' + u.username + ' : ' + r.gain + ' (x' + m + ', cible ' + Math.round(target) + ')', r.gain)
   pendingJackpot = null
-  return { jackpot: true, gain, ...userSnapshot(u.id) }
+  return { ...r, ...userSnapshot(u.id) }
 }
 function recordHistory(userId: number, game: string, bet: number, gain: number, result: string | null) {
   Q.insHistory.run(userId, game, bet, gain, result ?? null, Date.now())
@@ -526,7 +532,10 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'slots', set)
+      if (pendingJackpot) {
+        const jr = jackpotResolve(u, bet, 'slots', G.slotsJackpotMults(), m => G.slotsJackpot(bet, m), set)
+        if (jr) return jr
+      }
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playSlots(bet, casinoBudget())
       payout(u, r.gain, 'slots'); awardXP(u.id, bet); bookCasino(bet, r.gain)
@@ -539,8 +548,11 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'plinko', set)
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
+      if (pendingJackpot) {
+        const jr = jackpotResolve(u, bet, 'plinko', G.plinkoMults(risk), m => G.plinkoJackpot(bet, risk, m), set)
+        if (jr) return jr
+      }
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playPlinko(bet, risk, casinoBudget())
       payout(u, r.gain, 'plinko'); awardXP(u.id, bet); bookCasino(bet, r.gain)
@@ -553,8 +565,11 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'wheel', set)
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
+      if (pendingJackpot) {
+        const jr = jackpotResolve(u, bet, 'wheel', G.wheelMults(risk), m => G.wheelJackpot(bet, risk, m), set)
+        if (jr) return jr
+      }
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playWheel(bet, risk, casinoBudget())
       payout(u, r.gain, 'wheel'); awardXP(u.id, bet); bookCasino(bet, r.gain)
@@ -567,8 +582,12 @@ const app = new Elysia()
       const b      = body as any
       const bet    = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'dice', set)
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
+      if (pendingJackpot) {
+        const dm = G.diceMult(chance)
+        const jr = jackpotResolve(u, bet, 'dice', [dm], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), set)
+        if (jr) return jr
+      }
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playDice(bet, chance, casinoBudget())
       payout(u, r.gain, 'dice'); awardXP(u.id, bet); bookCasino(bet, r.gain)
@@ -581,7 +600,6 @@ const app = new Elysia()
       const u   = user as User
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'blackjack', set)
       const max = G.bjMaxBet(casinoBudget())
       if (bet > max) { set.status = 400; return { error: 'Mise max actuelle : ' + max + ' (cagnotte)' } }
       const existing = activeBJ.get(u.id)
@@ -621,7 +639,6 @@ const app = new Elysia()
       const b   = body as any
       const bet = intBet(b.bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
-      if (pendingJackpot) return awardJackpot(u, bet, 'mines', set)
       const bombs = Math.floor(Number(b.bombs))
       if (![3, 6, 12].includes(bombs)) { set.status = 400; return { error: 'Nombre de bombes invalide' } }
       const existingMines = activeMines.get(u.id)
