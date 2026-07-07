@@ -585,7 +585,7 @@ const app = new Elysia()
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
       if (pendingJackpot) {
         const dm = G.diceMult(chance)
-        const jr = jackpotResolve(u, bet, 'dice', [dm], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), set)
+        const jr = jackpotResolve(u, bet, 'dice', dm > 1 ? [dm] : [], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }

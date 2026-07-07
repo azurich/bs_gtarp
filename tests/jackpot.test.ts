@@ -45,3 +45,12 @@ test('diceMult = (100/chance)*RTP avec clamp', () => {
   expect(diceMult(1)).toBe(diceMult(2))                        // clamp bas (2)
   expect(diceMult(99)).toBe(diceMult(95))                      // clamp haut (95)
 })
+
+test('wheelMults/plinkoMults excluent 0 et <1 (jackpot = vrai gain)', () => {
+  expect(wheelMults('med').every(m => m > 1)).toBe(true)
+  expect(wheelMults('med')).not.toContain(0)
+  expect(plinkoMults('med').every(m => m > 1)).toBe(true)
+  expect(wheelMults('low').every(m => m > 1)).toBe(true)   // low bottom 0.5 exclu
+  // grosse mise -> desiredMult < plus petit mult gagnant -> null (reste arme), pas 0
+  expect(pickJackpotMult(wheelMults('med'), 1.0)).toBe(null)
+})

@@ -294,7 +294,7 @@ export function slotsJackpot(bet: number, mult: number): { reels: string[]; mult
 
 export function wheelMults(risk: string): number[] {
   const seg = WHEEL[risk as keyof typeof WHEEL] ?? WHEEL.med
-  return [...new Set(seg)].sort((a, b) => b - a)
+  return [...new Set(seg)].filter(m => m > 1).sort((a, b) => b - a)
 }
 export function wheelJackpot(bet: number, risk: string, mult: number): { index: number; mult: number; gain: number } {
   const seg = WHEEL[risk as keyof typeof WHEEL] ?? WHEEL.med
@@ -305,7 +305,7 @@ export function wheelJackpot(bet: number, risk: string, mult: number): { index: 
 
 export function plinkoMults(risk: string): number[] {
   const arr = PK_MULT[risk] ?? PK_MULT.med
-  return [...new Set(arr)].sort((a, b) => b - a)
+  return [...new Set(arr)].filter(m => m > 1).sort((a, b) => b - a)
 }
 export function plinkoJackpot(bet: number, risk: string, mult: number): { bin: number; mult: number; gain: number } {
   const arr = PK_MULT[risk] ?? PK_MULT.med
