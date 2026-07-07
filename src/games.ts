@@ -275,3 +275,46 @@ export function jackpotAmount(base: 'pool' | 'budget', pool: number, reserve: nu
   const baseAmount = base === 'pool' ? p : reserve * p
   return Math.round(baseAmount * pct)
 }
+
+/* ---------------- JACKPOT ADMIN v2 — forçage du multiplicateur ----------------
+   Choisit un vrai multiplicateur du jeu <= desiredMult (cible/mise) et force le
+   résultat gagnant correspondant. rnd() est utilisé pour varier l'index/bin. */
+export function pickJackpotMult(mults: number[], desiredMult: number): number | null {
+  let best: number | null = null
+  for (const m of mults) if (m <= desiredMult && (best === null || m > best)) best = m
+  return best
+}
+
+const SLOTS_JACKPOT: [number, string][] = [[20, '7️⃣'], [8, '💎'], [3, '🔔'], [2, '🍒'], [1.75, '⭐'], [1.25, '🍋']]
+export function slotsJackpotMults(): number[] { return SLOTS_JACKPOT.map(([m]) => m) }
+export function slotsJackpot(bet: number, mult: number): { reels: string[]; mult: number; gain: number } {
+  const sym = (SLOTS_JACKPOT.find(([m]) => m === mult) ?? SLOTS_JACKPOT[0])[1]
+  return { reels: [sym, sym, sym], mult, gain: Math.round(bet * mult) }
+}
+
+export function wheelMults(risk: string): number[] {
+  const seg = WHEEL[risk as keyof typeof WHEEL] ?? WHEEL.med
+  return [...new Set(seg)].sort((a, b) => b - a)
+}
+export function wheelJackpot(bet: number, risk: string, mult: number): { index: number; mult: number; gain: number } {
+  const seg = WHEEL[risk as keyof typeof WHEEL] ?? WHEEL.med
+  const idxs = seg.map((v, i) => (v === mult ? i : -1)).filter(i => i >= 0)
+  const index = idxs.length ? idxs[(rnd() * idxs.length) | 0] : 0
+  return { index, mult, gain: Math.round(bet * mult) }
+}
+
+export function plinkoMults(risk: string): number[] {
+  const arr = PK_MULT[risk] ?? PK_MULT.med
+  return [...new Set(arr)].sort((a, b) => b - a)
+}
+export function plinkoJackpot(bet: number, risk: string, mult: number): { bin: number; mult: number; gain: number } {
+  const arr = PK_MULT[risk] ?? PK_MULT.med
+  const bins = arr.map((v, i) => (v === mult ? i : -1)).filter(i => i >= 0)
+  const bin = bins.length ? bins[(rnd() * bins.length) | 0] : 0
+  return { bin, mult, gain: Math.round(bet * mult) }
+}
+
+export function diceMult(chance: number): number {
+  const c = Math.max(2, Math.min(95, chance))
+  return +((100 / c) * RTP).toFixed(2)
+}
