@@ -11,6 +11,7 @@ import { unlinkSync } from 'node:fs'
 import { generateSecret, verifyTOTP, otpauthURI } from './totp.ts'
 import { verifyTurnstile } from './turnstile.ts'
 import * as G from './games.ts'
+import * as Pw from '../public/core/password.js'
 import type { User, Session } from './db.ts'
 
 /* ── types internes ───────────────────────────────────────── */
@@ -406,10 +407,18 @@ const app = new Elysia()
       const p = String(b.pass ?? '')
       const inviteCode = String(b.invite ?? '').trim()
       if (!validUser(u))  { set.status = 400; return { error: 'Pseudo invalide (3-20 cars, lettres/chiffres/_ ou -).' } }
-      if (p.length < 8)   { set.status = 400; return { error: 'Mot de passe trop court (8 min).' } }
-      // SECURITY: limite max pour éviter le DoS bcrypt (hash d'une chaîne 1 Mo bloquerait le thread)
-      if (p.length > 128) { set.status = 400; return { error: 'Mot de passe trop long (128 max).' } }
+      // Politique MDP « pro » (règles partagées avec le front, source unique).
+      // checkPassword applique aussi le plafond 128 (garde anti-DoS bcrypt).
+      const pwCheck = Pw.checkPassword(p, u)
+      if (!pwCheck.ok) { set.status = 400; return { error: Pw.errorMessage(pwCheck) } }
       if (Q.userByName.get(u)) { set.status = 400; return { error: 'Ce pseudo existe déjà.' } }
+      // Champs RP obligatoires — vérifiés AVANT toute réservation d'invitation
+      // (pour ne pas consommer un lien sur une saisie incomplète).
+      const rpNom = clip(b.nom), rpPrenom = clip(b.prenom), rpDiscord = clip(b.discord)
+      if (!rpNom || !rpPrenom || !rpDiscord) {
+        set.status = 400; return { error: 'NOM, prénom et id Discord sont obligatoires.' }
+      }
+      const rpPhone = clip(b.phone, 20)   // reste optionnel
       if (!inviteCode)   { set.status = 403; return { error: "Un lien d'invitation est requis pour créer un compte." } }
       const invite = db.prepare('SELECT credits FROM invites WHERE token = ? AND used = 0').get(inviteCode) as { credits: number } | null
       if (!invite) { set.status = 400; return { error: "Lien d'invitation invalide ou déjà utilisé." } }
@@ -417,7 +426,6 @@ const app = new Elysia()
       // Si une autre requête l'a déjà prise entre-temps, changes === 0 → on abandonne.
       const claim = db.prepare('UPDATE invites SET used = 1, used_by = ? WHERE token = ? AND used = 0').run(u, inviteCode)
       if (claim.changes === 0) { set.status = 400; return { error: "Lien d'invitation invalide ou déjà utilisé." } }
-      const rpNom = clip(b.nom), rpPrenom = clip(b.prenom), rpPhone = clip(b.phone, 20), rpDiscord = clip(b.discord)
       const hash  = await Bun.password.hash(p, { algorithm: 'bcrypt', cost: 10 })
       const info  = Q.insertUser.run(u, hash, 0, invite.credits, Date.now(), rpNom, rpPrenom, rpPhone, rpDiscord)
       const token = randomBytes(32).toString('hex')
