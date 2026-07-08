@@ -83,15 +83,34 @@ function updateXP(xp, level) {
   if (fillEl) fillEl.style.width = pct + '%';
 }
 
-/* ── Confettis ────────────────────────────────────────────── */
+/* ── Écran de célébration (persistant) + confettis ────────── */
+const WIN_LABELS = { 'big-win': 'BIG WIN', 'mega-win': 'MEGA WIN', 'jackpot': 'JACKPOT' };
+const CONF_COLORS = {
+  gold:   ['#fff8dc', '#f4c430', '#ffd700', '#b8860b', '#ffffff'],
+  violet: ['#7c3aed', '#a855f7', '#c9a3ff', '#e9d5ff', '#c4b5fd', '#ffffff'],
+};
 let _confAF = null;
-function launchConfetti(label) {
-  const ov  = $('winOverlay'), cvs = $('confettiCanvas'), ctx = cvs.getContext('2d');
-  $('winLabel').textContent = label;
+function showWinOverlay(tier, gain, mult) {
+  const ov = $('winOverlay'); if (!ov) return;
+  ov.dataset.tier = tier;
+  $('winLabel').textContent = WIN_LABELS[tier] || 'WIN';
+  $('winMult').textContent = '×' + mult.toFixed(2);
+  const amt = $('winAmount'); if (amt) amt.textContent = '0';
   ov.classList.remove('hidden');
+  if (amt) countUp(amt, Math.round(gain), 1200);
+  launchConfetti(tier === 'jackpot' ? 'gold' : 'violet', tier === 'jackpot' ? 220 : 160);
+}
+function hideWinOverlay() {
+  const ov = $('winOverlay'); if (!ov) return;
+  ov.classList.add('hidden'); ov.dataset.tier = '';
+  if (_confAF) { cancelAnimationFrame(_confAF); _confAF = null; }
+}
+function launchConfetti(palette, count) {
+  const cvs = $('confettiCanvas'); if (!cvs) return;
+  const ctx = cvs.getContext('2d');
   cvs.width = innerWidth; cvs.height = innerHeight;
-  const COLORS = ['#7c3aed','#a855f7','#c9a3ff','#e9d5ff','#c4b5fd','#ffffff'];
-  const pts = Array.from({length: 160}, () => ({
+  const COLORS = CONF_COLORS[palette] || CONF_COLORS.violet;
+  const pts = Array.from({ length: count }, () => ({
     x: Math.random() * cvs.width, y: -20 - Math.random() * cvs.height * 0.6,
     w: 6 + Math.random() * 10, h: 3 + Math.random() * 5,
     vx: (Math.random() - 0.5) * 5, vy: 2 + Math.random() * 5,
@@ -113,34 +132,35 @@ function launchConfetti(label) {
     });
     frames++;
     if (alive && frames < 240) _confAF = requestAnimationFrame(frame);
-    else { ov.classList.add('hidden'); ov.classList.remove('mega'); }
+    else { _confAF = null; ctx.clearRect(0, 0, cvs.width, cvs.height); }  // confettis finis, overlay RESTE
   }
   if (_confAF) cancelAnimationFrame(_confAF);
   _confAF = requestAnimationFrame(frame);
-  setTimeout(() => { if (_confAF) cancelAnimationFrame(_confAF); ov.classList.add('hidden'); ov.classList.remove('mega'); }, 5000);
 }
 
 /* ── Moteur d'effets gradués (point d'entrée unique) ───────── */
-const FX = ['fx-lose','fx-partial','fx-win-s','fx-win-m','fx-win-big','fx-win-mega'];
-function gameResult({ machine, bet, gain, balance, xp, level, push }) {
-  const key = push ? 'push' : (window.Tiers ? Tiers.pickTier(gain, bet) : 'lose');
-  const isWin = key.indexOf('win') === 0;
+const FX = ['fx-lose','fx-partial','fx-win','fx-big-win','fx-mega-win','fx-jackpot'];
+function gameResult({ machine, bet, gain, balance, xp, level, push, top }) {
+  const key = push ? 'push' : (window.Tiers ? Tiers.pickTier(gain, bet, !!top) : 'lose');
+  const isWin = key === 'win' || key === 'big-win' || key === 'mega-win' || key === 'jackpot';
   setBalance(balance, key === 'push' ? undefined : isWin, xp, level);
   if (machine) {
     const res = machine.querySelector('.machine-result');
     if (res) {
-      if (isWin)            { res.dataset.state = 'win';     res.textContent = '+' + fmt(gain) + ' · ×' + (gain / bet).toFixed(2); }
-      else if (key === 'partial') { res.dataset.state = 'lose'; res.textContent = '−' + fmt(bet - gain); }
+      if (isWin)                  { res.dataset.state = 'win';     res.textContent = '+' + fmt(gain) + ' · ×' + (gain / bet).toFixed(2); }
+      else if (key === 'partial') { res.dataset.state = 'lose';    res.textContent = '−' + fmt(bet - gain); }
       else if (key === 'push')    { res.dataset.state = 'neutral'; res.textContent = 'Mise rendue'; }
-      else                  { res.dataset.state = 'lose';    res.textContent = 'Perdu'; }
+      else                        { res.dataset.state = 'lose';    res.textContent = 'Perdu'; }
     }
     machine.classList.remove(...FX);
     void machine.offsetWidth;
     if (key !== 'push') machine.classList.add('fx-' + key);
   }
-  if (key === 'win-big')  launchConfetti('BIG WIN\n+' + fmt(gain));
-  if (key === 'win-mega') { const ov = $('winOverlay'); if (ov) ov.classList.add('mega'); launchConfetti('MEGA WIN\n+' + fmt(gain)); }
-  if (isWin) toast('+' + fmt(gain), 1800, 'success');
+  if (key === 'big-win' || key === 'mega-win' || key === 'jackpot') {
+    showWinOverlay(key, gain, gain / bet);
+  } else if (key === 'win') {
+    toast('+' + fmt(gain), 1800, 'success');
+  }
 }
 
 /* ── Navigation ──────────────────────────────────────────── */
@@ -381,7 +401,7 @@ async function spin() {
     clearInterval(tick);
     const machine = $('view-slots').querySelector('.machine');
     if (d.gain > 0) reels.forEach(r => r.classList.add('hit'));
-    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
     slotSpinning = false; $('slotBtn').disabled = false;
   }, 1180);
 }
@@ -466,7 +486,7 @@ async function minesPick(i) {
   if (d.cashedOut) {
     revealBombs(d.bombs); minesActive = false;
     $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
-    gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+    gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
     return;
   }
   setBalance(d.balance, undefined, d.xp, d.level);
@@ -477,7 +497,7 @@ async function minesCashout() {
   revealBombs(d.bombs); minesActive = false;
   $('minesCash').classList.add('hidden'); $('minesStart').classList.remove('hidden');
   const machine = $('view-mines').querySelector('.machine');
-  gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+  gameResult({ machine, bet: minesCurrentBet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
 }
 
 /* ══════════════════ PLINKO ══════════════════════════════ */
@@ -583,7 +603,7 @@ async function plinkoDrop() {
     else {
       pkBall.x = pkX(PK_ROWS, target); pkBall.y = g.binY-4; pkHighlight = target; pkTrail = []; drawPlinko(); pkAnim = null; pkBall = null; $('plinkoBtn').disabled = false;
       const machine = $('view-plinko').querySelector('.machine');
-      gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+      gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
     }
   }
   pkAnim = requestAnimationFrame(frame);
@@ -635,7 +655,7 @@ async function wheelSpin() {
   setTimeout(() => {
     wheelSpinning = false; $('wBtn').disabled = false; if (rs) rs.disabled = false;
     const machine = $('view-wheel').querySelector('.machine');
-    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
   }, 4700);
 }
 
@@ -661,7 +681,7 @@ async function diceRoll() {
     diceRolling = false; $('diceBtn').disabled = false; dot.classList.remove('rolling');
     res.textContent = d.roll.toFixed(2); res.className = 'dice-result '+(d.win?'win':'lose');
     const machine = $('view-dice').querySelector('.machine');
-    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level });
+    gameResult({ machine, bet, gain: d.gain, balance: d.balance, xp: d.xp, level: d.level, top: d.top });
   }, 850);
 }
 
