@@ -173,6 +173,7 @@ function bookCasino(bet: number, gain: number) {
 function jackpotResolve(
   u: User, bet: number, gameKey: string, mults: number[],
   forcer: (m: number) => Record<string, unknown> & { gain: number },
+  isTop: (m: number) => boolean,
   set: { status?: number },
 ): object | null {
   const c = Q.getCasino.get() as { wagered: number; paid: number }
@@ -188,7 +189,7 @@ function jackpotResolve(
   logEvent(pendingJackpot!.armedBy, 'admin',
     'JACKPOT ' + gameKey + ' par ' + u.username + ' : ' + r.gain + ' (x' + m + ', cible ' + Math.round(target) + ')', r.gain)
   pendingJackpot = null
-  return { ...r, ...userSnapshot(u.id) }
+  return { ...r, top: isTop(m), ...userSnapshot(u.id) }
 }
 function recordHistory(userId: number, game: string, bet: number, gain: number, result: string | null) {
   Q.insHistory.run(userId, game, bet, gain, result ?? null, Date.now())
@@ -533,14 +534,14 @@ const app = new Elysia()
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'slots', G.slotsJackpotMults(), m => G.slotsJackpot(bet, m), set)
+        const jr = jackpotResolve(u, bet, 'slots', G.slotsJackpotMults(), m => G.slotsJackpot(bet, m), m => G.slotsIsTop(m), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playSlots(bet, casinoBudget())
       payout(u, r.gain, 'slots'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'slots', bet, r.gain, r.reels.join('|'))
-      return { reels: r.reels, gain: r.gain, ...userSnapshot(u.id) }
+      return { reels: r.reels, gain: r.gain, top: G.slotsIsTop(r.mult), ...userSnapshot(u.id) }
     })
 
     .post('/api/play/plinko', ({ body, user, set }) => {
@@ -550,14 +551,14 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'plinko', G.plinkoMults(risk), m => G.plinkoJackpot(bet, risk, m), set)
+        const jr = jackpotResolve(u, bet, 'plinko', G.plinkoMults(risk), m => G.plinkoJackpot(bet, risk, m), m => G.plinkoIsTop(risk, m), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playPlinko(bet, risk, casinoBudget())
       payout(u, r.gain, 'plinko'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'plinko', bet, r.gain, `x${r.mult}`)
-      return { bin: r.bin, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
+      return { bin: r.bin, mult: r.mult, gain: r.gain, top: G.plinkoIsTop(risk, r.mult), ...userSnapshot(u.id) }
     })
 
     .post('/api/play/wheel', ({ body, user, set }) => {
@@ -567,14 +568,14 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'wheel', G.wheelMults(risk), m => G.wheelJackpot(bet, risk, m), set)
+        const jr = jackpotResolve(u, bet, 'wheel', G.wheelMults(risk), m => G.wheelJackpot(bet, risk, m), m => G.wheelIsTop(risk, m), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playWheel(bet, risk, casinoBudget())
       payout(u, r.gain, 'wheel'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'wheel', bet, r.gain, `x${r.mult}`)
-      return { index: r.index, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
+      return { index: r.index, mult: r.mult, gain: r.gain, top: G.wheelIsTop(risk, r.mult), ...userSnapshot(u.id) }
     })
 
     .post('/api/play/dice', ({ body, user, set }) => {
@@ -585,14 +586,14 @@ const app = new Elysia()
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
       if (pendingJackpot) {
         const dm = G.diceMult(chance)
-        const jr = jackpotResolve(u, bet, 'dice', dm > 1 ? [dm] : [], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), set)
+        const jr = jackpotResolve(u, bet, 'dice', dm > 1 ? [dm] : [], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), () => G.diceIsTop(chance, true), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
       const r = G.playDice(bet, chance, casinoBudget())
       payout(u, r.gain, 'dice'); awardXP(u.id, bet); bookCasino(bet, r.gain)
       recordHistory(u.id, 'dice', bet, r.gain, r.roll + (r.win ? '✓' : '✗'))
-      return { roll: r.roll, win: r.win, mult: r.mult, gain: r.gain, ...userSnapshot(u.id) }
+      return { roll: r.roll, win: r.win, mult: r.mult, gain: r.gain, top: G.diceIsTop(chance, r.win), ...userSnapshot(u.id) }
     })
 
     /* ── Blackjack ──────────────────────────────────────── */
@@ -685,7 +686,7 @@ const app = new Elysia()
         bookCasino(st.bet, pot)
         recordHistory(u.id, 'mines', st.bet, pot, 'sweep')
         st.live = false; activeMines.delete(u.id)
-        return { result: 'gem', i, pot, cashedOut: true, gain: pot, bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
+        return { result: 'gem', i, pot, cashedOut: true, gain: pot, top: true, bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
       }
       return { result: 'gem', i, pot, ...userSnapshot(u.id) }
     })
@@ -699,7 +700,7 @@ const app = new Elysia()
       bookCasino(st.bet, gain)
       recordHistory(u.id, 'mines', st.bet, gain, `${st.gems} gems`)
       st.live = false; activeMines.delete(u.id)
-      return { gain, bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
+      return { gain, top: G.minesIsTop(st.bombs, st.gems), bombs: G.minesDisplayBombs(st.revealed, st.bombs, -1), ...userSnapshot(u.id) }
     })
 
     /* ── Historique / Leaderboard ───────────────────────── */
