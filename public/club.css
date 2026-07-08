@@ -10,7 +10,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 24px 20px;
   gap: 0;
 }
 
@@ -50,7 +50,10 @@
   max-width: 440px;
   box-shadow: 0 20px 60px -20px rgba(0, 0, 0, .6);
 }
-#registerSection .portal-card { max-width: 600px; }
+#registerSection .portal-card { max-width: 600px; padding: 20px 30px; }
+/* inscription : formulaire dense pour tenir sans scroll */
+#registerSection .portal-brand { margin-bottom: 14px; }
+#registerSection .portal-card h2 { margin: 0 0 10px; }
 
 .portal-card h2 {
   font-family: var(--display, 'Cormorant Garamond', serif);
@@ -201,18 +204,18 @@
 .club-text { color: rgba(230, 225, 245, .55); line-height: 1.7; margin: 0; font-size: .95rem; }
 
 /* Registration grid — 2 columns */
-.reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 20px; }
+.reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 22px; margin-bottom: 14px; }
 /* identifiants (pseudo + mot de passe) en pleine largeur : la checklist MDP a
    besoin de place et évite le déséquilibre de hauteur avec la cellule voisine */
 .reg-grid .reg-wide { grid-column: 1 / -1; }
 .reg-grid label {
-  display: flex; flex-direction: column; gap: 6px;
+  display: flex; flex-direction: column; gap: 4px;
   font-size: .82rem; font-weight: 600; color: rgba(230, 225, 245, .6);
   letter-spacing: .04em; text-transform: uppercase;
 }
 .reg-grid input {
   background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12);
-  border-radius: 8px; padding: 10px 14px; color: #f5f0ff; font-family: inherit;
+  border-radius: 8px; padding: 8px 13px; color: #f5f0ff; font-family: inherit;
   font-size: .95rem; outline: none; width: 100%; box-sizing: border-box;
   transition: border-color .15s, box-shadow .15s;
 }
@@ -284,8 +287,8 @@
 .invite-banner {
   background: var(--accent-soft, rgba(201, 168, 76, .12));
   border: 1px solid var(--accent-dim, rgba(201, 168, 76, .3));
-  border-radius: 8px; padding: 10px 16px; color: var(--accent);
-  font-weight: 600; font-size: .9rem; margin: 0 0 20px;
+  border-radius: 8px; padding: 8px 14px; color: var(--accent);
+  font-weight: 600; font-size: .9rem; margin: 0 0 14px;
 }
 .form-err { color: #e05050; font-size: .88rem; min-height: 1.2em; margin-bottom: 12px; }
 
@@ -361,16 +364,17 @@
 /* ── Inscription : validation live ── */
 .reg-grid .req { color: var(--accent, #7c5cff); font-weight: 600; }
 .reg-grid .opt { color: #9aa0b5; font-weight: 400; font-size: .82em; }
-.field-msg { display: block; min-height: 1em; margin-top: 4px; font-size: .8rem; color: #ff5c72; }
+.field-msg { display: block; min-height: 0; margin-top: 2px; font-size: .78rem; color: #ff5c72; }
+.field-msg:empty { margin-top: 0; }
 .field-msg.ok { color: #43d17a; }
 .reg-grid input.valid   { border-color: #43d17a; }
 .reg-grid input.invalid { border-color: #ff5c72; }
-.pw-meter { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 8px; }
+.pw-meter { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 6px; }
 .pw-meter-bar { display: block; height: 100%; width: 0; border-radius: 4px; transition: width .2s ease, background .2s ease; background: #ff5c72; }
 .pw-meter-bar[data-level="Moyen"] { background: #f2b13c; }
 .pw-meter-bar[data-level="Fort"]  { background: #43d17a; }
 .pw-meter-label { font-size: .78rem; color: #9aa0b5; }
-.pw-checklist { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.pw-checklist { list-style: none; padding: 0; margin: 6px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1px 12px; }
 .pw-checklist li { font-size: .8rem; color: #9aa0b5; padding-left: 18px; position: relative; }
 .pw-checklist li::before { content: '○'; position: absolute; left: 0; }
 .pw-checklist li.ok { color: #43d17a; }
