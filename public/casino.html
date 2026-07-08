@@ -455,10 +455,15 @@
     </div><!-- /mainView -->
   </div><!-- /app #appWrap -->
 
-  <!-- WIN OVERLAY -->
-  <div id="winOverlay" class="win-overlay hidden" onclick="this.classList.add('hidden')">
+  <!-- WIN OVERLAY (célébration persistante) -->
+  <div id="winOverlay" class="win-overlay hidden" data-tier="" onclick="hideWinOverlay()">
     <canvas id="confettiCanvas" class="confetti-cvs"></canvas>
-    <div id="winLabel" class="win-label"></div>
+    <div class="win-card">
+      <div id="winLabel" class="win-label"></div>
+      <div class="win-amount"><span class="win-plus">+</span><span id="winAmount">0</span></div>
+      <div id="winMult" class="win-mult"></div>
+      <button type="button" class="btn win-continue">Continuer</button>
+    </div>
   </div>
 
 </body>
