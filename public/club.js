@@ -60,6 +60,7 @@ function cfReset(id) {
       $('inviteBanner').textContent = `Invitation valide · ${fmt(inv.credits)} Crédits Club offerts`;
       $('registerSection').classList.remove('hidden');
       cfRender('regCaptcha').then(id => { cfRegId = id; });
+      initRegisterValidation();
     } catch (e) {
       toast(e.message, 4000, 'error');
       $('portalLogin').classList.remove('hidden');
@@ -162,8 +163,60 @@ async function submitLoginCode() {
   } catch (e) { $('login2faErr').textContent = e.message; }
 }
 
+/* ── Inscription : validation live ── */
+function validUserClient(u) { return /^[A-Za-z0-9_-]{3,20}$/.test(u); }
+
+function regFieldOk(id, valid, msg) {
+  const inp = $(id); if (!inp) return valid;
+  const filled = inp.value.trim() !== '';
+  inp.classList.toggle('valid', valid);
+  inp.classList.toggle('invalid', !valid && filled);
+  const m = $(id + 'Msg');
+  if (m) m.textContent = (!valid && filled) ? msg : '';
+  return valid;
+}
+
+function renderPwMeter(res, pass) {
+  const bar = $('regPassBar');
+  if (bar) {
+    bar.style.width = (pass ? (res.score / 6 * 100) : 0) + '%';
+    bar.dataset.level = pass ? res.label : '';
+  }
+  const lbl = $('regPassLabel');
+  if (lbl) lbl.textContent = pass ? ('Force : ' + res.label) : '';
+  const list = $('regPassChecklist');
+  if (list) list.querySelectorAll('li').forEach(li => {
+    li.classList.toggle('ok', !!res.rules[li.dataset.rule]);
+  });
+  // notName n'est pas dans la checklist (règle croisée) → message dédié
+  const msg = $('regPassMsg');
+  if (msg) msg.textContent = (pass && !res.rules.notName) ? 'Le mot de passe ne doit pas contenir ton pseudo.' : '';
+}
+
+function refreshRegisterState() {
+  const user = $('regUser').value.trim();
+  const pass = $('regPass').value;
+  const okUser    = regFieldOk('regUser', validUserClient(user), 'Pseudo : 3–20 caractères (lettres, chiffres, _ ou -).');
+  const okNom     = regFieldOk('regNom', $('regNom').value.trim() !== '', 'Champ requis.');
+  const okPrenom  = regFieldOk('regPrenom', $('regPrenom').value.trim() !== '', 'Champ requis.');
+  const okDiscord = regFieldOk('regDiscord', $('regDiscord').value.trim() !== '', 'Champ requis.');
+  const res = Password.checkPassword(pass, user);
+  renderPwMeter(res, pass);
+  const okAll = okUser && okNom && okPrenom && okDiscord && res.ok;
+  const btn = $('regSubmit'); if (btn) btn.disabled = !okAll;
+  return okAll;
+}
+
+function initRegisterValidation() {
+  ['regUser', 'regPass', 'regNom', 'regPrenom', 'regDiscord'].forEach(id => {
+    const el = $(id); if (el) el.addEventListener('input', refreshRegisterState);
+  });
+  refreshRegisterState();
+}
+
 async function submitRegister() {
   $('regErr').textContent = '';
+  if (!refreshRegisterState()) { $('regErr').textContent = 'Complète les champs en rouge.'; return; }
   try {
     const d = await api('/register', 'POST', {
       user: $('regUser').value.trim(), pass: $('regPass').value, invite: INVITE_TOKEN,
