@@ -325,3 +325,22 @@
   .page { padding: 16px 16px 60px; }
   .club-section { padding: 20px 18px; }
 }
+
+/* ── Inscription : validation live ── */
+.reg-grid .req { color: var(--accent, #7c5cff); font-weight: 600; }
+.reg-grid .opt { color: #9aa0b5; font-weight: 400; font-size: .82em; }
+.field-msg { display: block; min-height: 1em; margin-top: 4px; font-size: .8rem; color: #ff5c72; }
+.field-msg.ok { color: #43d17a; }
+.reg-grid input.valid   { border-color: #43d17a; }
+.reg-grid input.invalid { border-color: #ff5c72; }
+.pw-meter { height: 6px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 8px; }
+.pw-meter-bar { display: block; height: 100%; width: 0; border-radius: 4px; transition: width .2s ease, background .2s ease; background: #ff5c72; }
+.pw-meter-bar[data-level="Moyen"] { background: #f2b13c; }
+.pw-meter-bar[data-level="Fort"]  { background: #43d17a; }
+.pw-meter-label { font-size: .78rem; color: #9aa0b5; }
+.pw-checklist { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.pw-checklist li { font-size: .8rem; color: #9aa0b5; padding-left: 18px; position: relative; }
+.pw-checklist li::before { content: '○'; position: absolute; left: 0; }
+.pw-checklist li.ok { color: #43d17a; }
+.pw-checklist li.ok::before { content: '✓'; }
+#regSubmit:disabled { opacity: .5; cursor: not-allowed; }

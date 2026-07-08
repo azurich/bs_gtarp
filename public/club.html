@@ -16,6 +16,7 @@
   <script defer src="/core/auth.js"></script>
   <script defer src="/core/twofa.js"></script>
   <script defer src="/core/shell.js"></script>
+  <script defer src="/core/password.js"></script>
   <script defer src="/club.js"></script>
 </head>
 <body data-universe="club">
@@ -77,16 +78,45 @@
         <h2>Créer mon compte</h2>
         <p id="inviteBanner" class="invite-banner"></p>
         <div class="reg-grid">
-          <label>Pseudo (login)<input id="regUser" autocomplete="username"></label>
-          <label>Mot de passe<input id="regPass" type="password" autocomplete="new-password"></label>
-          <label>NOM<input id="regNom"></label>
-          <label>Prénom<input id="regPrenom"></label>
-          <label>Numéro (tél RP)<input id="regPhone"></label>
-          <label>id Discord<input id="regDiscord"></label>
+          <label>Pseudo (login) <span class="req">*</span>
+            <input id="regUser" autocomplete="username">
+            <span class="field-msg" id="regUserMsg"></span>
+          </label>
+          <label>Mot de passe <span class="req">*</span>
+            <div class="pw-field">
+              <input id="regPass" type="password" autocomplete="new-password">
+              <button type="button" class="pw-eye" onclick="togglePw('regPass', this)" aria-label="Afficher / masquer"><i data-lucide="eye"></i></button>
+            </div>
+            <div class="pw-meter"><span id="regPassBar" class="pw-meter-bar"></span></div>
+            <span id="regPassLabel" class="pw-meter-label"></span>
+            <ul class="pw-checklist" id="regPassChecklist">
+              <li data-rule="length">12 caractères minimum</li>
+              <li data-rule="upper">Une majuscule</li>
+              <li data-rule="lower">Une minuscule</li>
+              <li data-rule="digit">Un chiffre</li>
+              <li data-rule="special">Un caractère spécial</li>
+            </ul>
+            <span class="field-msg" id="regPassMsg"></span>
+          </label>
+          <label>NOM <span class="req">*</span>
+            <input id="regNom">
+            <span class="field-msg" id="regNomMsg"></span>
+          </label>
+          <label>Prénom <span class="req">*</span>
+            <input id="regPrenom">
+            <span class="field-msg" id="regPrenomMsg"></span>
+          </label>
+          <label>Numéro (tél RP) <span class="opt">(optionnel)</span>
+            <input id="regPhone">
+          </label>
+          <label>id Discord <span class="req">*</span>
+            <input id="regDiscord">
+            <span class="field-msg" id="regDiscordMsg"></span>
+          </label>
         </div>
         <div id="regCaptcha" class="cf-slot"></div>
         <div id="regErr" class="form-err"></div>
-        <button class="btn" onclick="submitRegister()">Créer mon compte</button>
+        <button class="btn" id="regSubmit" onclick="submitRegister()" disabled>Créer mon compte</button>
       </div>
     </section>
 
