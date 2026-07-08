@@ -318,3 +318,23 @@ export function diceMult(chance: number): number {
   const c = Math.max(2, Math.min(95, chance))
   return +((100 / c) * RTP).toFixed(2)
 }
+
+/* ── Palier "top" : le résultat a-t-il atteint le gain MAXIMAL du jeu ? ──
+   Sert au palier JACKPOT (présentation). Purs & testables. */
+export function slotsIsTop(mult: number): boolean {
+  return mult === Math.max(...slotsJackpotMults())      // 20 (trois 7️⃣)
+}
+export function wheelIsTop(risk: string, mult: number): boolean {
+  const seg = WHEEL[risk as keyof typeof WHEEL] ?? WHEEL.med
+  return mult > 0 && mult === Math.max(...seg)
+}
+export function plinkoIsTop(risk: string, mult: number): boolean {
+  const arr = PK_MULT[risk] ?? PK_MULT.med
+  return mult > 0 && mult === Math.max(...arr)
+}
+export function diceIsTop(chance: number, won: boolean): boolean {
+  return won && chance <= 3
+}
+export function minesIsTop(bombs: number, gems: number): boolean {
+  return gems >= minesMaxGems(bombs)
+}
