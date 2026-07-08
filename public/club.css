@@ -254,15 +254,6 @@
 /* ── Écran proposition 2FA post-inscription (« Sécurise ton compte ») ── */
 .twofa-card { max-width: 420px; text-align: center; }
 .twofa-card h2 { text-align: center; margin: 0 0 8px; font-size: clamp(1.9rem, 5vw, 2.3rem); }
-/* emblème sobre : simple anneau or + icône */
-.twofa-emblem {
-  width: 64px; height: 64px; margin: 2px auto 16px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  border: 1px solid var(--accent-dim);
-  color: var(--accent);
-}
-.twofa-emblem svg { width: 28px; height: 28px; stroke-width: 1.6; }
 .twofa-benefit {
   color: rgba(230, 225, 245, .6); font-size: .9rem; line-height: 1.6;
   margin: 16px auto 22px; max-width: 300px;
