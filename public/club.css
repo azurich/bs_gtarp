@@ -202,6 +202,9 @@
 
 /* Registration grid — 2 columns */
 .reg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; margin-bottom: 20px; }
+/* identifiants (pseudo + mot de passe) en pleine largeur : la checklist MDP a
+   besoin de place et évite le déséquilibre de hauteur avec la cellule voisine */
+.reg-grid .reg-wide { grid-column: 1 / -1; }
 .reg-grid label {
   display: flex; flex-direction: column; gap: 6px;
   font-size: .82rem; font-weight: 600; color: rgba(230, 225, 245, .6);
