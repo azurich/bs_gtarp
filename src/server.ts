@@ -174,6 +174,7 @@ function jackpotResolve(
   u: User, bet: number, gameKey: string, mults: number[],
   forcer: (m: number) => Record<string, unknown> & { gain: number },
   isTop: (m: number) => boolean,
+  label: (r: Record<string, unknown>) => string,
   set: { status?: number },
 ): object | null {
   const c = Q.getCasino.get() as { wagered: number; paid: number }
@@ -185,7 +186,9 @@ function jackpotResolve(
   if (!charge(u, bet, gameKey)) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
   const r = forcer(m)
   payout(u, r.gain, gameKey); awardXP(u.id, bet); bookCasino(bet, r.gain)
-  recordHistory(u.id, gameKey, bet, r.gain, 'jackpot')
+  // Enregistre le même libellé qu'un tour gagnant normal du jeu : un jackpot admin
+  // reste indiscernable dans l'historique du joueur (contrainte « caché »).
+  recordHistory(u.id, gameKey, bet, r.gain, label(r))
   logEvent(pendingJackpot!.armedBy, 'admin',
     'JACKPOT ' + gameKey + ' par ' + u.username + ' : ' + r.gain + ' (x' + m + ', cible ' + Math.round(target) + ')', r.gain)
   pendingJackpot = null
@@ -534,7 +537,7 @@ const app = new Elysia()
       const bet = intBet((body as any).bet)
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'slots', G.slotsJackpotMults(), m => G.slotsJackpot(bet, m), m => G.slotsIsTop(m), set)
+        const jr = jackpotResolve(u, bet, 'slots', G.slotsJackpotMults(), m => G.slotsJackpot(bet, m), m => G.slotsIsTop(m), r => (r.reels as string[]).join('|'), set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'slots')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
@@ -551,7 +554,7 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'plinko', G.plinkoMults(risk), m => G.plinkoJackpot(bet, risk, m), m => G.plinkoIsTop(risk, m), set)
+        const jr = jackpotResolve(u, bet, 'plinko', G.plinkoMults(risk), m => G.plinkoJackpot(bet, risk, m), m => G.plinkoIsTop(risk, m), r => `x${r.mult}`, set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'plinko')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
@@ -568,7 +571,7 @@ const app = new Elysia()
       if (!bet) { set.status = 400; return { error: 'Mise invalide' } }
       const risk = (['low', 'med', 'high'] as const).find(x => x === b.risk) ?? 'med'
       if (pendingJackpot) {
-        const jr = jackpotResolve(u, bet, 'wheel', G.wheelMults(risk), m => G.wheelJackpot(bet, risk, m), m => G.wheelIsTop(risk, m), set)
+        const jr = jackpotResolve(u, bet, 'wheel', G.wheelMults(risk), m => G.wheelJackpot(bet, risk, m), m => G.wheelIsTop(risk, m), r => `x${r.mult}`, set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'wheel')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
@@ -586,7 +589,7 @@ const app = new Elysia()
       const chance = Math.max(2, Math.min(95, Math.floor(Number(b.chance) || 50)))
       if (pendingJackpot) {
         const dm = G.diceMult(chance)
-        const jr = jackpotResolve(u, bet, 'dice', dm > 1 ? [dm] : [], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), () => G.diceIsTop(chance, true), set)
+        const jr = jackpotResolve(u, bet, 'dice', dm > 1 ? [dm] : [], m => ({ roll: +(Math.random() * chance).toFixed(2), win: true, mult: m, gain: Math.round(bet * m) }), () => G.diceIsTop(chance, true), r => `${r.roll}✓`, set)
         if (jr) return jr
       }
       if (!charge(u, bet, 'dice')) { set.status = 400; return { error: 'Crédits Club insuffisants' } }
