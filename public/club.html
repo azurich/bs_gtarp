@@ -126,12 +126,14 @@
         <h1 class="portal-logo">Black<span>State</span></h1>
         <div class="portal-logo-club">Club</div>
       </div>
-      <div class="portal-card">
+      <div class="portal-card twofa-card">
+        <div class="twofa-emblem"><i data-lucide="shield-check"></i></div>
         <h2>Sécurise ton compte</h2>
-        <p class="club-text" style="margin-top:0; text-align:center">Active la double authentification (2FA)<br><span style="opacity:.7; font-size:.9em">optionnel mais recommandé.</span></p>
+        <p class="twofa-sub">optionnel mais recommandé.</p>
+        <p class="twofa-benefit">Un code unique à chaque connexion, en plus de ton mot de passe.</p>
         <div id="regTwofaChoice" class="twofa-choice">
           <button class="btn" onclick="startRegTwofa()">Activer</button>
-          <button class="btn ghost" onclick="location.href='/'">Plus tard</button>
+          <button type="button" class="twofa-later" onclick="location.href='/'">Plus tard</button>
         </div>
         <div id="regTwofaBox"></div>
       </div>

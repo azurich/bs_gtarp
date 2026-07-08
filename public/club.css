@@ -247,6 +247,35 @@
 .twofa-on svg { width: 18px; height: 18px; }
 .twofa-choice { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
 .twofa-loading { color: rgba(230, 225, 245, .6); }
+
+/* ── Écran proposition 2FA post-inscription (« Sécurise ton compte ») ── */
+.twofa-card { max-width: 420px; text-align: center; }
+.twofa-card h2 { text-align: center; margin: 0 0 6px; }
+/* emblème « seconde clé du coffre » : anneau or + halo doux */
+.twofa-emblem {
+  width: 74px; height: 74px; margin: 4px auto 18px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--accent-dim);
+  background: radial-gradient(circle at 50% 38%, var(--accent-soft), transparent 70%);
+  box-shadow: 0 0 0 6px rgba(201, 168, 76, .04), 0 0 34px -6px var(--accent-glow);
+  color: var(--accent);
+}
+.twofa-emblem svg { width: 33px; height: 33px; stroke-width: 1.5; }
+.twofa-sub { text-align: center; color: var(--tx-3); font-size: .82rem; margin: 0; }
+.twofa-benefit {
+  color: rgba(230, 225, 245, .6); font-size: .9rem; line-height: 1.6;
+  margin: 16px auto 22px; max-width: 300px;
+}
+/* « Plus tard » : action secondaire discrète (lien), pas un bouton plein */
+.twofa-later {
+  display: block; width: 100%; margin-top: 12px; padding: 6px;
+  background: none; border: none; cursor: pointer;
+  color: var(--tx-3); font-family: var(--body); font-size: .85rem; letter-spacing: .02em;
+  transition: color .15s;
+}
+.twofa-later:hover { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
+.twofa-later:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 4px; }
 .twofa-modal-input { width: 100%; box-sizing: border-box; text-align: center; letter-spacing: .3em; font-family: var(--num); font-size: 1.5rem; padding: 12px; margin: 6px 0 2px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .15); border-radius: 8px; color: #f5f0ff; outline: none; }
 .twofa-modal-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft, rgba(201, 168, 76, .18)); }
 .twofa-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
