@@ -235,5 +235,12 @@ tbody tr:hover td{background:rgba(201,168,76,.04)}
 .cg-jackpot { margin-top: 20px; padding: 16px; border: 1px solid var(--accent-dim, rgba(201,168,76,.3)); border-radius: 12px; background: rgba(201,168,76,.05); }
 .cg-jp-head { display: flex; align-items: center; gap: 10px; font-family: var(--display, serif); font-size: 1.2rem; font-weight: 600; color: var(--tx, #f5f0ff); margin-bottom: 6px; }
 .cg-jp-armed { font-family: var(--body); font-size: .66rem; font-weight: 700; letter-spacing: .08em; color: #46d588; background: rgba(52,209,126,.14); border: 1px solid rgba(52,209,126,.4); border-radius: 999px; padding: 3px 10px; }
-.cg-jp-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.cg-jp-actions .btn { width: auto; }
+.cg-jp-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.cg-jp-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 16px 14px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: var(--r2, 10px); }
+.cg-jp-card.on { border-color: rgba(52,209,126,.5); background: rgba(52,209,126,.06); }
+.cg-jp-card-lbl { font-family: var(--body); font-size: .66rem; font-weight: 700; letter-spacing: .1em; color: var(--tx-3, #8a86a0); }
+.cg-jp-card-amt { font-family: var(--num); font-variant-numeric: tabular-nums; font-size: 1.35rem; font-weight: 700; color: var(--gold); line-height: 1.1; }
+.cg-jp-card-sub { font-size: .7rem; color: var(--tx-3, #8a86a0); margin-bottom: 10px; }
+.cg-jp-card .btn { width: 100%; }
+.cg-jp-cancel { width: 100%; margin-top: 12px; }
+@media (max-width: 520px) { .cg-jp-cards { grid-template-columns: 1fr; } }
