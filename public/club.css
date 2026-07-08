@@ -253,19 +253,16 @@
 
 /* ── Écran proposition 2FA post-inscription (« Sécurise ton compte ») ── */
 .twofa-card { max-width: 420px; text-align: center; }
-.twofa-card h2 { text-align: center; margin: 0 0 6px; }
-/* emblème « seconde clé du coffre » : anneau or + halo doux */
+.twofa-card h2 { text-align: center; margin: 0 0 8px; font-size: clamp(1.9rem, 5vw, 2.3rem); }
+/* emblème sobre : simple anneau or + icône */
 .twofa-emblem {
-  width: 74px; height: 74px; margin: 4px auto 18px;
+  width: 64px; height: 64px; margin: 2px auto 16px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%;
   border: 1px solid var(--accent-dim);
-  background: radial-gradient(circle at 50% 38%, var(--accent-soft), transparent 70%);
-  box-shadow: 0 0 0 6px rgba(201, 168, 76, .04), 0 0 34px -6px var(--accent-glow);
   color: var(--accent);
 }
-.twofa-emblem svg { width: 33px; height: 33px; stroke-width: 1.5; }
-.twofa-sub { text-align: center; color: var(--tx-3); font-size: .82rem; margin: 0; }
+.twofa-emblem svg { width: 28px; height: 28px; stroke-width: 1.6; }
 .twofa-benefit {
   color: rgba(230, 225, 245, .6); font-size: .9rem; line-height: 1.6;
   margin: 16px auto 22px; max-width: 300px;
